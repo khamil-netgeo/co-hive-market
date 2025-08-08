@@ -16,7 +16,7 @@ interface Product {
 }
 
 interface Vendor { id: string; member_discount_override_percent: number | null }
-interface Community { id: string; member_discount_percent: number }
+interface Community { id: string; name: string; member_discount_percent: number }
 
 export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -65,7 +65,7 @@ export default function Catalog() {
           communityIds.length
             ? supabase
                 .from("communities")
-                .select("id,member_discount_percent")
+                .select("id,name,member_discount_percent")
                 .in("id", communityIds)
             : Promise.resolve({ data: [], error: null } as any),
           sessionData.session
@@ -139,6 +139,21 @@ export default function Catalog() {
     }
   };
 
+  const handleJoinCTA = async (communityId: string) => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast("Sign in required", { description: "Create an account to join communities and unlock discounts." });
+        window.location.href = "/auth";
+        return;
+      }
+      // Minimal implementation: UI prompt for now (avoids enum mismatch)
+      toast("Joining flow", { description: "One-click join coming next. For now, contact your community admin." });
+    } catch (e: any) {
+      toast("Unable to proceed", { description: e.message || String(e) });
+    }
+  };
+
   return (
     <main className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -198,6 +213,20 @@ export default function Catalog() {
                         <span>{fmtPrice(p.price_cents, p.currency)}</span>
                       )}
                     </div>
+
+                    {discounted == null && discPercent > 0 && (
+                      <div className="rounded-md border bg-card p-3">
+                        <div className="text-sm">
+                          Join {communitiesById[p.community_id]?.name || "this community"} to save {discPercent}% and pay {fmtPrice(Math.round(p.price_cents * (1 - discPercent / 100)), p.currency)}.
+                        </div>
+                        <div className="mt-2">
+                          <Button size="sm" variant="secondary" onClick={() => handleJoinCTA(p.community_id)}>
+                            Join community to save
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
                     <div>
                       <Button variant="hero" onClick={() => buyNow(p)}>Buy now</Button>
                     </div>
