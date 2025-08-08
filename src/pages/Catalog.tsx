@@ -147,8 +147,16 @@ export default function Catalog() {
         window.location.href = "/auth";
         return;
       }
-      // Minimal implementation: UI prompt for now (avoids enum mismatch)
-      toast("Joining flow", { description: "One-click join coming next. For now, contact your community admin." });
+      const userId = sessionData.session.user.id;
+      const { error } = await supabase
+        .from("community_members")
+        .upsert(
+          { community_id: communityId, user_id: userId, member_type: "buyer" },
+          { onConflict: "community_id,user_id,member_type" }
+        );
+      if (error) throw error;
+      setMemberCommunities((prev) => new Set(prev).add(communityId));
+      toast("Joined community", { description: "Member discount is now applied." });
     } catch (e: any) {
       toast("Unable to proceed", { description: e.message || String(e) });
     }
