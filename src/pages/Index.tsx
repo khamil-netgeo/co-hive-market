@@ -44,6 +44,7 @@ const Index = () => {
             <a href="#how" className="text-sm text-muted-foreground hover:text-foreground transition-colors">How it works</a>
             <a href="#roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</a>
             <a href="#categories" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Categories</a>
+            <a href="/catalog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Catalog</a>
             <a href="/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Plans</a>
             <a href="/vendor/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Vendor</a>
           </nav>

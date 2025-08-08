@@ -10,6 +10,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 import Plans from "./pages/Plans";
 import VendorPlans from "./pages/VendorPlans";
+import Catalog from "./pages/Catalog";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/plans" element={<Plans />} />
+          <Route path="/catalog" element={<Catalog />} />
           <Route path="/vendor/plans" element={<VendorPlans />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-canceled" element={<PaymentCanceled />} />
