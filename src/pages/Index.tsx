@@ -45,6 +45,7 @@ const Index = () => {
             <a href="#roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</a>
             <a href="#categories" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Categories</a>
             <a href="/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Plans</a>
+            <a href="/vendor/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Vendor</a>
           </nav>
           <div className="flex items-center gap-3">
             <Button variant="ghost" asChild>
