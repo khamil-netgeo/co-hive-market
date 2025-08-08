@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      buyer_service_subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          id: string
+          status: string
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+          vendor_service_plan_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+          vendor_service_plan_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+          vendor_service_plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buyer_service_subscriptions_vendor_service_plan_id_fkey"
+            columns: ["vendor_service_plan_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_service_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       communities: {
         Row: {
           community_fee_percent: number
@@ -21,6 +62,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          member_discount_percent: number
           name: string
           updated_at: string
         }
@@ -30,6 +72,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          member_discount_percent?: number
           name: string
           updated_at?: string
         }
@@ -39,6 +82,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          member_discount_percent?: number
           name?: string
           updated_at?: string
         }
@@ -324,6 +368,53 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_service_plans: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          interval: string
+          name: string
+          price_cents: number
+          status: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          interval: string
+          name: string
+          price_cents: number
+          status?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          interval?: string
+          name?: string
+          price_cents?: number
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_service_plans_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendors: {
         Row: {
           active: boolean
@@ -331,6 +422,7 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          member_discount_override_percent: number | null
           updated_at: string
           user_id: string
         }
@@ -340,6 +432,7 @@ export type Database = {
           created_at?: string
           display_name: string
           id?: string
+          member_discount_override_percent?: number | null
           updated_at?: string
           user_id: string
         }
@@ -349,6 +442,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          member_discount_override_percent?: number | null
           updated_at?: string
           user_id?: string
         }
