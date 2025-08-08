@@ -14,16 +14,343 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      communities: {
+        Row: {
+          community_fee_percent: number
+          coop_fee_percent: number
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          community_fee_percent?: number
+          coop_fee_percent?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          community_fee_percent?: number
+          coop_fee_percent?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_members: {
+        Row: {
+          community_id: string
+          created_at: string
+          id: string
+          member_type: Database["public"]["Enums"]["member_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          id?: string
+          member_type: Database["public"]["Enums"]["member_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          id?: string
+          member_type?: Database["public"]["Enums"]["member_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_members_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ledger_entries: {
+        Row: {
+          amount_cents: number
+          beneficiary_id: string | null
+          beneficiary_type: Database["public"]["Enums"]["beneficiary_type"]
+          created_at: string
+          entry_type: Database["public"]["Enums"]["ledger_entry_type"]
+          id: string
+          notes: string | null
+          order_id: string
+        }
+        Insert: {
+          amount_cents: number
+          beneficiary_id?: string | null
+          beneficiary_type: Database["public"]["Enums"]["beneficiary_type"]
+          created_at?: string
+          entry_type: Database["public"]["Enums"]["ledger_entry_type"]
+          id?: string
+          notes?: string | null
+          order_id: string
+        }
+        Update: {
+          amount_cents?: number
+          beneficiary_id?: string | null
+          beneficiary_type?: Database["public"]["Enums"]["beneficiary_type"]
+          created_at?: string
+          entry_type?: Database["public"]["Enums"]["ledger_entry_type"]
+          id?: string
+          notes?: string | null
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_id: string
+          quantity: number
+          unit_price_cents: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_id: string
+          quantity?: number
+          unit_price_cents: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_id?: string
+          quantity?: number
+          unit_price_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          buyer_user_id: string
+          community_id: string
+          created_at: string
+          currency: string
+          id: string
+          status: Database["public"]["Enums"]["order_status"]
+          total_amount_cents: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          buyer_user_id: string
+          community_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          status?: Database["public"]["Enums"]["order_status"]
+          total_amount_cents?: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          buyer_user_id?: string
+          community_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          status?: Database["public"]["Enums"]["order_status"]
+          total_amount_cents?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          community_id: string
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          name: string
+          price_cents: number
+          status: Database["public"]["Enums"]["product_status"]
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          name: string
+          price_cents: number
+          status?: Database["public"]["Enums"]["product_status"]
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price_cents?: number
+          status?: Database["public"]["Enums"]["product_status"]
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vendors: {
+        Row: {
+          active: boolean
+          community_id: string
+          created_at: string
+          display_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          community_id: string
+          created_at?: string
+          display_name: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          community_id?: string
+          created_at?: string
+          display_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendors_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "superadmin"
+      beneficiary_type: "vendor" | "community" | "coop"
+      ledger_entry_type:
+        | "vendor_payout"
+        | "community_share"
+        | "coop_share"
+        | "platform_fee"
+        | "refund"
+      member_type: "vendor" | "delivery" | "buyer" | "coordinator"
+      order_status: "pending" | "paid" | "canceled" | "fulfilled" | "refunded"
+      product_status: "active" | "inactive" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +477,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "superadmin"],
+      beneficiary_type: ["vendor", "community", "coop"],
+      ledger_entry_type: [
+        "vendor_payout",
+        "community_share",
+        "coop_share",
+        "platform_fee",
+        "refund",
+      ],
+      member_type: ["vendor", "delivery", "buyer", "coordinator"],
+      order_status: ["pending", "paid", "canceled", "fulfilled", "refunded"],
+      product_status: ["active", "inactive", "archived"],
+    },
   },
 } as const
