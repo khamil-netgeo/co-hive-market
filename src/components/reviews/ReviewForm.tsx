@@ -16,7 +16,7 @@ type Props = {
 
 export default function ReviewForm({ targetType, targetId, className }: Props) {
   const { toast } = useToast();
-  const { ownReview } = useOwnReview(targetType, targetId);
+  const { data: ownReview } = useOwnReview(targetType, targetId);
   const { canSubmit, userId } = useCanSubmitReview(targetType, targetId);
   const submit = useSubmitReview();
   const removeDraft = useDeleteOwnDraftReview(targetType, targetId);

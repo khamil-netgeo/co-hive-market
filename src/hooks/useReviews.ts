@@ -43,8 +43,8 @@ export function useCurrentUserId() {
 
 export function useReviewSummary(targetType: TargetType, targetId: string) {
   return useQuery({
-    queryKey: ["review-summary", targetType, targetId],
-    queryFn: async () => {
+    queryKey: ["review-summary", targetType, targetId] as const,
+    queryFn: async (): Promise<RatingSummary> => {
       const view = getSummaryView(targetType);
       const key = getSummaryKey(targetType);
       const { data, error } = await supabase
@@ -52,7 +52,7 @@ export function useReviewSummary(targetType: TargetType, targetId: string) {
         .select("*")
         .eq(key, targetId)
         .maybeSingle();
-      if (error) throw error;
+      if (error) throw error as Error;
       return (data ?? { avg_rating: null, review_count: 0 }) as RatingSummary;
     },
   });
@@ -60,8 +60,8 @@ export function useReviewSummary(targetType: TargetType, targetId: string) {
 
 export function useApprovedReviews(targetType: TargetType, targetId: string) {
   return useQuery({
-    queryKey: ["approved-reviews", targetType, targetId],
-    queryFn: async () => {
+    queryKey: ["approved-reviews", targetType, targetId] as const,
+    queryFn: async (): Promise<ReviewRecord[]> => {
       const { data, error } = await supabase
         .from("reviews")
         .select("*")
@@ -69,7 +69,7 @@ export function useApprovedReviews(targetType: TargetType, targetId: string) {
         .eq("target_id", targetId)
         .eq("status", "approved")
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) throw error as Error;
       return (data ?? []) as ReviewRecord[];
     },
   });
@@ -78,9 +78,9 @@ export function useApprovedReviews(targetType: TargetType, targetId: string) {
 export function useOwnReview(targetType: TargetType, targetId: string) {
   const userId = useCurrentUserId();
   return useQuery({
-    queryKey: ["own-review", targetType, targetId, userId],
+    queryKey: ["own-review", targetType, targetId, userId] as const,
     enabled: !!userId,
-    queryFn: async () => {
+    queryFn: async (): Promise<ReviewRecord | null> => {
       const { data, error } = await supabase
         .from("reviews")
         .select("*")
@@ -88,7 +88,7 @@ export function useOwnReview(targetType: TargetType, targetId: string) {
         .eq("target_id", targetId)
         .eq("user_id", userId!)
         .maybeSingle();
-      if (error) throw error;
+      if (error) throw error as Error;
       return (data ?? null) as ReviewRecord | null;
     },
   });
@@ -110,7 +110,6 @@ export function useSubmitReview() {
     mutationFn: async (payload: SubmitPayload) => {
       if (!userId) {
         const err = new Error("Please sign in to submit a review.");
-        // Throw so React Query handles it.
         throw err;
       }
       const { targetType, targetId, rating, title, body } = payload;
@@ -131,7 +130,7 @@ export function useSubmitReview() {
         )
         .select()
         .maybeSingle();
-      if (error) throw error;
+      if (error) throw error as Error;
       return data as ReviewRecord | null;
     },
     onSuccess: (_data, variables) => {
@@ -156,7 +155,7 @@ export function useDeleteOwnDraftReview(targetType: TargetType, targetId: string
         .eq("target_type", targetType)
         .eq("target_id", targetId)
         .in("status", ["pending", "rejected"]);
-      if (error) throw error;
+      if (error) throw error as Error;
       return true;
     },
     onSuccess: () => {
@@ -173,9 +172,7 @@ export function useCanSubmitReview(targetType: TargetType, targetId: string) {
 
   const canSubmit = useMemo(() => {
     if (!userId) return false;
-    // If there's an approved review, don't allow resubmission
     if (ownReview?.status === "approved") return false;
-    // If pending or rejected, allow update (RLS allows)
     return true;
   }, [userId, ownReview]);
 
