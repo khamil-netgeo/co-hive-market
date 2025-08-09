@@ -563,6 +563,60 @@ export type Database = {
         }
         Relationships: []
       }
+      rider_payouts: {
+        Row: {
+          amount_cents: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          currency: string
+          id: string
+          method: string
+          notes: string | null
+          paid_at: string | null
+          paid_by: string | null
+          reference: string | null
+          requested_by: string
+          rider_user_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: string
+          notes?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
+          reference?: string | null
+          requested_by: string
+          rider_user_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: string
+          notes?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
+          reference?: string | null
+          requested_by?: string
+          rider_user_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rider_profiles: {
         Row: {
           created_at: string
