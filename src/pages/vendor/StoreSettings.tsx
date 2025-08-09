@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Image as ImageIcon, Save } from "lucide-react";
+import { setSEO } from "@/lib/seo";
 
 interface OpeningDay {
   open: string;
@@ -31,6 +32,10 @@ export default function StoreSettings() {
   const [description, setDescription] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [facebookUrl, setFacebookUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [tiktokUrl, setTiktokUrl] = useState("");
   const [hours, setHours] = useState<OpeningHours>(() => {
     const init: OpeningHours = {} as any;
     days.forEach((d) => (init[d] = { ...defaultDay }));
@@ -43,7 +48,7 @@ export default function StoreSettings() {
       try {
         const { data: vendor, error } = await supabase
           .from("vendors")
-          .select("id, display_name, description, logo_url, opening_hours")
+          .select("id, display_name, description, logo_url, opening_hours, website_url, facebook_url, instagram_url, tiktok_url")
           .eq("user_id", user.id)
           .maybeSingle();
         if (error) throw error;
@@ -55,6 +60,10 @@ export default function StoreSettings() {
         setDisplayName(vendor.display_name ?? "");
         setDescription(vendor.description ?? "");
         setLogoUrl(vendor.logo_url ?? null);
+        setWebsiteUrl(vendor.website_url ?? "");
+        setFacebookUrl(vendor.facebook_url ?? "");
+        setInstagramUrl(vendor.instagram_url ?? "");
+        setTiktokUrl(vendor.tiktok_url ?? "");
         if (vendor.opening_hours) setHours(vendor.opening_hours as unknown as OpeningHours);
       } catch (e) {
         console.error(e);
@@ -65,6 +74,10 @@ export default function StoreSettings() {
     };
     load();
   }, [user?.id]);
+
+  useEffect(() => {
+    setSEO("Store Settings — Vendor | CoopMarket", "Manage store info, logo, hours, and social links.");
+  }, []);
 
   const previewUrl = useMemo(() => {
     if (logoFile) return URL.createObjectURL(logoFile);
@@ -105,6 +118,10 @@ export default function StoreSettings() {
         display_name: displayName,
         description,
         opening_hours: hours,
+        website_url: websiteUrl || null,
+        facebook_url: facebookUrl || null,
+        instagram_url: instagramUrl || null,
+        tiktok_url: tiktokUrl || null,
       };
       if (finalLogo) payload.logo_url = finalLogo;
 
@@ -200,6 +217,31 @@ export default function StoreSettings() {
                 <p className="text-sm text-muted-foreground truncate">{logoUrl}</p>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Online presence</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="website_url">Website</Label>
+              <Input id="website_url" placeholder="https://yourstore.com" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="facebook_url">Facebook</Label>
+              <Input id="facebook_url" placeholder="https://facebook.com/yourpage" value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="instagram_url">Instagram</Label>
+              <Input id="instagram_url" placeholder="https://instagram.com/yourhandle" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tiktok_url">TikTok</Label>
+              <Input id="tiktok_url" placeholder="https://tiktok.com/@yourhandle" value={tiktokUrl} onChange={(e) => setTiktokUrl(e.target.value)} />
+            </div>
+            <p className="text-sm text-muted-foreground">These links may be shown on your store profile and help with SEO.</p>
           </CardContent>
         </Card>
       </div>

@@ -20,6 +20,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import MediaUploader from "@/components/media/MediaUploader";
 
 const DIETARY_OPTIONS = [
   "vegan",
@@ -67,6 +68,8 @@ const ProductForm = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState("");
   const isEditing = Boolean(productId);
 
   const form = useForm<ProductFormData>({
@@ -136,6 +139,10 @@ const ProductForm = () => {
           navigate("/vendor/dashboard");
           return;
         }
+
+        // Media
+        setImageUrls((productData as any).image_urls || []);
+        setVideoUrl((productData as any).video_url || "");
 
         // Populate form with existing data
         const fullDesc = productData.description || "";
@@ -248,6 +255,8 @@ const ProductForm = () => {
         prep_time_minutes: data.prep_time_minutes ? parseInt(data.prep_time_minutes, 10) : null,
         pickup_lat: data.pickup_lat ? parseFloat(data.pickup_lat) : null,
         pickup_lng: data.pickup_lng ? parseFloat(data.pickup_lng) : null,
+        image_urls: imageUrls.length ? imageUrls : null,
+        video_url: videoUrl ? videoUrl.trim() : null,
       };
       if (isEditing && productId) {
         const { error } = await supabase
@@ -552,6 +561,18 @@ const ProductForm = () => {
                     </FormItem>
                   )}
                 />
+
+                {/* Media */}
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="font-medium">Media</div>
+                    <MediaUploader bucket="product-images" folder={`${vendor.id}/products`} value={imageUrls} onChange={setImageUrls} />
+                  </div>
+                  <div className="space-y-2">
+                    <FormLabel>Promo video URL (optional)</FormLabel>
+                    <Input placeholder="https://... (YouTube, Vimeo or MP4)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+                  </div>
+                </div>
 
                 {/* Pickup location */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

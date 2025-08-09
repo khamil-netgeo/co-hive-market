@@ -15,6 +15,7 @@ import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
+import MediaUploader from "@/components/media/MediaUploader";
 
 const PRICING_MODELS = ["fixed", "hourly", "per_unit"] as const;
 const LOCATION_TYPES = ["vendor", "customer", "remote"] as const;
@@ -57,6 +58,8 @@ export default function ServiceForm() {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [addons, setAddons] = useState<Addon[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState("");
 
   useEffect(() => {
     setSEO(
@@ -153,6 +156,8 @@ export default function ServiceForm() {
           travel_fee_per_km_cents: showTravel && data.travel_fee_per_km ? Math.round(parseFloat(data.travel_fee_per_km) * 100) : null,
           cancellation_policy: data.cancellation_policy,
           has_addons: addons.some(a => a.name.trim()),
+          image_urls: imageUrls.length ? imageUrls : null,
+          video_url: videoUrl ? videoUrl.trim() : null,
         })
         .select("id")
         .maybeSingle();
@@ -488,6 +493,18 @@ export default function ServiceForm() {
                   </FormItem>
                 )}
               />
+
+              {/* Media */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="font-medium">Media</div>
+                  <MediaUploader bucket="service-images" folder={`${user?.id || 'anonymous'}/services`} value={imageUrls} onChange={setImageUrls} />
+                </div>
+                <div className="space-y-2">
+                  <FormLabel>Promo video URL (optional)</FormLabel>
+                  <Input placeholder="https://... (YouTube, Vimeo or MP4)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+                </div>
+              </div>
 
               {/* Actions */}
               <div className="flex gap-3 sticky bottom-0 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2">
