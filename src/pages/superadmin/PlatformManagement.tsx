@@ -29,11 +29,11 @@ export default function PlatformManagement() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="users">Users & Roles</TabsTrigger>
-            <TabsTrigger value="settings">Global Settings</TabsTrigger>
-            <TabsTrigger value="features">Feature Flags</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto">
+            <TabsTrigger value="users" className="text-xs md:text-sm px-2 py-3">Users & Roles</TabsTrigger>
+            <TabsTrigger value="settings" className="text-xs md:text-sm px-2 py-3">Settings</TabsTrigger>
+            <TabsTrigger value="features" className="text-xs md:text-sm px-2 py-3">Features</TabsTrigger>
+            <TabsTrigger value="categories" className="text-xs md:text-sm px-2 py-3">Categories</TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6">

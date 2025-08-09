@@ -27,9 +27,9 @@ export default function FinancialControl() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview">Admin Overview</TabsTrigger>
-            <TabsTrigger value="finance">Finance</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 h-auto">
+            <TabsTrigger value="overview" className="text-sm px-4 py-3">Admin Overview</TabsTrigger>
+            <TabsTrigger value="finance" className="text-sm px-4 py-3">Finance</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">

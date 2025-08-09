@@ -27,9 +27,9 @@ export default function Verification() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="submissions">KYC Submissions</TabsTrigger>
-            <TabsTrigger value="requirements">Requirements</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 h-auto">
+            <TabsTrigger value="submissions" className="text-sm px-4 py-3">KYC Submissions</TabsTrigger>
+            <TabsTrigger value="requirements" className="text-sm px-4 py-3">Requirements</TabsTrigger>
           </TabsList>
 
           <TabsContent value="submissions" className="mt-6">

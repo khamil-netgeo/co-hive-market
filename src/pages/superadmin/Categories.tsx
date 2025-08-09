@@ -153,7 +153,7 @@ export default function Categories() {
     return (
       <ul className="space-y-2">
         {nodes.map((c) => (
-          <li key={c.id} className="flex items-start justify-between gap-3 rounded-md border p-3 hover:bg-muted/50">
+          <li key={c.id} className="flex flex-col sm:flex-row items-start justify-between gap-3 rounded-md border p-3 hover:bg-muted/50">
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-medium" style={{ paddingLeft: depth * 8 }}>{c.name}</span>
@@ -169,7 +169,7 @@ export default function Categories() {
                 <div className="mt-1 text-sm text-muted-foreground line-clamp-2">{c.description}</div>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mt-2 sm:mt-0">
               <Button size="sm" variant="outline" onClick={() => onEdit(c)}>Edit</Button>
               <Button size="sm" variant="destructive" onClick={() => onDelete(c.id)}>
                 <Trash2 className="h-4 w-4" />
@@ -192,7 +192,7 @@ export default function Categories() {
         <CardHeader>
           <CardTitle>Categories</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-8 md:grid-cols-2">
+        <CardContent className="grid gap-6 lg:gap-8 lg:grid-cols-2">
           {/* Form */}
           <div className="space-y-4">
             <div className="grid gap-2">
@@ -236,16 +236,16 @@ export default function Categories() {
               </div>
               <Switch id="active" checked={isActive} onCheckedChange={setIsActive} />
             </div>
-            <div className="grid gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Label htmlFor="sort">Sort order</Label>
-              <Input id="sort" type="number" value={sortOrder} onChange={(e) => setSortOrder(parseInt(e.target.value, 10))} />
+              <Input id="sort" type="number" value={sortOrder} onChange={(e) => setSortOrder(parseInt(e.target.value, 10))} className="w-full" />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="desc">Description</Label>
               <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2">
               <Button onClick={onSave} disabled={saving}>
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 {editingId ? "Update" : "Create"}

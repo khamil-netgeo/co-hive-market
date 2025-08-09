@@ -27,9 +27,9 @@ export default function Communications() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="announcements">Announcements</TabsTrigger>
-            <TabsTrigger value="reports">Content Reports</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 h-auto">
+            <TabsTrigger value="announcements" className="text-sm px-4 py-3">Announcements</TabsTrigger>
+            <TabsTrigger value="reports" className="text-sm px-4 py-3">Content Reports</TabsTrigger>
           </TabsList>
 
           <TabsContent value="announcements" className="mt-6">
