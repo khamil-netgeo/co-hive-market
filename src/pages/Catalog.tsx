@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import ProductImage from "@/components/product/ProductImage";
 
 interface Product {
   id: string;
@@ -21,6 +22,8 @@ interface Product {
   category?: string | null;
   pickup_lat?: number | null;
   pickup_lng?: number | null;
+  image_urls?: string[] | null;
+  video_url?: string | null;
 }
 
 interface Vendor { id: string; member_discount_override_percent: number | null }
@@ -47,7 +50,7 @@ export default function Catalog() {
       try {
         const { data: productsData, error: pErr } = await supabase
           .from("products")
-          .select("id,name,description,price_cents,currency,vendor_id,community_id,status,category,pickup_lat,pickup_lng")
+          .select("id,name,description,price_cents,currency,vendor_id,community_id,status,category,pickup_lat,pickup_lng,image_urls,video_url")
           .eq("status", "active")
           .order("created_at", { ascending: false });
         if (pErr) throw pErr;
@@ -62,6 +65,8 @@ export default function Catalog() {
           category: p.category ?? null,
           pickup_lat: p.pickup_lat ?? null,
           pickup_lng: p.pickup_lng ?? null,
+          image_urls: p.image_urls ?? null,
+          video_url: p.video_url ?? null,
         }));
         setProducts(prods);
 
@@ -287,6 +292,12 @@ export default function Catalog() {
               const discPercent = effectiveDiscountPercent(p);
               return (
                 <Card key={p.id} className="hover:shadow-elegant transition-shadow">
+                  <ProductImage 
+                    imageUrls={p.image_urls} 
+                    productName={p.name}
+                    className="w-full h-48 object-cover rounded-t-md"
+                    fallbackClassName="w-full h-48 bg-muted rounded-t-md flex items-center justify-center"
+                  />
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between gap-2">
                       <span>{p.name}</span>

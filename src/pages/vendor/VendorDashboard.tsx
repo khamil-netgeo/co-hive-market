@@ -8,6 +8,7 @@ import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import ProductImage from "@/components/product/ProductImage";
 
 interface Product {
   id: string;
@@ -17,6 +18,8 @@ interface Product {
   currency: string;
   status: string;
   created_at: string;
+  image_urls?: string[] | null;
+  video_url?: string | null;
 }
 
 interface Service {
@@ -282,8 +285,16 @@ const VendorDashboard = () => {
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg gap-4"
+                  className="flex flex-col sm:flex-row items-start gap-4 p-4 border rounded-lg"
                 >
+                  <div className="w-full sm:w-24 h-24 flex-shrink-0">
+                    <ProductImage 
+                      imageUrls={product.image_urls} 
+                      productName={product.name}
+                      className="w-full h-24 object-cover rounded-md"
+                      fallbackClassName="w-full h-24 bg-muted rounded-md flex items-center justify-center"
+                    />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                       <h3 className="font-semibold truncate">{product.name}</h3>
