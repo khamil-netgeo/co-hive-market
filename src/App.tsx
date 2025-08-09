@@ -19,6 +19,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import RequireAdmin from "./components/auth/RequireAdmin";
 import Finance from "./pages/admin/Finance";
+import GettingStarted from "./pages/GettingStarted";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
         <Routes>
           {/* Keep the landing page standalone to avoid double header/hero */}
           <Route path="/" element={<Index />} />
+          <Route path="/getting-started" element={<GettingStarted />} />
 
           {/* Shared layout for all other routes */}
           <Route element={<Layout />}>

@@ -20,7 +20,7 @@ const SiteHeader = () => {
           )}
         </nav>
         <div className="flex items-center gap-3">
-          <Button variant="hero" asChild><Link to="/auth">Get Started</Link></Button>
+          <Button variant="hero" asChild><Link to="/getting-started">Get Started</Link></Button>
         </div>
       </div>
     </header>

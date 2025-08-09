@@ -1,0 +1,279 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight, Users, ShoppingBag, Truck, UserPlus } from "lucide-react";
+import SiteHeader from "@/components/layout/SiteHeader";
+import SiteFooter from "@/components/layout/SiteFooter";
+import { setSEO } from "@/lib/seo";
+import useAuthRoles from "@/hooks/useAuthRoles";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+const GettingStarted = () => {
+  const { user, loading } = useAuthRoles();
+  const navigate = useNavigate();
+  const [communities, setCommunities] = useState<any[]>([]);
+  const [loadingCommunities, setLoadingCommunities] = useState(true);
+
+  useEffect(() => {
+    setSEO(
+      "Get Started — CoopMarket",
+      "Join a community marketplace and start buying, selling, or delivering products and services."
+    );
+    
+    fetchCommunities();
+  }, []);
+
+  const fetchCommunities = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("communities")
+        .select("*")
+        .order("name");
+      
+      if (error) throw error;
+      setCommunities(data || []);
+    } catch (error) {
+      console.error("Error fetching communities:", error);
+      toast.error("Failed to load communities");
+    } finally {
+      setLoadingCommunities(false);
+    }
+  };
+
+  const handleJoinCommunity = async (communityId: string, memberType: 'buyer' | 'vendor' | 'delivery') => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    try {
+      // Insert community membership
+      const { error: memberError } = await supabase
+        .from("community_members")
+        .insert({
+          community_id: communityId,
+          user_id: user.id,
+          member_type: memberType
+        });
+
+      if (memberError) throw memberError;
+
+      // If joining as vendor, create vendor profile
+      if (memberType === 'vendor') {
+        const { error: vendorError } = await supabase
+          .from("vendors")
+          .insert({
+            user_id: user.id,
+            community_id: communityId,
+            display_name: user.email?.split('@')[0] || 'Vendor'
+          });
+
+        if (vendorError) throw vendorError;
+      }
+
+      toast.success(`Successfully joined as ${memberType}!`);
+      navigate("/");
+    } catch (error: any) {
+      console.error("Error joining community:", error);
+      if (error.message?.includes("duplicate")) {
+        toast.error("You're already a member of this community");
+      } else {
+        toast.error("Failed to join community");
+      }
+    }
+  };
+
+  if (loading || loadingCommunities) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <main className="container mx-auto px-4 py-16">
+          <div className="text-center">Loading...</div>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+      <main className="container mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gradient-brand mb-4">
+              Choose Your Role
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Join a community marketplace and start participating as a buyer, vendor, or delivery rider.
+            </p>
+          </div>
+
+          {!user && (
+            <div className="text-center mb-12">
+              <Card className="max-w-md mx-auto">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserPlus className="h-5 w-5" />
+                    Account Required
+                  </CardTitle>
+                  <CardDescription>
+                    You need to create an account to join a community
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button asChild className="w-full">
+                    <Link to="/auth">Create Account</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <Card className="relative overflow-hidden">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <ShoppingBag className="h-6 w-6 text-primary" />
+                  </div>
+                  <Badge variant="secondary">Buyer</Badge>
+                </div>
+                <CardTitle>Shop & Buy</CardTitle>
+                <CardDescription>
+                  Browse products and services from local vendors in your community
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="text-sm text-muted-foreground space-y-2 mb-4">
+                  <li>• Access to community marketplace</li>
+                  <li>• Member discounts on purchases</li>
+                  <li>• Support local businesses</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="relative overflow-hidden border-primary/20">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Users className="h-6 w-6 text-primary" />
+                  </div>
+                  <Badge className="bg-gradient-primary text-primary-foreground">Vendor</Badge>
+                </div>
+                <CardTitle>Sell & Serve</CardTitle>
+                <CardDescription>
+                  List your products and services to community members
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="text-sm text-muted-foreground space-y-2 mb-4">
+                  <li>• Create product listings</li>
+                  <li>• Offer service subscriptions</li>
+                  <li>• Connect with local customers</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="relative overflow-hidden">
+              <CardHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Truck className="h-6 w-6 text-primary" />
+                  </div>
+                  <Badge variant="outline">Rider</Badge>
+                </div>
+                <CardTitle>Deliver & Earn</CardTitle>
+                <CardDescription>
+                  Provide delivery services for community orders
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="text-sm text-muted-foreground space-y-2 mb-4">
+                  <li>• Flexible delivery opportunities</li>
+                  <li>• Earn from local deliveries</li>
+                  <li>• Help your community</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold text-center">Available Communities</h2>
+            {communities.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">No communities available yet</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-4">
+                {communities.map((community) => (
+                  <Card key={community.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        {community.name}
+                        <Badge variant="outline">
+                          {community.member_discount_percent}% discount
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription>{community.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => handleJoinCommunity(community.id, 'buyer')}
+                            disabled={!user}
+                          >
+                            Join as Buyer
+                          </Button>
+                          <Button 
+                            variant="default" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => handleJoinCommunity(community.id, 'vendor')}
+                            disabled={!user}
+                          >
+                            Join as Vendor
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => handleJoinCommunity(community.id, 'delivery')}
+                            disabled={!user}
+                          >
+                            Join as Rider
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="text-center mt-12">
+            <Button variant="outline" asChild>
+              <Link to="/" className="flex items-center gap-2">
+                Back to Home
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+};
+
+export default GettingStarted;
