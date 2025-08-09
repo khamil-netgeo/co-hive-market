@@ -12,12 +12,16 @@ interface Service {
   id: string;
   vendor_id: string;
   name: string;
+  subtitle?: string | null;
   description: string | null;
   price_cents: number;
   currency: string;
   duration_minutes?: number | null;
   service_area?: string | null;
+  location_type?: string | null;
+  availability_preset?: string | null;
 }
+
 
 export default function Services() {
   const [services, setServices] = useState<Service[]>([]);
@@ -34,7 +38,7 @@ export default function Services() {
       try {
         const { data, error } = await supabase
           .from("vendor_services")
-          .select("id,vendor_id,name,description,price_cents,currency,status,duration_minutes,service_area")
+          .select("id,vendor_id,name,subtitle,description,price_cents,currency,status,duration_minutes,service_area,location_type,availability_preset")
           .eq("status", "active")
           .order("created_at", { ascending: false });
         if (error) throw error;
@@ -42,12 +46,16 @@ export default function Services() {
           id: s.id,
           vendor_id: s.vendor_id,
           name: s.name,
+          subtitle: s.subtitle ?? null,
           description: s.description,
           price_cents: s.price_cents,
           currency: s.currency || "myr",
           duration_minutes: s.duration_minutes ?? null,
           service_area: s.service_area ?? null,
+          location_type: s.location_type ?? null,
+          availability_preset: s.availability_preset ?? null,
         })));
+
       } catch (e: any) {
         toast("Failed to load services", { description: e.message || String(e) });
       } finally {
@@ -183,6 +191,9 @@ export default function Services() {
               <Card key={svc.id} className="hover:shadow-elegant transition-shadow">
                 <CardHeader>
                   <CardTitle>{svc.name}</CardTitle>
+                  {svc.subtitle && (
+                    <p className="text-sm text-muted-foreground mt-1">{svc.subtitle}</p>
+                  )}
                 </CardHeader>
                 <CardContent className="grid gap-3">
                   {svc.description && (

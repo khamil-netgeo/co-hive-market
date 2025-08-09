@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
 
-interface Service { id: string; name: string; description: string | null; price_cents: number; currency: string }
+interface Service { id: string; name: string; subtitle?: string | null; description: string | null; price_cents: number; currency: string }
 
 export default function VendorServices() {
   const { user } = useAuthRoles();
@@ -24,7 +24,7 @@ export default function VendorServices() {
         if (!vend) return;
         const { data, error } = await supabase
           .from("vendor_services")
-          .select("id,name,description,price_cents,currency")
+          .select("id,name,subtitle,description,price_cents,currency")
           .eq("vendor_id", (vend as any).id)
           .order("created_at", { ascending: false });
         if (error) throw error;
@@ -59,6 +59,7 @@ export default function VendorServices() {
             <Card key={s.id}>
               <CardHeader>
                 <CardTitle>{s.name}</CardTitle>
+                {s.subtitle && <p className="text-sm text-muted-foreground mt-1">{s.subtitle}</p>}
               </CardHeader>
               <CardContent className="flex items-center justify-between">
                 <div className="text-sm text-muted-foreground max-w-prose">{s.description}</div>

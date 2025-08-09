@@ -123,7 +123,7 @@ export default function Profile() {
   const userIdShort = useMemo(() => user?.id ? `${user.id.slice(0, 8)}…` : "", [user?.id]);
 
   return (
-    <main className="container py-8">
+    <main className="container px-4 py-8">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold">My Profile</h1>
         <p className="text-sm text-muted-foreground">Account overview and quick actions.</p>

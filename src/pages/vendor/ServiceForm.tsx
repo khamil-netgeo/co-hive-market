@@ -133,17 +133,45 @@ export default function ServiceForm() {
       }
       const finalDescription = lines.join("\n");
 
-      const { error } = await supabase.from("vendor_services").insert({
-        vendor_id: (vend as any).id,
-        name: data.name.trim(),
-        description: finalDescription || null,
-        price_cents: Math.round(parseFloat(data.price) * 100),
-        currency: data.currency || "myr",
-        duration_minutes: data.duration_minutes ? parseInt(data.duration_minutes, 10) : null,
-        service_area: data.service_area?.trim() || null,
-        status: "active",
-      });
+      const { data: inserted, error } = await supabase
+        .from("vendor_services")
+        .insert({
+          vendor_id: (vend as any).id,
+          name: data.name.trim(),
+          subtitle: data.subtitle?.trim() || null,
+          description: finalDescription || null,
+          price_cents: Math.round(parseFloat(data.price) * 100),
+          currency: data.currency || "myr",
+          duration_minutes: data.duration_minutes ? parseInt(data.duration_minutes, 10) : null,
+          service_area: data.service_area?.trim() || null,
+          status: "active",
+          pricing_model: data.pricing_model,
+          location_type: data.location_type,
+          service_radius_km: data.radius_km ? Math.max(0, Math.round(parseFloat(data.radius_km))) : null,
+          min_notice_minutes: data.lead_time_hours ? Math.max(0, Math.round(parseFloat(data.lead_time_hours) * 60)) : null,
+          availability_preset: data.availability_preset,
+          travel_fee_per_km_cents: showTravel && data.travel_fee_per_km ? Math.round(parseFloat(data.travel_fee_per_km) * 100) : null,
+          cancellation_policy: data.cancellation_policy,
+          has_addons: addons.some(a => a.name.trim()),
+        })
+        .select("id")
+        .maybeSingle();
       if (error) throw error;
+
+      const serviceId = (inserted as any)?.id as string | undefined;
+      if (serviceId && addons.some(a => a.name.trim())) {
+        const rows = addons
+          .filter(a => a.name.trim())
+          .map(a => ({
+            service_id: serviceId,
+            name: a.name.trim(),
+            price_delta_cents: a.priceDelta ? Math.round(parseFloat(a.priceDelta) * 100) : 0,
+            time_delta_minutes: a.timeDelta ? Math.max(0, Math.round(parseFloat(a.timeDelta))) : 0,
+          }));
+        const { error: addErr } = await supabase.from("service_addons").insert(rows);
+        if (addErr) throw addErr;
+      }
+
       toast.success("Service created");
       navigate("/vendor/services");
     } catch (e: any) {
