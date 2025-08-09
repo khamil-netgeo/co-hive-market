@@ -39,7 +39,9 @@ const SiteHeader = () => {
             <Link to="/vendor/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Vendor</Link>
           )}
           {(isAdmin || isSuperadmin) && (
-            <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Admin</Link>
+            <Link to={isSuperadmin ? "/superadmin" : "/admin"} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {isSuperadmin ? "Super Admin" : "Admin"}
+            </Link>
           )}
         </nav>
         <div className="flex items-center gap-3">
@@ -81,12 +83,15 @@ const SiteHeader = () => {
                       <DropdownMenuItem onSelect={() => navigate("/rider/dashboard")}>Rider Dashboard</DropdownMenuItem>
                     )}
                     
+                    {/* Show Admin for admin-only users, Super Admin for superadmin users */}
                     {(isAdmin || isSuperadmin) && (
-                      <DropdownMenuItem onSelect={() => navigate("/admin")}>Admin</DropdownMenuItem>
-                    )}
-                    
-                    {isSuperadmin && (
-                      <DropdownMenuItem onSelect={() => navigate("/superadmin")}>Super Admin</DropdownMenuItem>
+                      <>
+                        {isSuperadmin ? (
+                          <DropdownMenuItem onSelect={() => navigate("/superadmin")}>Super Admin</DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem onSelect={() => navigate("/admin")}>Admin</DropdownMenuItem>
+                        )}
+                      </>
                     )}
                     
                     <DropdownMenuSeparator />

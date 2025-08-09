@@ -67,12 +67,15 @@ export default function AppTopbar() {
                   <DropdownMenuItem onSelect={() => navigate("/rider/dashboard")}>Rider Dashboard</DropdownMenuItem>
                 )}
                 
+                {/* Show Admin for admin-only users, Super Admin for superadmin users */}
                 {(isAdmin || isSuperadmin) && (
-                  <DropdownMenuItem onSelect={() => navigate("/admin")}>Admin</DropdownMenuItem>
-                )}
-                
-                {isSuperadmin && (
-                  <DropdownMenuItem onSelect={() => navigate("/superadmin")}>Super Admin</DropdownMenuItem>
+                  <>
+                    {isSuperadmin ? (
+                      <DropdownMenuItem onSelect={() => navigate("/superadmin")}>Super Admin</DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem onSelect={() => navigate("/admin")}>Admin</DropdownMenuItem>
+                    )}
+                  </>
                 )}
                 
                 <DropdownMenuSeparator />
