@@ -5,10 +5,7 @@ import { toast } from "sonner";
 import { setSEO } from "@/lib/seo";
 import Hero from "./index/Hero";
 import Explore from "./index/Explore";
-import Roles from "./index/Roles";
-import HowItWorks from "./index/HowItWorks";
 import Categories from "./index/Categories";
-import PaymentsDemo from "./index/PaymentsDemo";
 
 const Index = () => {
   useEffect(() => {
@@ -47,10 +44,7 @@ const Index = () => {
         />
         <Hero onGetStarted={handleGetStarted} />
         <Explore />
-        <Roles />
-        <HowItWorks />
         <Categories onGetStarted={handleGetStarted} />
-        <PaymentsDemo />
       </main>
       <SiteFooter />
     </div>

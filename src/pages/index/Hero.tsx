@@ -31,69 +31,26 @@ const Hero = ({ onGetStarted }: HeroProps) => {
           </h1>
           
           <p className="mt-6 max-w-prose text-lg text-muted-foreground leading-relaxed">
-            Buy, sell, and deliver locally. Every order shares profit with your community and funds new growth. 
-            Join the cooperative economy that puts people first.
+            Join a community-powered marketplace where vendors, buyers, and delivery partners share in the success. 
+            Every transaction strengthens our local economy.
           </p>
 
-          {/* Stats */}
-          <div className="mt-8 flex items-center gap-6 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="font-medium">Community-owned</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Users className="h-4 w-4 text-primary" />
-              <span className="font-medium">Profit-sharing</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Zap className="h-4 w-4 text-primary" />
-              <span className="font-medium">Local-first</span>
-            </div>
-          </div>
-          
           <div className="mt-8 flex flex-wrap gap-4">
             <Button variant="hero" size="lg" className="group hover-lift" asChild>
               <Link to="/catalog" aria-label="Browse products">
                 <ShoppingBag className="h-4 w-4" /> 
-                Browse Products
+                Explore Products
                 <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
             <Button variant="secondary" size="lg" className="hover-lift" asChild>
-              <Link to="/plans" aria-label="Explore services">
-                <Wrench className="h-4 w-4" /> Explore Services
+              <Link to="/plans" aria-label="Browse services">
+                <Wrench className="h-4 w-4" /> Browse Services
               </Link>
             </Button>
             <Button variant="outline" size="lg" className="hover-lift" onClick={onGetStarted}>
               Become a Vendor
             </Button>
-          </div>
-          
-          <div className="mt-8 grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-2">
-            <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
-                <Sparkles className="h-3 w-3 text-primary" />
-              </div>
-              <span>Profit sharing to communities</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
-                <Wrench className="h-3 w-3 text-primary" />
-              </div>
-              <span>Programs to boost demand & revenue</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
-                <GraduationCap className="h-3 w-3 text-primary" />
-              </div>
-              <span>Events & education beyond commerce</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
-                <Users className="h-3 w-3 text-primary" />
-              </div>
-              <span>Community-owned marketplace</span>
-            </div>
           </div>
         </div>
         
