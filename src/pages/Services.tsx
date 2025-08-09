@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
 
@@ -13,20 +15,26 @@ interface Service {
   description: string | null;
   price_cents: number;
   currency: string;
+  duration_minutes?: number | null;
+  service_area?: string | null;
 }
 
 export default function Services() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [scheduleById, setScheduleById] = useState<Record<string, string>>({}); // datetime-local values
+  const [notesById, setNotesById] = useState<Record<string, string>>({});
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<"newest" | "price_asc" | "price_desc">("newest");
+  const [visibleCount, setVisibleCount] = useState(9);
 
   useEffect(() => {
-    setSEO("Services | CoopMarket", "Book local services and pay securely.");
+    setSEO("Book Local Services | CoopMarket", "Find, compare, and book community services with secure checkout.");
     const load = async () => {
       try {
         const { data, error } = await supabase
           .from("vendor_services")
-          .select("id,vendor_id,name,description,price_cents,currency,status")
+          .select("id,vendor_id,name,description,price_cents,currency,status,duration_minutes,service_area")
           .eq("status", "active")
           .order("created_at", { ascending: false });
         if (error) throw error;
@@ -37,6 +45,8 @@ export default function Services() {
           description: s.description,
           price_cents: s.price_cents,
           currency: s.currency || "myr",
+          duration_minutes: s.duration_minutes ?? null,
+          service_area: s.service_area ?? null,
         })));
       } catch (e: any) {
         toast("Failed to load services", { description: e.message || String(e) });
@@ -49,6 +59,39 @@ export default function Services() {
 
   const fmt = (cents: number, currency: string) =>
     new Intl.NumberFormat(currency.toUpperCase() === "MYR" ? "ms-MY" : "en-US", { style: "currency", currency: currency.toUpperCase() }).format((cents || 0) / 100);
+
+  const normalized = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let arr = [...services];
+    if (q) {
+      arr = arr.filter((s) =>
+        s.name.toLowerCase().includes(q) || (s.description ?? "").toLowerCase().includes(q)
+      );
+    }
+    if (sort === "price_asc") arr.sort((a, b) => (a.price_cents || 0) - (b.price_cents || 0));
+    else if (sort === "price_desc") arr.sort((a, b) => (b.price_cents || 0) - (a.price_cents || 0));
+    // "newest" is default from query order
+    return arr;
+  }, [services, query, sort]);
+
+  const displayed = useMemo(() => normalized.slice(0, visibleCount), [normalized, visibleCount]);
+
+  const jsonLd = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: normalized.map((s, i) => ({
+      "@type": "Service",
+      name: s.name,
+      description: s.description || undefined,
+      areaServed: s.service_area || undefined,
+      offers: {
+        "@type": "Offer",
+        priceCurrency: (s.currency || "MYR").toUpperCase(),
+        price: ((s.price_cents || 0) / 100).toFixed(2),
+      },
+      position: i + 1,
+    })),
+  }), [normalized]);
 
   const book = async (svc: Service) => {
     try {
@@ -63,7 +106,14 @@ export default function Services() {
       // Create a booking row first
       const { data: bookingRows, error: bookingErr } = await supabase
         .from("service_bookings")
-        .insert({ service_id: svc.id, buyer_user_id: buyerId, scheduled_at: when, total_amount_cents: svc.price_cents, currency: svc.currency })
+        .insert({
+          service_id: svc.id,
+          buyer_user_id: buyerId,
+          scheduled_at: when,
+          total_amount_cents: svc.price_cents,
+          currency: svc.currency,
+          notes: (notesById[svc.id]?.trim() || null),
+        })
         .select("id")
         .maybeSingle();
       if (bookingErr) throw bookingErr;
@@ -93,31 +143,101 @@ export default function Services() {
       <h1 className="text-3xl font-semibold">Services</h1>
       <p className="mt-2 max-w-prose text-muted-foreground">Book community services and pay per visit.</p>
 
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <section className="mt-6 grid gap-3 md:flex md:items-center md:justify-between">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search services..."
+          aria-label="Search services"
+          className="w-full md:max-w-md"
+        />
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted-foreground">Sort</span>
+          <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Newest" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="price_asc">Price: Low to High</SelectItem>
+              <SelectItem value="price_desc">Price: High to Low</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </section>
+
       {loading ? (
         <div className="mt-8 text-muted-foreground">Loading services…</div>
-      ) : services.length === 0 ? (
+      ) : normalized.length === 0 ? (
         <div className="mt-8 rounded-md border bg-card p-6 text-muted-foreground">No services yet.</div>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {services.map((svc) => (
-            <Card key={svc.id} className="hover:shadow-elegant transition-shadow">
-              <CardHeader>
-                <CardTitle>{svc.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                {svc.description && <p className="text-sm text-muted-foreground">{svc.description}</p>}
-                <div className="text-2xl font-semibold">{fmt(svc.price_cents, svc.currency)}</div>
-                <div className="grid gap-2">
-                  <label className="text-xs text-muted-foreground" htmlFor={`dt-${svc.id}`}>Preferred date & time (optional)</label>
-                  <Input id={`dt-${svc.id}`} type="datetime-local" value={scheduleById[svc.id] || ""} onChange={(e) => setScheduleById((m) => ({ ...m, [svc.id]: e.target.value }))} />
-                </div>
-                <div>
-                  <Button variant="hero" onClick={() => book(svc)}>Book & Pay</Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <>
+          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {displayed.map((svc) => (
+              <Card key={svc.id} className="hover:shadow-elegant transition-shadow">
+                <CardHeader>
+                  <CardTitle>{svc.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-3">
+                  {svc.description && (
+                    <p className="text-sm text-muted-foreground">{svc.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    {typeof svc.duration_minutes === "number" && svc.duration_minutes > 0 && (
+                      <span>{svc.duration_minutes} min</span>
+                    )}
+                    {svc.service_area && <span aria-label="Service area">{svc.service_area}</span>}
+                  </div>
+                  <div className="text-2xl font-semibold">{fmt(svc.price_cents, svc.currency)}</div>
+                  <div className="grid gap-2">
+                    <label className="text-xs text-muted-foreground" htmlFor={`dt-${svc.id}`}>
+                      Preferred date & time (optional)
+                    </label>
+                    <Input
+                      id={`dt-${svc.id}`}
+                      type="datetime-local"
+                      value={scheduleById[svc.id] || ""}
+                      onChange={(e) =>
+                        setScheduleById((m) => ({ ...m, [svc.id]: e.target.value }))
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <label className="text-xs text-muted-foreground" htmlFor={`note-${svc.id}`}>
+                      Notes (optional)
+                    </label>
+                    <Textarea
+                      id={`note-${svc.id}`}
+                      value={notesById[svc.id] || ""}
+                      onChange={(e) =>
+                        setNotesById((m) => ({ ...m, [svc.id]: e.target.value }))
+                      }
+                      placeholder="Add instructions for the vendor..."
+                    />
+                  </div>
+                  <div>
+                    <Button variant="hero" onClick={() => book(svc)}>
+                      Book & Pay
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {normalized.length > visibleCount && (
+            <div className="mt-8 flex justify-center">
+              <Button variant="secondary" onClick={() => setVisibleCount((n) => n + 9)}>
+                Load more
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </main>
   );
