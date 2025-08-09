@@ -148,7 +148,7 @@ All colors MUST be HSL.
   }
   
   .feature-card {
-    @apply group relative overflow-hidden rounded-lg border bg-card/50 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-card hover:shadow-elegant;
+    @apply relative overflow-hidden rounded-lg border bg-card/50 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-card hover:shadow-elegant;
   }
   
   .grid-fade-in > * {
