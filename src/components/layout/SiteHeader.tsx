@@ -20,6 +20,7 @@ const SiteHeader = () => {
         <nav className="hidden gap-6 md:flex">
           <Link to="/catalog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Products</Link>
           <Link to="/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Services</Link>
+          <Link to="/communities" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Communities</Link>
           <Link to="/riders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Community</Link>
           <Link to="/orders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Orders</Link>
           {user && (
