@@ -3,6 +3,7 @@ import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { logAudit } from "@/lib/audit";
 
 interface Report { id: string; target_type: string; target_id: string; reason: string; status: string }
 
@@ -24,6 +25,7 @@ const ContentReports = () => {
   const setStatus = async (id: string, status: string) => {
     const { error } = await supabase.from("content_reports").update({ status }).eq("id", id);
     if (error) return toast({ title: "Failed to update", description: error.message });
+    await logAudit("content_report.update_status", "content_reports", id, { status });
     await load();
   };
 

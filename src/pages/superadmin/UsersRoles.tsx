@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { logAudit } from "@/lib/audit";
 
 interface RoleRow { user_id: string; role: string }
 
@@ -56,6 +57,7 @@ const UsersRoles = () => {
       body: { action, user_id: foundUser.id, role }
     });
     if (error) return toast({ title: "Role update failed", description: error.message });
+    await logAudit(`role.${action === 'assign_role' ? 'assign' : 'remove'}`, 'user_roles', foundUser.id, { role });
     toast({ title: "Success", description: `${action === 'assign_role' ? 'Added' : 'Removed'} ${role}` });
     await loadRoles();
   };

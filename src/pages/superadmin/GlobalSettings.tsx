@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { logAudit } from "@/lib/audit";
 
 interface Setting { id: string; key: string; value: any; description: string }
 
@@ -32,6 +33,7 @@ const GlobalSettings = () => {
         .from("app_settings")
         .upsert({ key, value: parsed, description }, { onConflict: "key" });
       if (error) throw error;
+      await logAudit("app_setting.upsert", "app_settings", key, { description });
       toast({ title: "Setting saved" });
       setKey(""); setValue(""); setDescription("");
       await load();

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { logAudit } from "@/lib/audit";
 
 interface Announcement { id: string; title: string; body: string; status: string; publish_at: string | null; expires_at: string | null }
 
@@ -25,8 +26,9 @@ const Announcements = () => {
   };
 
   const add = async () => {
-    const { error } = await supabase.from("announcements").insert({ title, body, status: "draft" });
+    const { data, error } = await supabase.from("announcements").insert({ title, body, status: "draft" }).select("id").single();
     if (error) return toast({ title: "Failed to add", description: error.message });
+    await logAudit("announcement.create", "announcements", data?.id ?? null, { title });
     setTitle(""); setBody("");
     await load();
   };
@@ -34,6 +36,7 @@ const Announcements = () => {
   const publish = async (id: string) => {
     const { error } = await supabase.from("announcements").update({ status: "published", publish_at: new Date().toISOString() }).eq("id", id);
     if (error) return toast({ title: "Failed to publish", description: error.message });
+    await logAudit("announcement.publish", "announcements", id);
     await load();
   };
 
