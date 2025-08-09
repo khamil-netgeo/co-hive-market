@@ -125,6 +125,8 @@ export type Database = {
       }
       deliveries: {
         Row: {
+          assigned_at: string | null
+          assignment_expires_at: string | null
           created_at: string
           dropoff_address: string | null
           dropoff_lat: number | null
@@ -135,6 +137,7 @@ export type Database = {
           pickup_address: string | null
           pickup_lat: number | null
           pickup_lng: number | null
+          rider_rating: number | null
           rider_user_id: string | null
           scheduled_dropoff_at: string | null
           scheduled_pickup_at: string | null
@@ -142,6 +145,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_at?: string | null
+          assignment_expires_at?: string | null
           created_at?: string
           dropoff_address?: string | null
           dropoff_lat?: number | null
@@ -152,6 +157,7 @@ export type Database = {
           pickup_address?: string | null
           pickup_lat?: number | null
           pickup_lng?: number | null
+          rider_rating?: number | null
           rider_user_id?: string | null
           scheduled_dropoff_at?: string | null
           scheduled_pickup_at?: string | null
@@ -159,6 +165,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_at?: string | null
+          assignment_expires_at?: string | null
           created_at?: string
           dropoff_address?: string | null
           dropoff_lat?: number | null
@@ -169,6 +177,7 @@ export type Database = {
           pickup_address?: string | null
           pickup_lat?: number | null
           pickup_lng?: number | null
+          rider_rating?: number | null
           rider_user_id?: string | null
           scheduled_dropoff_at?: string | null
           scheduled_pickup_at?: string | null
@@ -181,6 +190,47 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_assignments: {
+        Row: {
+          created_at: string
+          delivery_id: string
+          expires_at: string
+          id: string
+          notified_at: string
+          responded_at: string | null
+          rider_user_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_id: string
+          expires_at?: string
+          id?: string
+          notified_at?: string
+          responded_at?: string | null
+          rider_user_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          delivery_id?: string
+          expires_at?: string
+          id?: string
+          notified_at?: string
+          responded_at?: string | null
+          rider_user_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_assignments_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
             referencedColumns: ["id"]
           },
         ]
@@ -507,6 +557,57 @@ export type Database = {
         }
         Relationships: []
       }
+      rider_profiles: {
+        Row: {
+          created_at: string
+          current_lat: number | null
+          current_lng: number | null
+          id: string
+          is_available: boolean
+          is_verified: boolean
+          last_location_update: string | null
+          license_number: string | null
+          rating: number | null
+          service_radius_km: number
+          total_deliveries: number | null
+          updated_at: string
+          user_id: string
+          vehicle_type: string
+        }
+        Insert: {
+          created_at?: string
+          current_lat?: number | null
+          current_lng?: number | null
+          id?: string
+          is_available?: boolean
+          is_verified?: boolean
+          last_location_update?: string | null
+          license_number?: string | null
+          rating?: number | null
+          service_radius_km?: number
+          total_deliveries?: number | null
+          updated_at?: string
+          user_id: string
+          vehicle_type: string
+        }
+        Update: {
+          created_at?: string
+          current_lat?: number | null
+          current_lng?: number | null
+          id?: string
+          is_available?: boolean
+          is_verified?: boolean
+          last_location_update?: string | null
+          license_number?: string | null
+          rating?: number | null
+          service_radius_km?: number
+          total_deliveries?: number | null
+          updated_at?: string
+          user_id?: string
+          vehicle_type?: string
+        }
+        Relationships: []
+      }
       service_addons: {
         Row: {
           created_at: string
@@ -827,6 +928,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_delivery_to_riders: {
+        Args: {
+          delivery_id_param: string
+          pickup_lat: number
+          pickup_lng: number
+        }
+        Returns: number
+      }
+      find_nearby_riders: {
+        Args: {
+          pickup_lat: number
+          pickup_lng: number
+          max_distance_km?: number
+        }
+        Returns: {
+          rider_id: string
+          user_id: string
+          distance_km: number
+          vehicle_type: string
+          rating: number
+        }[]
+      }
       has_role: {
         Args: {
           _user_id: string
