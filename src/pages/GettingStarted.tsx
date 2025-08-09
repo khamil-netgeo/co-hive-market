@@ -87,17 +87,6 @@ const GettingStarted = () => {
     }
   };
 
-  if (loading || loadingCommunities) {
-    return (
-      <div className="min-h-screen bg-background">
-        <SiteHeader />
-        <main className="container mx-auto px-4 py-16">
-          <div className="text-center">Loading...</div>
-        </main>
-        <SiteFooter />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -205,7 +194,13 @@ const GettingStarted = () => {
 
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold text-center">Available Communities</h2>
-            {communities.length === 0 ? (
+            {loadingCommunities ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">Loading communities...</p>
+                </CardContent>
+              </Card>
+            ) : communities.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <p className="text-muted-foreground">No communities available yet</p>
