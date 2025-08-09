@@ -130,6 +130,9 @@ export default function Catalog() {
           currency: p.currency || "myr",
           success_path: "/payment-success",
           cancel_path: "/payment-canceled",
+          product_id: p.id,
+          vendor_id: p.vendor_id,
+          community_id: p.community_id,
         },
       });
       if (error) throw error;

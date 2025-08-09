@@ -123,6 +123,41 @@ export type Database = {
           },
         ]
       }
+      deliveries: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          rider_user_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          rider_user_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          rider_user_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ledger_entries: {
         Row: {
           amount_cents: number
@@ -214,6 +249,7 @@ export type Database = {
           currency: string
           id: string
           status: Database["public"]["Enums"]["order_status"]
+          stripe_session_id: string | null
           total_amount_cents: number
           updated_at: string
           vendor_id: string
@@ -225,6 +261,7 @@ export type Database = {
           currency?: string
           id?: string
           status?: Database["public"]["Enums"]["order_status"]
+          stripe_session_id?: string | null
           total_amount_cents?: number
           updated_at?: string
           vendor_id: string
@@ -236,6 +273,7 @@ export type Database = {
           currency?: string
           id?: string
           status?: Database["public"]["Enums"]["order_status"]
+          stripe_session_id?: string | null
           total_amount_cents?: number
           updated_at?: string
           vendor_id?: string

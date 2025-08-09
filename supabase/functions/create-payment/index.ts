@@ -34,6 +34,9 @@ serve(async (req) => {
       currency = "usd",
       success_path = "/",
       cancel_path = "/",
+      product_id,
+      vendor_id,
+      community_id,
     } = body ?? {};
 
     if (!amount_cents || typeof amount_cents !== "number" || amount_cents <= 0) {
@@ -69,8 +72,16 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${origin}${success_path}`,
+      success_url: `${origin}${success_path}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}${cancel_path}`,
+      metadata: {
+        name: String(name),
+        amount_cents: String(Math.round(amount_cents)),
+        currency: String(currency),
+        product_id: product_id ? String(product_id) : undefined,
+        vendor_id: vendor_id ? String(vendor_id) : undefined,
+        community_id: community_id ? String(community_id) : undefined,
+      },
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
