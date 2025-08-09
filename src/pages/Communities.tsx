@@ -169,21 +169,21 @@ export default function Communities() {
               )}
             </div>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
               {communities.map((c) => (
                 <Card key={c.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      {c.name}
-                      <Badge variant="outline">{c.member_discount_percent}% discount</Badge>
+                    <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <span>{c.name}</span>
+                      <Badge variant="outline" className="self-start sm:self-auto">{c.member_discount_percent}% discount</Badge>
                     </CardTitle>
                     <CardDescription>{c.description}</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'buyer')} disabled={!user}>Join as Buyer</Button>
-                      <Button size="sm" onClick={() => handleJoin(c.id, 'vendor')} disabled={!user}>Join as Vendor</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'delivery')} disabled={!user}>Join as Rider</Button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'buyer')} disabled={!user} className="w-full sm:w-auto">Join as Buyer</Button>
+                      <Button size="sm" onClick={() => handleJoin(c.id, 'vendor')} disabled={!user} className="w-full sm:w-auto">Join as Vendor</Button>
+                      <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'delivery')} disabled={!user} className="w-full sm:w-auto">Join as Rider</Button>
                       {!user && (
                         <Button size="sm" variant="ghost" asChild>
                           <Link to="/auth">Sign in</Link>

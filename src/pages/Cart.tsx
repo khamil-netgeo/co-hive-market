@@ -171,7 +171,7 @@ export default function Cart() {
           <CardContent className="py-10 text-center text-muted-foreground">Your cart is empty.</CardContent>
         </Card>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3 lg:grid-rows-[auto_auto]">
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Items</CardTitle>
@@ -201,7 +201,7 @@ export default function Cart() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="lg:row-start-2 lg:col-start-3">
             <CardHeader>
               <CardTitle>Shipping</CardTitle>
             </CardHeader>
@@ -229,7 +229,7 @@ export default function Cart() {
                   </Button>
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="grid gap-2">
                   <Label htmlFor="weight">Weight (kg)</Label>
                   <Input id="weight" type="number" min={0.1} step={0.1} value={weight} onChange={(e) => setWeight(Number(e.target.value))} />
@@ -272,7 +272,7 @@ export default function Cart() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="lg:row-start-1 lg:col-start-3">
             <CardHeader>
               <CardTitle>Summary</CardTitle>
             </CardHeader>

@@ -72,11 +72,11 @@ const Orders = () => {
           <h1 className="text-2xl font-semibold">My Orders</h1>
           <p className="text-sm text-muted-foreground">Recent purchases and their status.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" asChild>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="secondary" asChild className="w-full sm:w-auto">
             <a href="/catalog">Go to Catalog</a>
           </Button>
-          <Button variant="outline" onClick={() => refetch()}>Refresh</Button>
+          <Button variant="outline" onClick={() => refetch()} className="w-full sm:w-auto">Refresh</Button>
         </div>
       </header>
 

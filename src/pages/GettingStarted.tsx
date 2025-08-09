@@ -232,11 +232,11 @@ const GettingStarted = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="flex-1"
+                            className="w-full sm:flex-1"
                             onClick={() => handleJoinCommunity(community.id, 'buyer')}
                             disabled={!user}
                           >
@@ -245,7 +245,7 @@ const GettingStarted = () => {
                           <Button 
                             variant="default" 
                             size="sm" 
-                            className="flex-1"
+                            className="w-full sm:flex-1"
                             onClick={() => handleJoinCommunity(community.id, 'vendor')}
                             disabled={!user}
                           >
@@ -254,7 +254,7 @@ const GettingStarted = () => {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="flex-1"
+                            className="w-full sm:flex-1"
                             onClick={() => handleJoinCommunity(community.id, 'delivery')}
                             disabled={!user}
                           >

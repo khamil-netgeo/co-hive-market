@@ -233,7 +233,7 @@ export default function Services() {
                     />
                   </div>
                   <div>
-                    <Button variant="hero" onClick={() => book(svc)}>
+                    <Button variant="hero" onClick={() => book(svc)} className="w-full sm:w-auto">
                       Book & Pay
                     </Button>
                   </div>

@@ -62,7 +62,7 @@ const Hero = ({ onGetStarted }: HeroProps) => {
           </div>
 
           {/* Quick Actions */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button variant="hero" size="lg" className="group hover-lift" asChild>
               <Link to="/catalog">
                 <ShoppingBag className="h-4 w-4" /> 

@@ -262,8 +262,8 @@ export default function Catalog() {
             <Label htmlFor="near">Near me</Label>
             <Switch id="near" checked={useNearMe} onCheckedChange={setUseNearMe} />
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-80">
-            <Label className="whitespace-nowrap">Radius: {radiusKm} km</Label>
+          <div className="flex items-center gap-3 w-full sm:w-80 min-w-0">
+            <Label className="whitespace-nowrap text-sm">Radius: {radiusKm}km</Label>
             <Slider
               value={[radiusKm]}
               onValueChange={(v) => setRadiusKm(v[0] ?? 10)}
@@ -330,9 +330,9 @@ export default function Catalog() {
                       </div>
                     )}
 
-                    <div className="flex gap-2">
-                      <Button variant="secondary" onClick={() => addToCart(p)}>Add to cart</Button>
-                      <Button variant="hero" onClick={() => buyNow(p)}>Buy now</Button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button variant="secondary" onClick={() => addToCart(p)} className="w-full sm:w-auto">Add to cart</Button>
+                      <Button variant="hero" onClick={() => buyNow(p)} className="w-full sm:w-auto">Buy now</Button>
                     </div>
                   </CardContent>
                 </Card>

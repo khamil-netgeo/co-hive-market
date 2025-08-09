@@ -171,20 +171,20 @@ const VendorDashboard = () => {
             Welcome back, {vendor.display_name}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button asChild className="w-full sm:w-auto">
             <Link to="/vendor/products/new" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               Add Product
             </Link>
           </Button>
-          <Button variant="secondary" asChild>
+          <Button variant="secondary" asChild className="w-full sm:w-auto">
             <Link to="/vendor/services/new" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               Add Service
             </Link>
           </Button>
-          <Button variant="outline" asChild>
+          <Button variant="outline" asChild className="w-full sm:w-auto">
             <Link to="/vendor/services" className="flex items-center gap-2">
               Manage Services
             </Link>
@@ -192,7 +192,7 @@ const VendorDashboard = () => {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
@@ -276,37 +276,40 @@ const VendorDashboard = () => {
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg gap-4"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold">{product.name}</h3>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                      <h3 className="font-semibold truncate">{product.name}</h3>
                       <Badge 
                         variant={product.status === 'active' ? 'default' : 'secondary'}
+                        className="self-start sm:self-auto"
                       >
                         {product.status}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
+                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                       {product.description}
                     </p>
                     <p className="font-semibold text-primary">
                       {formatPrice(product.price_cents, product.currency)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" asChild>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Button variant="outline" size="sm" asChild className="flex-1 sm:flex-none">
                       <Link to={`/vendor/products/${product.id}/edit`}>
                         <Edit className="h-4 w-4" />
+                        <span className="ml-1 sm:hidden">Edit</span>
                       </Link>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeleteProduct(product.id)}
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive flex-1 sm:flex-none"
                     >
                       <Trash2 className="h-4 w-4" />
+                      <span className="ml-1 sm:hidden">Delete</span>
                     </Button>
                   </div>
                 </div>
