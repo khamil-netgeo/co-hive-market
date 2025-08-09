@@ -154,8 +154,9 @@ export default function VendorServices() {
             {services.map((s, index) => (
               <Card 
                 key={s.id} 
-                className="hover:shadow-elegant transition-all duration-300 hover:scale-[1.02] animate-fade-in group overflow-hidden"
+                className="hover:shadow-elegant transition-all duration-300 hover:scale-[1.02] animate-fade-in group overflow-hidden cursor-pointer"
                 style={{ animationDelay: `${index * 0.1}s` }}
+                onClick={() => window.location.href = `/service/${s.id}`}
               >
                 <div className="aspect-video w-full overflow-hidden relative">
                   <ServiceImage 
@@ -189,12 +190,51 @@ export default function VendorServices() {
                       {fmt(s.price_cents, s.currency)}
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" className="hover-scale">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="hover-scale"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/vendor/services/${s.id}/edit`;
+                        }}
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm" className="hover-scale">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="hover-scale"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `/service/${s.id}`;
+                            }}
+                          >
+                            View Service
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `/vendor/services/${s.id}/edit`;
+                            }}
+                          >
+                            Edit Service
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive">
+                            Delete Service
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </CardContent>
