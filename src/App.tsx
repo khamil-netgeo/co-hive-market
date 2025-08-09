@@ -10,6 +10,8 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
 import Catalog from "./pages/Catalog";
 import UnifiedCatalog from "./pages/UnifiedCatalog";
+import ProductDetail from "./pages/ProductDetail";
+import ServiceDetail from "./pages/ServiceDetail";
 import Orders from "./pages/Orders";
 import VendorOrders from "./pages/vendor/VendorOrders";
 import VendorAnalytics from "./pages/vendor/VendorAnalytics";
@@ -75,6 +77,8 @@ const App = () => (
               <Route path="/catalog" element={<UnifiedCatalog />} />
               <Route path="/services" element={<UnifiedCatalog />} />
               <Route path="/products" element={<UnifiedCatalog />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/service/:id" element={<ServiceDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/profile" element={<Profile />} />

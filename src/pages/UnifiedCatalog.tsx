@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductImage from "@/components/product/ProductImage";
 import ServiceImage from "@/components/service/ServiceImage";
 import { Package, Briefcase, MapPin, Clock, Star, ShoppingCart, Calendar } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
 
 // Unified item interface
 interface CatalogItem {
@@ -504,317 +504,130 @@ export default function UnifiedCatalog() {
                   const discounted = memberPrice(item);
                   const discPercent = effectiveDiscountPercent(item);
 
-                  return (
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Card key={`${item.type}-${item.id}`} className="hover:shadow-elegant transition-shadow cursor-pointer group">
-                          <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                            {item.type === 'product' ? (
-                              <ProductImage 
-                                imageUrls={item.image_urls} 
-                                productName={item.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
-                              />
-                            ) : (
-                              <ServiceImage 
-                                imageUrls={item.image_urls}
-                                serviceName={item.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                            )}
-                          </div>
-                          
-                          <CardHeader>
-                            <CardTitle className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2">
-                                {item.type === 'product' ? (
-                                  <Package className="h-4 w-4 text-muted-foreground" />
-                                ) : (
-                                  <Briefcase className="h-4 w-4 text-muted-foreground" />
-                                )}
-                                <span className="line-clamp-1">{item.name}</span>
-                              </div>
-                              {discounted != null && discPercent > 0 && (
-                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary whitespace-nowrap">
-                                  {discPercent}% off
-                                </span>
-                              )}
-                            </CardTitle>
-                            {item.subtitle && (
-                              <p className="text-sm text-muted-foreground line-clamp-1">{item.subtitle}</p>
-                            )}
-                          </CardHeader>
-                          
-                          <CardContent className="grid gap-3">
-                            {item.description && (
-                              <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
-                            )}
-                            
-                            {/* Type-specific info */}
-                            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                              {item.type === 'service' && typeof item.duration_minutes === "number" && item.duration_minutes > 0 && (
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  <span>{item.duration_minutes} min</span>
-                                </div>
-                              )}
-                              {item.type === 'service' && item.service_area && (
-                                <div className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />
-                                  <span>{item.service_area}</span>
-                                </div>
-                              )}
-                              {item.type === 'product' && item.pickup_lat && item.pickup_lng && loc && (
-                                <div className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />
-                                  <span>{haversineKm(loc.lat, loc.lng, item.pickup_lat, item.pickup_lng).toFixed(1)} km away</span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Pricing */}
-                            <div className="text-xl font-semibold">
-                              {discounted != null ? (
-                                <div className="flex items-baseline gap-2">
-                                  <span className="text-primary">{fmtPrice(discounted, item.currency)}</span>
-                                  <span className="text-sm text-muted-foreground line-through">
-                                    {fmtPrice(item.price_cents, item.currency)}
-                                  </span>
-                                </div>
+                   return (
+                    <Link 
+                      key={`${item.type}-${item.id}`} 
+                      to={`/${item.type}/${item.id}`}
+                      className="block"
+                    >
+                      <Card className="hover:shadow-elegant transition-shadow cursor-pointer group h-full">
+                        <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                          {item.type === 'product' ? (
+                            <ProductImage 
+                              imageUrls={item.image_urls} 
+                              productName={item.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
+                            />
+                          ) : (
+                            <ServiceImage 
+                              imageUrls={item.image_urls}
+                              serviceName={item.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          )}
+                        </div>
+                        
+                        <CardHeader>
+                          <CardTitle className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              {item.type === 'product' ? (
+                                <Package className="h-4 w-4 text-muted-foreground" />
                               ) : (
-                                <span>{fmtPrice(item.price_cents, item.currency)}</span>
+                                <Briefcase className="h-4 w-4 text-muted-foreground" />
                               )}
+                              <span className="line-clamp-1">{item.name}</span>
                             </div>
-
-                            {/* Click hint */}
-                            <div className="text-xs text-muted-foreground flex items-center gap-1">
-                              <span>Click for details</span>
-                              <span>→</span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </DialogTrigger>
-
-                      {/* Detailed View Dialog */}
-                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2">
-                            {item.type === 'product' ? (
-                              <Package className="h-5 w-5 text-primary" />
-                            ) : (
-                              <Briefcase className="h-5 w-5 text-primary" />
-                            )}
-                            {item.name}
                             {discounted != null && discPercent > 0 && (
-                              <span className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary">
-                                Members save {discPercent}%
+                              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary whitespace-nowrap">
+                                {discPercent}% off
                               </span>
                             )}
-                          </DialogTitle>
-                        </DialogHeader>
-
-                        <div className="grid md:grid-cols-2 gap-6">
-                          {/* Image Section */}
-                          <div className="space-y-4">
-                            <div className="aspect-video w-full overflow-hidden rounded-lg">
-                              {item.type === 'product' ? (
-                                <ProductImage 
-                                  imageUrls={item.image_urls} 
-                                  productName={item.name}
-                                  className="w-full h-full object-cover"
-                                  fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
-                                />
-                              ) : (
-                                <ServiceImage 
-                                  imageUrls={item.image_urls}
-                                  serviceName={item.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              )}
-                            </div>
-                            
-                            {/* Additional Images */}
-                            {item.image_urls && item.image_urls.length > 1 && (
-                              <div className="grid grid-cols-3 gap-2">
-                                {item.image_urls.slice(1, 4).map((url, idx) => (
-                                  <div key={idx} className="aspect-square overflow-hidden rounded">
-                                    <img 
-                                      src={url} 
-                                      alt={`${item.name} image ${idx + 2}`}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                ))}
+                          </CardTitle>
+                          {item.subtitle && (
+                            <p className="text-sm text-muted-foreground line-clamp-1">{item.subtitle}</p>
+                          )}
+                        </CardHeader>
+                        
+                        <CardContent className="grid gap-3">
+                          {item.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                          )}
+                          
+                          {/* Type-specific info */}
+                          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            {item.type === 'service' && typeof item.duration_minutes === "number" && item.duration_minutes > 0 && (
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>{item.duration_minutes} min</span>
+                              </div>
+                            )}
+                            {item.type === 'service' && item.service_area && (
+                              <div className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                <span>{item.service_area}</span>
+                              </div>
+                            )}
+                            {item.type === 'product' && item.pickup_lat && item.pickup_lng && loc && (
+                              <div className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                <span>{haversineKm(loc.lat, loc.lng, item.pickup_lat, item.pickup_lng).toFixed(1)} km away</span>
                               </div>
                             )}
                           </div>
 
-                          {/* Details Section */}
-                          <div className="space-y-6">
-                            {item.subtitle && (
-                              <p className="text-lg text-muted-foreground">{item.subtitle}</p>
+                          {/* Pricing */}
+                          <div className="text-xl font-semibold">
+                            {discounted != null ? (
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-primary">{fmtPrice(discounted, item.currency)}</span>
+                                <span className="text-sm text-muted-foreground line-through">
+                                  {fmtPrice(item.price_cents, item.currency)}
+                                </span>
+                              </div>
+                            ) : (
+                              <span>{fmtPrice(item.price_cents, item.currency)}</span>
                             )}
+                          </div>
 
-                            {item.description && (
-                              <div>
-                                <h3 className="font-semibold mb-2">Description</h3>
-                                <p className="text-muted-foreground whitespace-pre-wrap">{item.description}</p>
-                              </div>
-                            )}
-
-                            {/* Type-specific details */}
-                            <div className="space-y-4">
-                              <h3 className="font-semibold">Details</h3>
-                              <div className="grid gap-3">
-                                {item.type === 'service' ? (
-                                  <>
-                                    {typeof item.duration_minutes === "number" && item.duration_minutes > 0 && (
-                                      <div className="flex items-center gap-2">
-                                        <Clock className="h-4 w-4 text-muted-foreground" />
-                                        <span>Duration: {item.duration_minutes} minutes</span>
-                                      </div>
-                                    )}
-                                    {item.service_area && (
-                                      <div className="flex items-center gap-2">
-                                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                                        <span>Service area: {item.service_area}</span>
-                                      </div>
-                                    )}
-                                    {item.location_type && (
-                                      <div className="flex items-center gap-2">
-                                        <span>Location type: {item.location_type}</span>
-                                      </div>
-                                    )}
-                                    {item.availability_preset && (
-                                      <div className="flex items-center gap-2">
-                                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                                        <span>Availability: {item.availability_preset}</span>
-                                      </div>
-                                    )}
-                                  </>
-                                ) : (
-                                  <>
-                                    {item.stock_qty != null && (
-                                      <div className="flex items-center gap-2">
-                                        <Package className="h-4 w-4 text-muted-foreground" />
-                                        <span>Stock: {item.stock_qty} available</span>
-                                      </div>
-                                    )}
-                                    {item.pickup_lat && item.pickup_lng && loc && (
-                                      <div className="flex items-center gap-2">
-                                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                                        <span>Distance: {haversineKm(loc.lat, loc.lng, item.pickup_lat, item.pickup_lng).toFixed(1)} km away</span>
-                                      </div>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Pricing */}
-                            <div className="space-y-2">
-                              <h3 className="font-semibold">Pricing</h3>
-                              <div className="text-3xl font-bold">
-                                {discounted != null ? (
-                                  <div className="flex items-baseline gap-3">
-                                    <span className="text-primary">{fmtPrice(discounted, item.currency)}</span>
-                                    <span className="text-lg text-muted-foreground line-through">
-                                      {fmtPrice(item.price_cents, item.currency)}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <span>{fmtPrice(item.price_cents, item.currency)}</span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Community join CTA */}
-                            {discounted == null && discPercent > 0 && item.community_id && (
-                              <div className="rounded-lg border bg-card p-4">
-                                <div className="text-sm mb-3">
-                                  <Star className="h-4 w-4 inline mr-1 text-primary" />
-                                  Join {communitiesById[item.community_id]?.name || "this community"} to save {discPercent}% and pay {fmtPrice(Math.round(item.price_cents * (1 - discPercent / 100)), item.currency)}.
-                                </div>
-                                <Button size="sm" variant="secondary" onClick={() => handleJoinCTA(item.community_id!)}>
-                                  Join community to save
-                                </Button>
-                              </div>
-                            )}
-
-                            {/* Service booking fields in dialog */}
-                            {item.type === 'service' && (
-                              <div className="space-y-4">
-                                <h3 className="font-semibold">Book this service</h3>
-                                <div className="grid gap-3">
-                                  <div>
-                                    <Label htmlFor={`dialog-dt-${item.id}`} className="text-sm font-medium">
-                                      Preferred date & time (optional)
-                                    </Label>
-                                    <Input
-                                      id={`dialog-dt-${item.id}`}
-                                      type="datetime-local"
-                                      value={scheduleById[item.id] || ""}
-                                      onChange={(e) =>
-                                        setScheduleById((m) => ({ ...m, [item.id]: e.target.value }))
-                                      }
-                                      className="mt-1"
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label htmlFor={`dialog-note-${item.id}`} className="text-sm font-medium">
-                                      Notes (optional)
-                                    </Label>
-                                    <Textarea
-                                      id={`dialog-note-${item.id}`}
-                                      value={notesById[item.id] || ""}
-                                      onChange={(e) =>
-                                        setNotesById((m) => ({ ...m, [item.id]: e.target.value }))
-                                      }
-                                      placeholder="Add special instructions..."
-                                      rows={3}
-                                      className="mt-1"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Actions */}
-                            <div className="space-y-3">
-                              {item.type === 'product' ? (
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                  <Button 
-                                    variant="secondary" 
-                                    onClick={(e) => { e.stopPropagation(); addToCart(item); }} 
-                                    className="flex items-center gap-2"
-                                  >
-                                    <ShoppingCart className="h-4 w-4" />
-                                    Add to cart
-                                  </Button>
-                                  <Button 
-                                    variant="hero" 
-                                    onClick={(e) => { e.stopPropagation(); buyNow(item); }}
-                                    className="flex items-center gap-2"
-                                  >
-                                    Buy now
-                                  </Button>
-                                </div>
-                              ) : (
+                          {/* Quick actions on catalog */}
+                          <div className="flex flex-col sm:flex-row gap-2 mt-auto">
+                            {item.type === 'product' ? (
+                              <>
                                 <Button 
-                                  variant="hero" 
-                                  onClick={(e) => { e.stopPropagation(); bookService(item); }}
-                                  className="w-full flex items-center gap-2"
+                                  variant="secondary" 
+                                  size="sm"
+                                  onClick={(e) => { 
+                                    e.preventDefault(); 
+                                    e.stopPropagation(); 
+                                    addToCart(item); 
+                                  }} 
+                                  className="flex items-center gap-2"
                                 >
-                                  <Calendar className="h-4 w-4" />
-                                  Book & Pay
+                                  <ShoppingCart className="h-3 w-3" />
+                                  Add to cart
                                 </Button>
-                              )}
-                            </div>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-xs"
+                                >
+                                  View details →
+                                </Button>
+                              </>
+                            ) : (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="w-full text-xs"
+                              >
+                                View & book →
+                              </Button>
+                            )}
                           </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   );
                 })}
               </div>
