@@ -54,6 +54,9 @@ export default function AppTopbar() {
                 {(isAdmin || isSuperadmin) && (
                   <DropdownMenuItem onSelect={() => navigate("/admin")}>Admin</DropdownMenuItem>
                 )}
+                {isSuperadmin && (
+                  <DropdownMenuItem onSelect={() => navigate("/superadmin")}>Super Admin</DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => navigate("/getting-started")}>Getting Started</DropdownMenuItem>
                 <DropdownMenuSeparator />

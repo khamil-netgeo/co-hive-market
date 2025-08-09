@@ -18,6 +18,15 @@ import Layout from "@/components/layout/Layout";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import RequireAdmin from "./components/auth/RequireAdmin";
+import RequireSuperadmin from "./components/auth/RequireSuperadmin";
+import SuperAdminLayout from "./pages/superadmin/SuperAdminLayout";
+import SuperAdminDashboard from "./pages/superadmin/Dashboard";
+import UsersRoles from "./pages/superadmin/UsersRoles";
+import GlobalSettings from "./pages/superadmin/GlobalSettings";
+import FeatureFlags from "./pages/superadmin/FeatureFlags";
+import Announcements from "./pages/superadmin/Announcements";
+import AuditLogs from "./pages/superadmin/AuditLogs";
+import ContentReports from "./pages/superadmin/ContentReports";
 import Finance from "./pages/admin/Finance";
 import AdminKYC from "./pages/admin/KYC";
 import AdminKYCRequirements from "./pages/admin/KYCRequirements";
@@ -123,6 +132,79 @@ const App = () => (
                   </RequireAdmin>
                 }
               />
+
+              {/* Super Admin routes */}
+              <Route
+                path="/superadmin"
+                element={
+                  <RequireSuperadmin>
+                    <SuperAdminLayout>
+                      <SuperAdminDashboard />
+                    </SuperAdminLayout>
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/users"
+                element={
+                  <RequireSuperadmin>
+                    <SuperAdminLayout>
+                      <UsersRoles />
+                    </SuperAdminLayout>
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/settings"
+                element={
+                  <RequireSuperadmin>
+                    <SuperAdminLayout>
+                      <GlobalSettings />
+                    </SuperAdminLayout>
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/feature-flags"
+                element={
+                  <RequireSuperadmin>
+                    <SuperAdminLayout>
+                      <FeatureFlags />
+                    </SuperAdminLayout>
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/announcements"
+                element={
+                  <RequireSuperadmin>
+                    <SuperAdminLayout>
+                      <Announcements />
+                    </SuperAdminLayout>
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/audit-logs"
+                element={
+                  <RequireSuperadmin>
+                    <SuperAdminLayout>
+                      <AuditLogs />
+                    </SuperAdminLayout>
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/reports"
+                element={
+                  <RequireSuperadmin>
+                    <SuperAdminLayout>
+                      <ContentReports />
+                    </SuperAdminLayout>
+                  </RequireSuperadmin>
+                }
+              />
+
               {/* Catch-all inside layout */}
               <Route path="*" element={<NotFound />} />
             </Route>
