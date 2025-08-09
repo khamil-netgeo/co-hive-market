@@ -18,7 +18,7 @@ interface Category {
   name: string;
   slug: string;
   description: string | null;
-  type: "product" | "service" | "both";
+  type: "products" | "services" | "both";
   parent_id: string | null;
   sort_order: number;
   is_active: boolean;
@@ -210,19 +210,19 @@ export default function Categories() {
               <Label>Type</Label>
               <Select value={type} onValueChange={(v) => setType(v as Category["type"]) }>
                 <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50 bg-popover">
                   <SelectItem value="both">Both</SelectItem>
-                  <SelectItem value="product">Product</SelectItem>
-                  <SelectItem value="service">Service</SelectItem>
+                  <SelectItem value="products">Products</SelectItem>
+                  <SelectItem value="services">Services</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
               <Label>Parent</Label>
-              <Select value={parentId || ""} onValueChange={(v) => setParentId(v || null)}>
+              <Select value={parentId ?? "none"} onValueChange={(v) => setParentId(v === "none" ? null : v)}>
                 <SelectTrigger><SelectValue placeholder="No parent (top-level)" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">(No parent)</SelectItem>
+                <SelectContent className="z-50 bg-popover">
+                  <SelectItem value="none">(No parent)</SelectItem>
                   {categories.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}

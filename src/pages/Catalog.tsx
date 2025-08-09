@@ -317,7 +317,7 @@ const [productCats, setProductCats] = useState<Record<string, string[]>>({});
               <SelectTrigger className="w-56">
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50 bg-popover">
                 <SelectItem value="all">All</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>

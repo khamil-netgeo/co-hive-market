@@ -216,7 +216,7 @@ const [serviceCats, setServiceCats] = useState<Record<string, string[]>>({});
               <SelectTrigger className="w-44">
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50 bg-popover">
                 <SelectItem value="all">All</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
@@ -230,7 +230,7 @@ const [serviceCats, setServiceCats] = useState<Record<string, string[]>>({});
               <SelectTrigger className="w-44">
                 <SelectValue placeholder="Newest" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-50 bg-popover">
                 <SelectItem value="newest">Newest</SelectItem>
                 <SelectItem value="price_asc">Price: Low to High</SelectItem>
                 <SelectItem value="price_desc">Price: High to Low</SelectItem>

@@ -416,7 +416,7 @@ const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
                               <SelectValue placeholder="Select model" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="z-50 bg-popover">
                             <SelectItem value="fixed">Fixed</SelectItem>
                             <SelectItem value="hourly">Hourly</SelectItem>
                             <SelectItem value="per_unit">Per unit</SelectItem>
@@ -458,7 +458,7 @@ const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
                               <SelectValue placeholder="Select location" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="z-50 bg-popover">
                             <SelectItem value="vendor">At vendor</SelectItem>
                             <SelectItem value="customer">At customer</SelectItem>
                             <SelectItem value="remote">Remote / online</SelectItem>
@@ -481,7 +481,7 @@ const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
                               <SelectValue placeholder="Select availability" />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent>
+                          <SelectContent className="z-50 bg-popover">
                             {AVAIL_PRESETS.map(p => (
                               <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
                             ))}
@@ -587,7 +587,7 @@ const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
                             <SelectValue placeholder="Select policy" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="z-50 bg-popover">
                           <SelectItem value="flexible">Flexible</SelectItem>
                           <SelectItem value="moderate">Moderate</SelectItem>
                           <SelectItem value="strict">Strict</SelectItem>
