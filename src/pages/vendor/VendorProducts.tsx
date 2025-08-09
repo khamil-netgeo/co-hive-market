@@ -26,16 +26,18 @@ export default function VendorProducts() {
   const { user } = useAuthRoles();
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (!user?.id) return;
+    setLoading(true);
+    fetchProducts(user.id);
+  }, [user?.id]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (userId: string) => {
     try {
-      const { data: vendor } = await supabase
+      const { data: vendor, error: vendorError } = await supabase
         .from("vendors")
         .select("id")
-        .eq("user_id", user?.id)
-        .single();
+        .eq("user_id", userId)
+        .maybeSingle();
 
       if (!vendor) {
         toast.error("Vendor profile not found");
@@ -128,7 +130,7 @@ export default function VendorProducts() {
           </p>
         </div>
         <Button asChild className="w-full sm:w-auto">
-          <Link to="/catalog">
+          <Link to="/vendor/products/new">
             <Plus className="h-4 w-4 mr-2" />
             Add New Product
           </Link>
@@ -143,7 +145,7 @@ export default function VendorProducts() {
               Start by adding your first product to the marketplace
             </p>
             <Button asChild>
-              <Link to="/catalog">
+              <Link to="/vendor/products/new">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Product
               </Link>
@@ -211,7 +213,7 @@ export default function VendorProducts() {
                     size="sm"
                     asChild
                   >
-                    <Link to={`/catalog?edit=${product.id}`}>
+                    <Link to={`/vendor/products/${product.id}/edit`}>
                       <Pencil className="h-4 w-4" />
                     </Link>
                   </Button>
