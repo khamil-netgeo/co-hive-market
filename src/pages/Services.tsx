@@ -127,7 +127,16 @@ export default function Services() {
       if (bookingErr) throw bookingErr;
       const bookingId = (bookingRows as any)?.id;
 
-      // Start Stripe checkout via existing function
+      // Fetch vendor's community for proper ledger attribution
+      const { data: vendorRow, error: vErr } = await supabase
+        .from("vendors")
+        .select("community_id")
+        .eq("id", svc.vendor_id)
+        .maybeSingle();
+      if (vErr) throw vErr;
+      const communityId = (vendorRow as any)?.community_id as string | undefined;
+
+      // Start Stripe checkout via existing function with metadata
       const { data, error } = await supabase.functions.invoke("create-payment", {
         body: {
           name: `Service: ${svc.name}`,
@@ -135,6 +144,8 @@ export default function Services() {
           currency: svc.currency || "myr",
           success_path: `/payment-success?booking_id=${bookingId}`,
           cancel_path: "/payment-canceled",
+          vendor_id: svc.vendor_id,
+          community_id: communityId,
         },
       });
       if (error) throw error;

@@ -95,6 +95,39 @@ const Finance = () => {
     }
   };
 
+  const approvePayout = async (p: Payout) => {
+    try {
+      const { data: s } = await supabase.auth.getSession();
+      const uid = s.session?.user?.id;
+      const { error } = await supabase
+        .from("payouts")
+        .update({ status: "approved", approved_by: uid ?? null, approved_at: new Date().toISOString() })
+        .eq("id", p.id);
+      if (error) throw error;
+      toast("Payout approved");
+      await loadPayouts();
+    } catch (e: any) {
+      toast("Failed to approve", { description: e.message || String(e) });
+    }
+  };
+
+  const markPaid = async (p: Payout) => {
+    const ref = window.prompt("Enter payment reference / bank TXN ID (required):");
+    if (!ref || !ref.trim()) return;
+    try {
+      const { data: s } = await supabase.auth.getSession();
+      const uid = s.session?.user?.id;
+      const { error } = await supabase
+        .from("payouts")
+        .update({ status: "paid", paid_by: uid ?? null, paid_at: new Date().toISOString(), reference: ref.trim() })
+        .eq("id", p.id);
+      if (error) throw error;
+      toast("Payout marked as paid");
+      await loadPayouts();
+    } catch (e: any) {
+      toast("Failed to mark paid", { description: e.message || String(e) });
+    }
+  };
   const loadPayouts = async () => {
     try {
       setPayoutsLoading(true);
@@ -180,6 +213,60 @@ const Finance = () => {
             </CardContent>
           </Card>
         </div>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Payout Requests</CardTitle>
+            <Button size="sm" variant="secondary" onClick={loadPayouts} disabled={payoutsLoading}>
+              {payoutsLoading ? "Refreshing…" : "Refresh"}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {payouts.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No payout requests yet.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Vendor</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Ref</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payouts.map((p) => (
+                      <TableRow key={p.id}>
+                        <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{new Date(p.created_at).toLocaleString()}</TableCell>
+                        <TableCell className="text-sm">{vendors[p.vendor_id]?.display_name || p.vendor_id.slice(0, 6) + "…"}</TableCell>
+                        <TableCell className="capitalize text-sm">{p.status}</TableCell>
+                        <TableCell className="text-sm">{p.method}</TableCell>
+                        <TableCell className="text-xs">{p.reference || "—"}</TableCell>
+                        <TableCell className="text-right font-medium">{fmtCurrency(p.amount_cents, p.currency)}</TableCell>
+                        <TableCell className="text-right">
+                          {p.status === "requested" && (
+                            <Button size="sm" variant="outline" onClick={() => approvePayout(p)}>
+                              Approve
+                            </Button>
+                          )}
+                          {p.status === "approved" && (
+                            <Button size="sm" variant="hero" onClick={() => markPaid(p)}>
+                              Mark Paid
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
