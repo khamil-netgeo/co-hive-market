@@ -332,6 +332,8 @@ export type Database = {
           id: string
           name: string
           perishable: boolean
+          pickup_lat: number | null
+          pickup_lng: number | null
           prep_time_minutes: number | null
           price_cents: number
           refrigeration_required: boolean
@@ -350,6 +352,8 @@ export type Database = {
           id?: string
           name: string
           perishable?: boolean
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           prep_time_minutes?: number | null
           price_cents: number
           refrigeration_required?: boolean
@@ -368,6 +372,8 @@ export type Database = {
           id?: string
           name?: string
           perishable?: boolean
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           prep_time_minutes?: number | null
           price_cents?: number
           refrigeration_required?: boolean

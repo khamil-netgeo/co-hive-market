@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface Product {
   id: string;
@@ -14,6 +17,9 @@ interface Product {
   currency: string;
   vendor_id: string;
   community_id: string;
+  category?: string | null;
+  pickup_lat?: number | null;
+  pickup_lng?: number | null;
 }
 
 interface Vendor { id: string; member_discount_override_percent: number | null }
@@ -37,7 +43,7 @@ export default function Catalog() {
       try {
         const { data: productsData, error: pErr } = await supabase
           .from("products")
-          .select("id,name,description,price_cents,currency,vendor_id,community_id,status")
+          .select("id,name,description,price_cents,currency,vendor_id,community_id,status,category,pickup_lat,pickup_lng")
           .eq("status", "active")
           .order("created_at", { ascending: false });
         if (pErr) throw pErr;
@@ -49,6 +55,9 @@ export default function Catalog() {
           currency: p.currency,
           vendor_id: p.vendor_id,
           community_id: p.community_id,
+          category: p.category ?? null,
+          pickup_lat: p.pickup_lat ?? null,
+          pickup_lng: p.pickup_lng ?? null,
         }));
         setProducts(prods);
 

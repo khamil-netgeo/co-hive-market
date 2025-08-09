@@ -14,13 +14,22 @@ import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().optional(),
-  price: z.string().min(1, "Price is required").regex(/^\d+(\.\d{2})?$/, "Invalid price format"),
-  currency: z.string().default("usd"),
+  price: z.string().min(1, "Price is required").regex(/^\d+(\.\d{1,2})?$/, "Invalid price format"),
+  currency: z.string().default("myr"),
   status: z.enum(["active", "inactive", "archived"]).default("inactive"),
+  category: z.enum(["grocery", "food", "other"]).default("grocery"),
+  perishable: z.boolean().default(false),
+  refrigeration_required: z.boolean().default(false),
+  weight_grams: z.string().optional(),
+  stock_qty: z.string().default("0"),
+  prep_time_minutes: z.string().optional(),
+  pickup_lat: z.string().optional(),
+  pickup_lng: z.string().optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -47,8 +56,16 @@ const ProductForm = () => {
       name: "",
       description: "",
       price: "",
-      currency: "usd",
+      currency: "myr",
       status: "inactive",
+      category: "grocery",
+      perishable: false,
+      refrigeration_required: false,
+      weight_grams: "",
+      stock_qty: "0",
+      prep_time_minutes: "",
+      pickup_lat: "",
+      pickup_lng: "",
     },
   });
 
@@ -108,6 +125,14 @@ const ProductForm = () => {
           price: (productData.price_cents / 100).toFixed(2),
           currency: productData.currency,
           status: productData.status as "active" | "inactive" | "archived",
+          category: (productData as any).category || "grocery",
+          perishable: Boolean((productData as any).perishable),
+          refrigeration_required: Boolean((productData as any).refrigeration_required),
+          weight_grams: (productData as any).weight_grams?.toString() || "",
+          stock_qty: ((productData as any).stock_qty ?? 0).toString(),
+          prep_time_minutes: (productData as any).prep_time_minutes?.toString() || "",
+          pickup_lat: (productData as any).pickup_lat?.toString() || "",
+          pickup_lng: (productData as any).pickup_lng?.toString() || "",
         });
       }
 
@@ -116,6 +141,27 @@ const ProductForm = () => {
       toast.error("Failed to load data");
     } finally {
       setLoadingData(false);
+    }
+  };
+
+  const fillPickupFromProfile = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("latitude,longitude")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (data?.latitude && data?.longitude) {
+        form.setValue("pickup_lat", String(data.latitude));
+        form.setValue("pickup_lng", String(data.longitude));
+        toast.success("Pickup location set from your profile");
+      } else {
+        toast("No saved location", { description: "Set your address & map location in Profile first." });
+      }
+    } catch (e: any) {
+      toast("Unable to read profile", { description: e.message || String(e) });
     }
   };
 
@@ -132,8 +178,15 @@ const ProductForm = () => {
         status: data.status,
         vendor_id: vendor.id,
         community_id: vendor.community_id,
+        category: data.category,
+        perishable: !!data.perishable,
+        refrigeration_required: !!data.refrigeration_required,
+        weight_grams: data.weight_grams ? parseInt(data.weight_grams, 10) : null,
+        stock_qty: data.stock_qty ? Math.max(0, parseInt(data.stock_qty, 10)) : 0,
+        prep_time_minutes: data.prep_time_minutes ? parseInt(data.prep_time_minutes, 10) : null,
+        pickup_lat: data.pickup_lat ? parseFloat(data.pickup_lat) : null,
+        pickup_lng: data.pickup_lng ? parseFloat(data.pickup_lng) : null,
       };
-
       if (isEditing && productId) {
         const { error } = await supabase
           .from("products")
@@ -306,6 +359,146 @@ const ProductForm = () => {
                   )}
                 />
 
+                {/* Category */}
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="grocery">Groceries</SelectItem>
+                          <SelectItem value="food">Food</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Choose “Groceries” or “Food” to enable delivery options and geo-sorting
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Inventory & specs */}
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="stock_qty"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Stock quantity</FormLabel>
+                        <FormControl>
+                          <Input type="number" min={0} placeholder="0" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="weight_grams"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Weight (grams)</FormLabel>
+                        <FormControl>
+                          <Input type="number" min={0} placeholder="e.g. 500" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="prep_time_minutes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Prep time (min)</FormLabel>
+                        <FormControl>
+                          <Input type="number" min={0} placeholder="e.g. 15" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Handling */}
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="perishable"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between rounded-md border p-3">
+                        <div>
+                          <FormLabel>Perishable</FormLabel>
+                          <FormDescription>Requires timely delivery</FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="refrigeration_required"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between rounded-md border p-3">
+                        <div>
+                          <FormLabel>Refrigeration</FormLabel>
+                          <FormDescription>Needs cold chain</FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Pickup location */}
+                <div className="grid grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="pickup_lat"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pickup latitude</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="any" placeholder="e.g. 3.139" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="pickup_lng"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pickup longitude</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="any" placeholder="e.g. 101.6869" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex items-end">
+                    <Button type="button" variant="secondary" className="w-full" onClick={fillPickupFromProfile}>
+                      Use my profile location
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Actions */}
                 <div className="flex gap-4">
                   <Button type="submit" disabled={saving}>
                     {saving ? 'Saving...' : (isEditing ? 'Update Product' : 'Create Product')}
