@@ -31,6 +31,7 @@ import ServiceForm from "./pages/vendor/ServiceForm";
 import Cart from "./pages/Cart";
 import StoreSettings from "./pages/vendor/StoreSettings";
 import RiderHub from "./pages/rider/Hub";
+import { CartProvider } from "@/hooks/useCart";
 
 const queryClient = new QueryClient();
 
