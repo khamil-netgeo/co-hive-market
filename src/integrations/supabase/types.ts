@@ -442,6 +442,7 @@ export type Database = {
           currency: string
           description: string | null
           id: string
+          image_urls: string[] | null
           name: string
           perishable: boolean
           pickup_lat: number | null
@@ -453,6 +454,7 @@ export type Database = {
           stock_qty: number
           updated_at: string
           vendor_id: string
+          video_url: string | null
           weight_grams: number | null
         }
         Insert: {
@@ -462,6 +464,7 @@ export type Database = {
           currency?: string
           description?: string | null
           id?: string
+          image_urls?: string[] | null
           name: string
           perishable?: boolean
           pickup_lat?: number | null
@@ -473,6 +476,7 @@ export type Database = {
           stock_qty?: number
           updated_at?: string
           vendor_id: string
+          video_url?: string | null
           weight_grams?: number | null
         }
         Update: {
@@ -482,6 +486,7 @@ export type Database = {
           currency?: string
           description?: string | null
           id?: string
+          image_urls?: string[] | null
           name?: string
           perishable?: boolean
           pickup_lat?: number | null
@@ -493,6 +498,7 @@ export type Database = {
           stock_qty?: number
           updated_at?: string
           vendor_id?: string
+          video_url?: string | null
           weight_grams?: number | null
         }
         Relationships: [
@@ -806,6 +812,7 @@ export type Database = {
           duration_minutes: number | null
           has_addons: boolean
           id: string
+          image_urls: string[] | null
           location_type: string
           min_notice_minutes: number | null
           name: string
@@ -818,6 +825,7 @@ export type Database = {
           travel_fee_per_km_cents: number | null
           updated_at: string
           vendor_id: string
+          video_url: string | null
         }
         Insert: {
           availability_preset?: string
@@ -832,6 +840,7 @@ export type Database = {
           duration_minutes?: number | null
           has_addons?: boolean
           id?: string
+          image_urls?: string[] | null
           location_type?: string
           min_notice_minutes?: number | null
           name: string
@@ -844,6 +853,7 @@ export type Database = {
           travel_fee_per_km_cents?: number | null
           updated_at?: string
           vendor_id: string
+          video_url?: string | null
         }
         Update: {
           availability_preset?: string
@@ -858,6 +868,7 @@ export type Database = {
           duration_minutes?: number | null
           has_addons?: boolean
           id?: string
+          image_urls?: string[] | null
           location_type?: string
           min_notice_minutes?: number | null
           name?: string
@@ -870,6 +881,7 @@ export type Database = {
           travel_fee_per_km_cents?: number | null
           updated_at?: string
           vendor_id?: string
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -880,12 +892,16 @@ export type Database = {
           created_at: string
           description: string | null
           display_name: string
+          facebook_url: string | null
           id: string
+          instagram_url: string | null
           logo_url: string | null
           member_discount_override_percent: number | null
           opening_hours: Json | null
+          tiktok_url: string | null
           updated_at: string
           user_id: string
+          website_url: string | null
         }
         Insert: {
           active?: boolean
@@ -893,12 +909,16 @@ export type Database = {
           created_at?: string
           description?: string | null
           display_name: string
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
           logo_url?: string | null
           member_discount_override_percent?: number | null
           opening_hours?: Json | null
+          tiktok_url?: string | null
           updated_at?: string
           user_id: string
+          website_url?: string | null
         }
         Update: {
           active?: boolean
@@ -906,12 +926,16 @@ export type Database = {
           created_at?: string
           description?: string | null
           display_name?: string
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
           logo_url?: string | null
           member_discount_override_percent?: number | null
           opening_hours?: Json | null
+          tiktok_url?: string | null
           updated_at?: string
           user_id?: string
+          website_url?: string | null
         }
         Relationships: [
           {
