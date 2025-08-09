@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,9 +9,11 @@ import { Switch } from '@/components/ui/switch';
 import { useRiderProfile } from '@/hooks/useRiderProfile';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { MapPin, Phone, AlertTriangle } from 'lucide-react';
+import { toast } from "sonner";
 
 export default function RiderProfileForm() {
   const { profile, loading, createProfile, updateProfile } = useRiderProfile();
+  const [submitting, setSubmitting] = useState(false);
   const { latitude, longitude, getCurrentPosition } = useGeolocation();
   const [formData, setFormData] = useState({
     vehicle_type: profile?.vehicle_type || ('bicycle' as const),
@@ -19,24 +21,45 @@ export default function RiderProfileForm() {
     license_number: profile?.license_number || '',
   });
 
+  // Update form data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        vehicle_type: profile.vehicle_type,
+        service_radius_km: profile.service_radius_km,
+        license_number: profile.license_number || '',
+      });
+    }
+  }, [profile]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     
-    const data = {
-      ...formData,
-      current_lat: latitude,
-      current_lng: longitude,
-    };
+    try {
+      const data = {
+        ...formData,
+        current_lat: latitude,
+        current_lng: longitude,
+        last_location_update: new Date().toISOString(),
+      };
 
-    if (profile) {
-      await updateProfile(data);
-    } else {
-      await createProfile(data);
+      if (profile) {
+        await updateProfile(data);
+      } else {
+        await createProfile(data);
+      }
+    } catch (error) {
+      console.error('Error saving rider profile:', error);
+      toast("Error", { description: "Failed to save rider profile. Please try again." });
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const updateLocation = () => {
     getCurrentPosition();
+    toast("Location request sent", { description: "Please allow location access to update your position." });
   };
 
   if (loading) {
@@ -134,8 +157,8 @@ export default function RiderProfileForm() {
           </div>
 
 
-          <Button type="submit" className="w-full">
-            {profile ? 'Update Profile' : 'Create Profile'}
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? 'Saving...' : (profile ? 'Update Profile' : 'Create Profile')}
           </Button>
         </form>
       </CardContent>

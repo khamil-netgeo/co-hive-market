@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from "sonner";
 
 export interface RiderProfile {
   id: string;
@@ -23,7 +23,7 @@ export function useRiderProfile() {
   const [profile, setProfile] = useState<RiderProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(false);
-  const { toast } = useToast();
+  
 
   const fetchProfile = async () => {
     try {
@@ -43,11 +43,7 @@ export function useRiderProfile() {
         setIsOnline(data.is_available);
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast("Error loading profile", { description: error.message });
     } finally {
       setLoading(false);
     }
@@ -67,16 +63,9 @@ export function useRiderProfile() {
       if (error) throw error;
       
       setProfile(data as any);
-      toast({
-        title: "Success",
-        description: "Rider profile created successfully",
-      });
+      toast("Success", { description: "Rider profile created successfully" });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast("Error creating profile", { description: error.message });
     }
   };
 
@@ -94,12 +83,9 @@ export function useRiderProfile() {
       if (error) throw error;
       
       setProfile(data as any);
+      toast("Profile updated", { description: "Your rider profile has been updated successfully" });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast("Error updating profile", { description: error.message });
     }
   };
 
@@ -112,16 +98,12 @@ export function useRiderProfile() {
       await updateProfile({ is_available: newAvailability });
       setIsOnline(newAvailability);
       
-      toast({
-        title: newAvailability ? "Going Online" : "Going Offline",
-        description: `You are now ${newAvailability ? 'available' : 'offline'}`,
-      });
+      toast(
+        newAvailability ? "Going Online" : "Going Offline", 
+        { description: `You are now ${newAvailability ? 'available' : 'offline'}` }
+      );
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to update status",
-        variant: "destructive",
-      });
+      toast("Error updating status", { description: "Failed to update status" });
     }
   };
 
