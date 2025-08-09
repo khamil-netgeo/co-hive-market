@@ -166,23 +166,8 @@ export default function Catalog() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <a href="/" className="inline-flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-gradient-primary" aria-hidden />
-            <span className="text-lg font-semibold text-gradient-brand">CoopMarket</span>
-          </a>
-          <div className="flex items-center gap-3">
-            <Button variant="secondary" asChild>
-              <a href="/plans">Plans</a>
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <section className="container py-12 md:py-16">
-        <h1 className="text-3xl font-semibold">Catalog</h1>
+    <main className="container py-12 md:py-16">
+      <h1 className="text-3xl font-semibold">Catalog</h1>
         <p className="mt-2 max-w-prose text-muted-foreground">
           Member discounts apply automatically when you’re a member of the product’s community.
         </p>
@@ -247,7 +232,6 @@ export default function Catalog() {
             })}
           </div>
         )}
-      </section>
-    </main>
-  );
-}
+      </main>
+    );
+  }
