@@ -152,12 +152,20 @@ const VendorDashboard = () => {
             Welcome back, {vendor.display_name}
           </p>
         </div>
-        <Button asChild>
-          <Link to="/vendor/products/new" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Product
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link to="/vendor/products/new" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Add Product
+            </Link>
+          </Button>
+          <Button variant="secondary" asChild>
+            <Link to="/vendor/plans" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create Service Plan
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-4 gap-6 mb-8">
