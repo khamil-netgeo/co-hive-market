@@ -1,14 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 import useAuthRoles from "@/hooks/useAuthRoles";
 const SiteHeader = () => {
   const { isAdmin, isSuperadmin } = useAuthRoles();
-  const handleGetStarted = () => {
-    toast("To enable accounts and roles, connect Supabase (top-right green button).", {
-      description: "We’ll wire up Superadmin, Vendor, Delivery & Buyer once connected.",
-    });
-  };
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -26,7 +20,7 @@ const SiteHeader = () => {
           )}
         </nav>
         <div className="flex items-center gap-3">
-          <Button variant="hero" onClick={handleGetStarted}>Get Started</Button>
+          <Button variant="hero" asChild><Link to="/auth">Get Started</Link></Button>
         </div>
       </div>
     </header>
