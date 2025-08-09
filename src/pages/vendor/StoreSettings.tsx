@@ -153,19 +153,19 @@ export default function StoreSettings() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gradient-brand">Store Settings</h1>
           <p className="text-muted-foreground mt-2">Logo, description and opening hours</p>
         </div>
-        <Button onClick={save} disabled={saving || !vendorId} className="min-w-32">
+        <Button onClick={save} disabled={saving || !vendorId} className="w-full sm:w-auto min-w-32">
           <Save className="h-4 w-4 mr-2" />
           {saving ? "Saving..." : "Save"}
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Basic Info</CardTitle>
@@ -178,6 +178,7 @@ export default function StoreSettings() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Your store name"
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
@@ -187,7 +188,8 @@ export default function StoreSettings() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Tell customers about your store"
-                rows={5}
+                rows={4}
+                className="resize-none"
               />
             </div>
           </CardContent>
@@ -198,50 +200,80 @@ export default function StoreSettings() {
             <CardTitle>Store Logo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {previewUrl ? (
-              <img
-                src={previewUrl}
-                alt="Store logo preview"
-                className="h-24 w-24 rounded-md object-cover border"
-                loading="lazy"
-              />
-            ) : (
-              <div className="h-24 w-24 rounded-md border flex items-center justify-center text-muted-foreground">
-                <ImageIcon className="h-6 w-6" />
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="Store logo preview"
+                  className="h-20 w-20 sm:h-24 sm:w-24 rounded-md object-cover border flex-shrink-0"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-md border flex items-center justify-center text-muted-foreground flex-shrink-0">
+                  <ImageIcon className="h-6 w-6" />
+                </div>
+              )}
+              <div className="flex-1 w-full space-y-3">
+                <Input type="file" accept="image/*" onChange={onLogoChange} className="h-11" />
+                {logoUrl && (
+                  <div className="space-y-1">
+                    <Badge variant="secondary">Current</Badge>
+                    <p className="text-xs text-muted-foreground break-all">{logoUrl}</p>
+                  </div>
+                )}
               </div>
-            )}
-            <Input type="file" accept="image/*" onChange={onLogoChange} />
-            {logoUrl && (
-              <div>
-                <Badge variant="secondary">Current</Badge>
-                <p className="text-sm text-muted-foreground truncate">{logoUrl}</p>
-              </div>
-            )}
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Online presence</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="website_url">Website</Label>
-              <Input id="website_url" placeholder="https://yourstore.com" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} />
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="website_url">Website</Label>
+                <Input 
+                  id="website_url" 
+                  placeholder="https://yourstore.com" 
+                  value={websiteUrl} 
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="facebook_url">Facebook</Label>
+                <Input 
+                  id="facebook_url" 
+                  placeholder="https://facebook.com/yourpage" 
+                  value={facebookUrl} 
+                  onChange={(e) => setFacebookUrl(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="instagram_url">Instagram</Label>
+                <Input 
+                  id="instagram_url" 
+                  placeholder="https://instagram.com/yourhandle" 
+                  value={instagramUrl} 
+                  onChange={(e) => setInstagramUrl(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tiktok_url">TikTok</Label>
+                <Input 
+                  id="tiktok_url" 
+                  placeholder="https://tiktok.com/@yourhandle" 
+                  value={tiktokUrl} 
+                  onChange={(e) => setTiktokUrl(e.target.value)}
+                  className="h-11"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="facebook_url">Facebook</Label>
-              <Input id="facebook_url" placeholder="https://facebook.com/yourpage" value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="instagram_url">Instagram</Label>
-              <Input id="instagram_url" placeholder="https://instagram.com/yourhandle" value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="tiktok_url">TikTok</Label>
-              <Input id="tiktok_url" placeholder="https://tiktok.com/@yourhandle" value={tiktokUrl} onChange={(e) => setTiktokUrl(e.target.value)} />
-            </div>
-            <p className="text-sm text-muted-foreground">These links may be shown on your store profile and help with SEO.</p>
+            <p className="text-sm text-muted-foreground mt-4">These links may be shown on your store profile and help with SEO.</p>
           </CardContent>
         </Card>
       </div>
@@ -253,9 +285,9 @@ export default function StoreSettings() {
         <CardContent className="space-y-4">
           {days.map((d) => (
             <div key={d} className="space-y-3 border rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="font-medium text-lg capitalize min-w-20">{d}</div>
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-4">
+                <div className="font-medium text-base capitalize min-w-16 flex-shrink-0">{d}</div>
+                <div className="flex items-center gap-3">
                   <input
                     id={`closed-${d}`}
                     type="checkbox"
@@ -263,7 +295,7 @@ export default function StoreSettings() {
                     onChange={(e) => setDay(d, { closed: e.target.checked })}
                     className="w-4 h-4"
                   />
-                  <Label htmlFor={`closed-${d}`} className="text-sm font-medium cursor-pointer">
+                  <Label htmlFor={`closed-${d}`} className="text-sm font-medium cursor-pointer whitespace-nowrap">
                     Closed
                   </Label>
                 </div>
@@ -277,7 +309,7 @@ export default function StoreSettings() {
                       type="time"
                       value={hours[d].open}
                       onChange={(e) => setDay(d, { open: e.target.value })}
-                      className="w-full"
+                      className="w-full h-11"
                     />
                   </div>
                   <div className="space-y-2">
@@ -286,14 +318,14 @@ export default function StoreSettings() {
                       type="time"
                       value={hours[d].close}
                       onChange={(e) => setDay(d, { close: e.target.value })}
-                      className="w-full"
+                      className="w-full h-11"
                     />
                   </div>
                 </div>
               )}
               
               {hours[d].closed && (
-                <div className="text-center py-4 text-muted-foreground">
+                <div className="text-center py-3 text-muted-foreground">
                   Closed all day
                 </div>
               )}
@@ -302,8 +334,8 @@ export default function StoreSettings() {
         </CardContent>
       </Card>
 
-      <div className="mt-6 flex justify-end">
-        <Button onClick={save} disabled={saving || !vendorId} className="min-w-32">
+      <div className="mt-6 flex justify-center sm:justify-end">
+        <Button onClick={save} disabled={saving || !vendorId} className="w-full sm:w-auto min-w-32">
           <Save className="h-4 w-4 mr-2" />
           {saving ? "Saving..." : "Save Settings"}
         </Button>
