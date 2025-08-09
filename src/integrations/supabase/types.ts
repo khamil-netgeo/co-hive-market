@@ -506,6 +506,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_manager_of_community: {
+        Args: { _community_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "superadmin"
@@ -516,7 +520,13 @@ export type Database = {
         | "coop_share"
         | "platform_fee"
         | "refund"
-      member_type: "vendor" | "delivery" | "buyer" | "coordinator"
+      member_type:
+        | "vendor"
+        | "delivery"
+        | "buyer"
+        | "coordinator"
+        | "manager"
+        | "rider"
       order_status: "pending" | "paid" | "canceled" | "fulfilled" | "refunded"
       product_status: "active" | "inactive" | "archived"
     }
@@ -655,7 +665,14 @@ export const Constants = {
         "platform_fee",
         "refund",
       ],
-      member_type: ["vendor", "delivery", "buyer", "coordinator"],
+      member_type: [
+        "vendor",
+        "delivery",
+        "buyer",
+        "coordinator",
+        "manager",
+        "rider",
+      ],
       order_status: ["pending", "paid", "canceled", "fulfilled", "refunded"],
       product_status: ["active", "inactive", "archived"],
     },
