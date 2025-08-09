@@ -18,6 +18,7 @@ import Layout from "@/components/layout/Layout";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import RequireAdmin from "./components/auth/RequireAdmin";
+import Finance from "./pages/admin/Finance";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,16 @@ const App = () => (
                 <RequireAdmin>
                   <AdminLayout>
                     <Dashboard />
+                  </AdminLayout>
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/finance"
+              element={
+                <RequireAdmin>
+                  <AdminLayout>
+                    <Finance />
                   </AdminLayout>
                 </RequireAdmin>
               }
