@@ -3,11 +3,15 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { setSEO } from "@/lib/seo";
+import { setSEOAdvanced } from "@/lib/seo";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
 import ProductImage from "@/components/product/ProductImage";
-import { Package, MapPin, Star, ShoppingCart, ArrowLeft } from "lucide-react";
+import { Package, MapPin, Star, ShoppingCart } from "lucide-react";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
+import ShareButtons from "@/components/common/ShareButtons";
+import ProductTrustBadges from "@/components/product/ProductTrustBadges";
+import ShippingEstimator from "@/components/product/ShippingEstimator";
 
 interface Product {
   id: string;
@@ -22,6 +26,7 @@ interface Product {
   pickup_lat?: number | null;
   pickup_lng?: number | null;
   stock_qty?: number;
+  weight_grams?: number | null;
 }
 
 interface Vendor { id: string; member_discount_override_percent: number | null }
@@ -68,7 +73,25 @@ export default function ProductDetail() {
       }
 
       setProduct(productData);
-      setSEO(`${productData.name} | CoopMarket`, productData.description || `Buy ${productData.name} with member discounts.`);
+      setSEOAdvanced({
+        title: `${productData.name} | CoopMarket`,
+        description: productData.description || `Buy ${productData.name} with member discounts.`,
+        type: "product",
+        image: productData.image_urls?.[0] || undefined,
+        jsonLd: {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: productData.name,
+          description: productData.description || undefined,
+          image: productData.image_urls || undefined,
+          offers: {
+            "@type": "Offer",
+            priceCurrency: (productData.currency || "MYR").toUpperCase(),
+            price: (productData.price_cents / 100).toFixed(2),
+            availability: productData.stock_qty && productData.stock_qty > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          },
+        },
+      });
 
       // Load vendor info
       if (productData.vendor_id) {
@@ -286,13 +309,14 @@ export default function ProductDetail() {
   return (
     <main className="container px-4 py-6 md:py-12">
       <div className="space-y-6">
-        {/* Navigation */}
-        <Button variant="ghost" asChild className="mb-4">
-          <Link to="/catalog" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to catalog
-          </Link>
-        </Button>
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Catalog", href: "/catalog" },
+            { label: product.name },
+          ]}
+          className="mb-2"
+        />
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Image Section */}
@@ -324,7 +348,7 @@ export default function ProductDetail() {
 
           {/* Details Section */}
           <div className="space-y-6">
-            <div>
+            <div className="flex items-start justify-between gap-4">
               <h1 className="flex items-center gap-2 text-3xl font-bold mb-2">
                 <Package className="h-6 w-6 text-primary" />
                 {product.name}
@@ -334,6 +358,7 @@ export default function ProductDetail() {
                   </span>
                 )}
               </h1>
+              <ShareButtons title={product.name} />
             </div>
 
             {product.description && (
