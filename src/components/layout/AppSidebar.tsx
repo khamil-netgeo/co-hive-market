@@ -43,18 +43,12 @@ const riderItems = [
 ];
 
 const superAdminItems = [
-  { title: "Dashboard", url: "/superadmin", icon: Globe },
-  { title: "Users & Roles", url: "/superadmin/users", icon: UserCog },
-  { title: "Global Settings", url: "/superadmin/settings", icon: Settings },
-  { title: "Feature Flags", url: "/superadmin/feature-flags", icon: Flag },
-  { title: "Announcements", url: "/superadmin/announcements", icon: Megaphone },
-  { title: "Categories", url: "/superadmin/categories", icon: LayoutGrid },
-  { title: "Content Reports", url: "/superadmin/reports", icon: AlertTriangle },
-  { title: "Audit Logs", url: "/superadmin/audit-logs", icon: ScrollText },
-  { title: "Admin Dashboard", url: "/admin", icon: Shield },
-  { title: "Finance", url: "/admin/finance", icon: DollarSign },
-  { title: "KYC", url: "/admin/kyc", icon: User },
-  { title: "KYC Requirements", url: "/admin/kyc-requirements", icon: Briefcase },
+  { title: "Overview", url: "/superadmin", icon: Globe },
+  { title: "Platform Management", url: "/superadmin/platform", icon: Settings },
+  { title: "Communications", url: "/superadmin/communications", icon: Megaphone },
+  { title: "Financial Control", url: "/superadmin/finance", icon: DollarSign },
+  { title: "Verification", url: "/superadmin/verification", icon: Shield },
+  { title: "System Logs", url: "/superadmin/audit-logs", icon: ScrollText },
 ];
 
 export default function AppSidebar() {

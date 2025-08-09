@@ -28,6 +28,10 @@ import Announcements from "./pages/superadmin/Announcements";
 import AuditLogs from "./pages/superadmin/AuditLogs";
 import ContentReports from "./pages/superadmin/ContentReports";
 import Categories from "./pages/superadmin/Categories";
+import PlatformManagement from "./pages/superadmin/PlatformManagement";
+import Communications from "./pages/superadmin/Communications";
+import FinancialControl from "./pages/superadmin/FinancialControl";
+import Verification from "./pages/superadmin/Verification";
 import Finance from "./pages/admin/Finance";
 import AdminKYC from "./pages/admin/KYC";
 import AdminKYCRequirements from "./pages/admin/KYCRequirements";
@@ -146,42 +150,34 @@ const App = () => (
                 }
               />
               <Route
-                path="/superadmin/users"
+                path="/superadmin/platform"
                 element={
                   <RequireSuperadmin>
-                    <SuperAdminLayout>
-                      <UsersRoles />
-                    </SuperAdminLayout>
+                    <PlatformManagement />
                   </RequireSuperadmin>
                 }
               />
               <Route
-                path="/superadmin/settings"
+                path="/superadmin/communications"
                 element={
                   <RequireSuperadmin>
-                    <SuperAdminLayout>
-                      <GlobalSettings />
-                    </SuperAdminLayout>
+                    <Communications />
                   </RequireSuperadmin>
                 }
               />
               <Route
-                path="/superadmin/feature-flags"
+                path="/superadmin/finance"
                 element={
                   <RequireSuperadmin>
-                    <SuperAdminLayout>
-                      <FeatureFlags />
-                    </SuperAdminLayout>
+                    <FinancialControl />
                   </RequireSuperadmin>
                 }
               />
               <Route
-                path="/superadmin/announcements"
+                path="/superadmin/verification"
                 element={
                   <RequireSuperadmin>
-                    <SuperAdminLayout>
-                      <Announcements />
-                    </SuperAdminLayout>
+                    <Verification />
                   </RequireSuperadmin>
                 }
               />
@@ -189,19 +185,33 @@ const App = () => (
                 path="/superadmin/audit-logs"
                 element={
                   <RequireSuperadmin>
-                    <SuperAdminLayout>
-                      <AuditLogs />
-                    </SuperAdminLayout>
+                    <AuditLogs />
+                  </RequireSuperadmin>
+                }
+              />
+
+              {/* Legacy routes for backward compatibility - redirect or keep for direct access */}
+              <Route
+                path="/superadmin/users"
+                element={
+                  <RequireSuperadmin>
+                    <PlatformManagement />
                   </RequireSuperadmin>
                 }
               />
               <Route
-                path="/superadmin/reports"
+                path="/superadmin/settings"
                 element={
                   <RequireSuperadmin>
-                    <SuperAdminLayout>
-                      <ContentReports />
-                    </SuperAdminLayout>
+                    <PlatformManagement />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/feature-flags"
+                element={
+                  <RequireSuperadmin>
+                    <PlatformManagement />
                   </RequireSuperadmin>
                 }
               />
@@ -209,9 +219,55 @@ const App = () => (
                 path="/superadmin/categories"
                 element={
                   <RequireSuperadmin>
-                    <SuperAdminLayout>
-                      <Categories />
-                    </SuperAdminLayout>
+                    <PlatformManagement />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/announcements"
+                element={
+                  <RequireSuperadmin>
+                    <Communications />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/reports"
+                element={
+                  <RequireSuperadmin>
+                    <Communications />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <RequireSuperadmin>
+                    <FinancialControl />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/admin/finance"
+                element={
+                  <RequireSuperadmin>
+                    <FinancialControl />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/admin/kyc"
+                element={
+                  <RequireSuperadmin>
+                    <Verification />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/admin/kyc-requirements"
+                element={
+                  <RequireSuperadmin>
+                    <Verification />
                   </RequireSuperadmin>
                 }
               />
