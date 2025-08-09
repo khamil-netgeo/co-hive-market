@@ -16,6 +16,7 @@ const Index = () => {
       "CoopMarket — Community Marketplace",
       "Buy, sell, and deliver in a community-powered marketplace for products, services, time and learning."
     );
+    console.log("Landing v2: Index mounted at", window.location.href);
   }, []);
 
   const handleGetStarted = () => {
