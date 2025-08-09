@@ -61,7 +61,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				brand: {
+					1: 'hsl(var(--brand-1))',
+					2: 'hsl(var(--brand-2))',
+					3: 'hsl(var(--brand-3))'
 				}
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)'
+			},
+			boxShadow: {
+				'elegant': 'var(--shadow-elegant)',
+				'glow': 'var(--shadow-glow)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
