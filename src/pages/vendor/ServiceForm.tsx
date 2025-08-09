@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -58,15 +58,23 @@ export default function ServiceForm() {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [addons, setAddons] = useState<Addon[]>([]);
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [videoUrl, setVideoUrl] = useState("");
+const [imageUrls, setImageUrls] = useState<string[]>([]);
+const [videoUrl, setVideoUrl] = useState("");
+const { serviceId } = useParams<{ serviceId?: string }>();
 
   useEffect(() => {
-    setSEO(
-      "Create Service — Professional Listing | CoopMarket",
-      "Simple, mobile-friendly form for vendors to publish service offerings."
-    );
-  }, []);
+    if (serviceId) {
+      setSEO(
+        "Edit Service — Professional Listing | CoopMarket",
+        "Update your service details and media."
+      );
+    } else {
+      setSEO(
+        "Create Service — Professional Listing | CoopMarket",
+        "Simple, mobile-friendly form for vendors to publish service offerings."
+      );
+    }
+  }, [serviceId]);
 
   const form = useForm<ServiceFormData>({
     resolver: zodResolver(serviceSchema),
@@ -93,25 +101,78 @@ export default function ServiceForm() {
   const pricingModel = watch("pricing_model");
   const locationType = watch("location_type");
   const showTravel = watch("show_travel_fee");
-
   const availabilityLabel = useMemo(
     () => AVAIL_PRESETS.find(a => a.id === watch("availability_preset"))?.label ?? "",
     [watch("availability_preset")]
   );
 
+  useEffect(() => {
+    const load = async () => {
+      if (!serviceId || !user) return;
+      try {
+        const { data: svc, error } = await supabase
+          .from("vendor_services")
+          .select("name,subtitle,description,price_cents,currency,pricing_model,duration_minutes,location_type,service_area,service_radius_km,min_notice_minutes,availability_preset,travel_fee_per_km_cents,cancellation_policy,image_urls,video_url")
+          .eq("id", serviceId)
+          .maybeSingle();
+        if (error) throw error;
+        if (svc) {
+          form.reset({
+            name: svc.name || "",
+            subtitle: svc.subtitle || "",
+            description: svc.description || "",
+            price: svc.price_cents ? (svc.price_cents / 100).toFixed(2) : "",
+            currency: svc.currency || "myr",
+            pricing_model: (svc.pricing_model as any) || "fixed",
+            duration_minutes: svc.duration_minutes ? String(svc.duration_minutes) : "",
+            location_type: (svc.location_type as any) || "vendor",
+            service_area: svc.service_area || "",
+            radius_km: svc.service_radius_km ? String(svc.service_radius_km) : "",
+            lead_time_hours: svc.min_notice_minutes ? String(Math.round((svc.min_notice_minutes || 0) / 60)) : "",
+            availability_preset: (svc.availability_preset as any) || "weekdays_9_6",
+            cancellation_policy: (svc.cancellation_policy as any) || "moderate",
+            show_travel_fee: !!svc.travel_fee_per_km_cents,
+            travel_fee_per_km: svc.travel_fee_per_km_cents ? (svc.travel_fee_per_km_cents / 100).toFixed(2) : "",
+          });
+          setImageUrls(Array.isArray(svc.image_urls) ? svc.image_urls : []);
+          setVideoUrl(svc.video_url || "");
+
+          const { data: addonRows, error: addErr } = await supabase
+            .from("service_addons")
+            .select("name,price_delta_cents,time_delta_minutes")
+            .eq("service_id", serviceId);
+          if (addErr) throw addErr;
+          setAddons((addonRows || []).map((r: any) => ({
+            name: r.name,
+            priceDelta: r.price_delta_cents ? (r.price_delta_cents / 100).toString() : "",
+            timeDelta: r.time_delta_minutes ? String(r.time_delta_minutes) : "",
+          })));
+        }
+      } catch (e: any) {
+        toast("Failed to load service", { description: e.message || String(e) });
+      }
+    };
+    load();
+  }, [serviceId, user]);
+
   const onSubmit = async (data: ServiceFormData) => {
     if (!user) { navigate("/auth"); return; }
     setSaving(true);
     try {
-      const { data: vend, error: vErr } = await supabase
-        .from("vendors")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (vErr) throw vErr;
-      if (!vend) { toast("No vendor profile", { description: "Join as vendor first." }); navigate("/getting-started"); return; }
+      let vendorId: string | undefined;
+      // Only needed for create
+      if (!serviceId) {
+        const { data: vend, error: vErr } = await supabase
+          .from("vendors")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (vErr) throw vErr;
+        if (!vend) { toast("No vendor profile", { description: "Join as vendor first." }); navigate("/getting-started"); return; }
+        vendorId = (vend as any).id as string;
+      }
 
-      // Compose professional, parseable description (keeps DB unchanged)
+      // Compose description
       const lines: string[] = [];
       const baseDesc = (data.description || "").trim();
       if (baseDesc) lines.push(baseDesc);
@@ -136,10 +197,57 @@ export default function ServiceForm() {
       }
       const finalDescription = lines.join("\n");
 
+      if (serviceId) {
+        // Update existing service
+        const { error: upErr } = await supabase
+          .from("vendor_services")
+          .update({
+            name: data.name.trim(),
+            subtitle: data.subtitle?.trim() || null,
+            description: finalDescription || null,
+            price_cents: Math.round(parseFloat(data.price) * 100),
+            currency: data.currency || "myr",
+            duration_minutes: data.duration_minutes ? parseInt(data.duration_minutes, 10) : null,
+            service_area: data.service_area?.trim() || null,
+            pricing_model: data.pricing_model,
+            location_type: data.location_type,
+            service_radius_km: data.radius_km ? Math.max(0, Math.round(parseFloat(data.radius_km))) : null,
+            min_notice_minutes: data.lead_time_hours ? Math.max(0, Math.round(parseFloat(data.lead_time_hours) * 60)) : null,
+            availability_preset: data.availability_preset,
+            travel_fee_per_km_cents: showTravel && data.travel_fee_per_km ? Math.round(parseFloat(data.travel_fee_per_km) * 100) : null,
+            cancellation_policy: data.cancellation_policy,
+            has_addons: addons.some(a => a.name.trim()),
+            image_urls: imageUrls.length ? imageUrls : null,
+            video_url: videoUrl ? videoUrl.trim() : null,
+          })
+          .eq("id", serviceId);
+        if (upErr) throw upErr;
+
+        // Replace addons
+        await supabase.from("service_addons").delete().eq("service_id", serviceId);
+        if (addons.some(a => a.name.trim())) {
+          const rows = addons
+            .filter(a => a.name.trim())
+            .map(a => ({
+              service_id: serviceId as string,
+              name: a.name.trim(),
+              price_delta_cents: a.priceDelta ? Math.round(parseFloat(a.priceDelta) * 100) : 0,
+              time_delta_minutes: a.timeDelta ? Math.max(0, Math.round(parseFloat(a.timeDelta))) : 0,
+            }));
+          const { error: addErr } = await supabase.from("service_addons").insert(rows);
+          if (addErr) throw addErr;
+        }
+
+        toast.success("Service updated");
+        navigate("/vendor/services");
+        return;
+      }
+
+      // Create new service
       const { data: inserted, error } = await supabase
         .from("vendor_services")
         .insert({
-          vendor_id: (vend as any).id,
+          vendor_id: vendorId!,
           name: data.name.trim(),
           subtitle: data.subtitle?.trim() || null,
           description: finalDescription || null,
@@ -163,12 +271,12 @@ export default function ServiceForm() {
         .maybeSingle();
       if (error) throw error;
 
-      const serviceId = (inserted as any)?.id as string | undefined;
-      if (serviceId && addons.some(a => a.name.trim())) {
+      const newId = (inserted as any)?.id as string | undefined;
+      if (newId && addons.some(a => a.name.trim())) {
         const rows = addons
           .filter(a => a.name.trim())
           .map(a => ({
-            service_id: serviceId,
+            service_id: newId,
             name: a.name.trim(),
             price_delta_cents: a.priceDelta ? Math.round(parseFloat(a.priceDelta) * 100) : 0,
             time_delta_minutes: a.timeDelta ? Math.max(0, Math.round(parseFloat(a.timeDelta))) : 0,
@@ -180,7 +288,7 @@ export default function ServiceForm() {
       toast.success("Service created");
       navigate("/vendor/services");
     } catch (e: any) {
-      toast("Failed to create service", { description: e.message || String(e) });
+      toast(serviceId ? "Failed to update service" : "Failed to create service", { description: e.message || String(e) });
     } finally {
       setSaving(false);
     }

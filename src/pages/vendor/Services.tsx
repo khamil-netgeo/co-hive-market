@@ -8,6 +8,7 @@ import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
 import ServiceImage from "@/components/service/ServiceImage";
 import { Plus, Wrench, CheckCircle, DollarSign, Edit, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface Service { id: string; name: string; subtitle?: string | null; description: string | null; price_cents: number; currency: string; image_urls?: string[] | null }
 

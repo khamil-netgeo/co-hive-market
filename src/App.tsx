@@ -59,6 +59,7 @@ const App = () => (
               
               <Route path="/vendor/services" element={<VendorServices />} />
               <Route path="/vendor/services/new" element={<ServiceForm />} />
+              <Route path="/vendor/services/:serviceId/edit" element={<ServiceForm />} />
               <Route path="/vendor/dashboard" element={<VendorDashboard />} />
               <Route path="/vendor/products" element={<VendorProducts />} />
               <Route path="/vendor/products/new" element={<ProductForm />} />
