@@ -37,19 +37,22 @@ export default function useAuthRoles(): AuthRoles {
     const { data: sub } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
+      // Ensure UI waits for role resolution to avoid redirect flicker
+      setLoading(true);
       // Defer Supabase calls to avoid deadlocks
-      setTimeout(() => {
-        fetchRoles(nextSession?.user?.id);
+      setTimeout(async () => {
+        await fetchRoles(nextSession?.user?.id);
+        setLoading(false);
       }, 0);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       console.log("useAuthRoles: Initial session check", { session: session?.user?.id || null });
       setSession(session);
       setUser(session?.user ?? null);
-      fetchRoles(session?.user?.id);
+      await fetchRoles(session?.user?.id);
       setLoading(false);
-      console.log("useAuthRoles: Loading set to false");
+      console.log("useAuthRoles: Loading set to false after roles fetched");
     });
 
     return () => sub.subscription.unsubscribe();
