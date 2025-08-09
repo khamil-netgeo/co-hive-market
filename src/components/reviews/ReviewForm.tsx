@@ -118,7 +118,7 @@ export default function ReviewForm({ targetType, targetId, className }: Props) {
         <Button type="submit" className="flex-1 sm:flex-none" disabled={!canSubmit || submit.isPending}>
           {ownReview ? "Update review" : "Submit review"}
         </Button>
-        {ownReview && ownReview.status !== "approved" && (
+        {ownReview && (
           <Button type="button" variant="outline" onClick={onDelete} disabled={removeDraft.isPending}>
             Delete draft
           </Button>

@@ -1,6 +1,6 @@
 
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 type TargetType = "product" | "service";
@@ -41,7 +41,7 @@ export function useCurrentUserId() {
   return userId;
 }
 
-export function useReviewSummary(targetType: TargetType, targetId: string) {
+export function useReviewSummary(targetType: TargetType, targetId: string): UseQueryResult<RatingSummary, Error> {
   return useQuery({
     queryKey: ["review-summary", targetType, targetId] as const,
     queryFn: async (): Promise<RatingSummary> => {
@@ -55,10 +55,10 @@ export function useReviewSummary(targetType: TargetType, targetId: string) {
       if (error) throw error as Error;
       return (data ?? { avg_rating: null, review_count: 0 }) as RatingSummary;
     },
-  });
+  }) as UseQueryResult<RatingSummary, Error>;
 }
 
-export function useApprovedReviews(targetType: TargetType, targetId: string) {
+export function useApprovedReviews(targetType: TargetType, targetId: string): UseQueryResult<ReviewRecord[], Error> {
   return useQuery({
     queryKey: ["approved-reviews", targetType, targetId] as const,
     queryFn: async (): Promise<ReviewRecord[]> => {
@@ -72,10 +72,10 @@ export function useApprovedReviews(targetType: TargetType, targetId: string) {
       if (error) throw error as Error;
       return (data ?? []) as ReviewRecord[];
     },
-  });
+  }) as UseQueryResult<ReviewRecord[], Error>;
 }
 
-export function useOwnReview(targetType: TargetType, targetId: string) {
+export function useOwnReview(targetType: TargetType, targetId: string): UseQueryResult<ReviewRecord | null, Error> {
   const userId = useCurrentUserId();
   return useQuery({
     queryKey: ["own-review", targetType, targetId, userId] as const,
@@ -91,7 +91,7 @@ export function useOwnReview(targetType: TargetType, targetId: string) {
       if (error) throw error as Error;
       return (data ?? null) as ReviewRecord | null;
     },
-  });
+  }) as UseQueryResult<ReviewRecord | null, Error>;
 }
 
 type SubmitPayload = {
