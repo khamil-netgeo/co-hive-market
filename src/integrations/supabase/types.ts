@@ -349,6 +349,45 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          country: string
+          created_at: string
+          id: string
+          phone: string | null
+          postcode: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string
+          created_at?: string
+          id: string
+          phone?: string | null
+          postcode?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string
+          created_at?: string
+          id?: string
+          phone?: string | null
+          postcode?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       service_bookings: {
         Row: {
           buyer_user_id: string

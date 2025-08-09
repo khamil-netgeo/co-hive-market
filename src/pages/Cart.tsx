@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchEasyParcelRates } from "@/lib/shipping";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 export default function Cart() {
   const cart = useCart();
@@ -30,6 +31,28 @@ export default function Cart() {
   const [rates, setRates] = useState<RateOption[]>([]);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
   const [loadingRates, setLoadingRates] = useState(false);
+
+  // Load buyer registered address from profiles
+  const [profile, setProfile] = useState<{ address_line1?: string | null; address_line2?: string | null; city?: string | null; state?: string | null; postcode?: string | null; country?: string | null } | null>(null);
+  useEffect(() => {
+    (async () => {
+      const { data: session } = await supabase.auth.getSession();
+      const uid = session.session?.user?.id;
+      if (!uid) return; // guest carts can still browse
+      // Ensure a profile row exists
+      const { data: prof, error } = await supabase.from("profiles").select("address_line1,address_line2,city,state,postcode,country").eq("id", uid).maybeSingle();
+      if (error) return; // silent; user can still edit later
+      if (!prof) {
+        await supabase.from("profiles").insert({ id: uid });
+        setProfile({ country: "MY" });
+      } else {
+        setProfile(prof as any);
+        setSendPostcode((prof as any)?.postcode || "");
+        setSendState((prof as any)?.state || "");
+        setSendCountry((prof as any)?.country || "MY");
+      }
+    })();
+  }, []);
 
   const fmt = (cents: number) =>
     new Intl.NumberFormat((cart.currency || "USD").toUpperCase() === "MYR" ? "ms-MY" : "en-US", {
@@ -63,8 +86,12 @@ export default function Cart() {
   };
 
   const getRates = async () => {
-    if (!pickPostcode || !sendPostcode || !weight) {
-      toast("Enter shipping details", { description: "Pickup, destination postcodes and weight are required." });
+    if (!pickPostcode || !weight || !sendPostcode) {
+      if (!sendPostcode) {
+        toast("Add your address", { description: "Please set your shipping address in Profile first." });
+      } else {
+        toast("Enter shipping details", { description: "Pickup postcode and weight are required." });
+      }
       return;
     }
     try {
@@ -183,9 +210,24 @@ export default function Cart() {
                 <Label htmlFor="pick">Pickup postcode</Label>
                 <Input id="pick" value={pickPostcode} onChange={(e) => setPickPostcode(e.target.value)} placeholder="e.g. 31650" />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="send">Destination postcode</Label>
-                <Input id="send" value={sendPostcode} onChange={(e) => setSendPostcode(e.target.value)} placeholder="e.g. 50450" />
+              <div className="rounded-md border bg-muted/20 p-3 text-sm">
+                <div className="font-medium">Shipping to</div>
+                <div className="text-muted-foreground">
+                  {profile?.address_line1 || profile?.postcode ? (
+                    <>
+                      {[profile?.address_line1, profile?.address_line2, profile?.city, profile?.state, profile?.postcode, profile?.country]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </>
+                  ) : (
+                    "No address saved yet"
+                  )}
+                </div>
+                <div className="mt-2">
+                  <Button asChild variant="outline" size="sm">
+                    <Link to="/profile">Edit address</Link>
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-4 gap-3">
                 <div className="grid gap-2">
