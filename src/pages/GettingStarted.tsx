@@ -49,7 +49,56 @@ const GettingStarted = () => {
     }
 
     try {
-      // Insert community membership
+      // Check if user already has a membership in this community
+      const { data: existing, error: existingErr } = await supabase
+        .from("community_members")
+        .select("id, member_type")
+        .eq("community_id", communityId)
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (existingErr) throw existingErr;
+
+      if (existing) {
+        // Already a member: update role if different
+        if (existing.member_type === memberType) {
+          toast.info(`Already a member as ${memberType}`);
+          return;
+        }
+        const { error: updateErr } = await supabase
+          .from("community_members")
+          .update({ member_type: memberType })
+          .eq("id", existing.id);
+        if (updateErr) throw updateErr;
+
+        // If switching to vendor, ensure a vendor profile exists
+        if (memberType === 'vendor') {
+          const { data: vendor, error: vSelErr } = await supabase
+            .from("vendors")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("community_id", communityId)
+            .limit(1)
+            .maybeSingle();
+          if (vSelErr) throw vSelErr;
+          if (!vendor) {
+            const { error: vInsErr } = await supabase
+              .from("vendors")
+              .insert({
+                user_id: user.id,
+                community_id: communityId,
+                display_name: user.email?.split('@')[0] || 'Vendor'
+              });
+            if (vInsErr) throw vInsErr;
+          }
+        }
+
+        toast.success(`Updated your role to ${memberType}`);
+        navigate(memberType === 'delivery' ? '/rider' : '/');
+        return;
+      }
+
+      // No membership yet: insert a new one
       const { error: memberError } = await supabase
         .from("community_members")
         .insert({
@@ -57,7 +106,6 @@ const GettingStarted = () => {
           user_id: user.id,
           member_type: memberType
         });
-
       if (memberError) throw memberError;
 
       // If joining as vendor, create vendor profile
@@ -69,16 +117,17 @@ const GettingStarted = () => {
             community_id: communityId,
             display_name: user.email?.split('@')[0] || 'Vendor'
           });
-
         if (vendorError) throw vendorError;
       }
 
       toast.success(`Successfully joined as ${memberType}!`);
-      navigate("/");
+      navigate(memberType === 'delivery' ? '/rider' : '/');
     } catch (error: any) {
       console.error("Error joining community:", error);
-      if (error.message?.includes("duplicate")) {
+      if (typeof error.message === 'string' && error.message.toLowerCase().includes("duplicate")) {
         toast.error("You're already a member of this community");
+      } else if (error.code === 'PGRST116' /* RLS or upsert conflict type cases */) {
+        toast.error("Permission denied while joining. Please sign in and try again.");
       } else {
         toast.error("Failed to join community");
       }
