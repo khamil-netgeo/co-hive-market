@@ -160,9 +160,15 @@ const VendorDashboard = () => {
             </Link>
           </Button>
           <Button variant="secondary" asChild>
+            <Link to="/vendor/services" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Services
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
             <Link to="/vendor/plans" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Create Service Plan
+              Service Plans
             </Link>
           </Button>
         </div>

@@ -19,6 +19,7 @@ export default function PaymentSuccess() {
       try {
         const params = new URLSearchParams(window.location.search);
         const sessionId = params.get("session_id");
+        const bookingId = params.get("booking_id");
         if (!sessionId) {
           setVerifying(false);
           return;
@@ -29,7 +30,15 @@ export default function PaymentSuccess() {
         if (error) throw error;
         const oid = (data as any)?.order?.id ?? (data as any)?.order_id;
         if (oid) setOrderId(String(oid));
-        toast("Payment verified", { description: "Your order has been created." });
+
+        // If this payment was for a service booking, mark it paid
+        if (bookingId) {
+          await supabase
+            .from("service_bookings")
+            .update({ status: "paid", stripe_session_id: sessionId })
+            .eq("id", bookingId);
+        }
+        toast("Payment verified", { description: "Your transaction has been confirmed." });
       } catch (e: any) {
         toast("Verification issue", { description: e.message || String(e) });
       } finally {

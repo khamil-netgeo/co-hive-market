@@ -349,6 +349,48 @@ export type Database = {
           },
         ]
       }
+      service_bookings: {
+        Row: {
+          buyer_user_id: string
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          scheduled_at: string | null
+          service_id: string
+          status: string
+          stripe_session_id: string | null
+          total_amount_cents: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_user_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          scheduled_at?: string | null
+          service_id: string
+          status?: string
+          stripe_session_id?: string | null
+          total_amount_cents: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_user_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          scheduled_at?: string | null
+          service_id?: string
+          status?: string
+          stripe_session_id?: string | null
+          total_amount_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -452,6 +494,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vendor_services: {
+        Row: {
+          created_at: string
+          currency: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          name: string
+          price_cents: number
+          service_area: string | null
+          status: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          name: string
+          price_cents: number
+          service_area?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          name?: string
+          price_cents?: number
+          service_area?: string | null
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: []
       }
       vendors: {
         Row: {

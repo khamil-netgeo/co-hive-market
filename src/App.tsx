@@ -24,6 +24,9 @@ import VendorDashboard from "./pages/vendor/VendorDashboard";
 import ProductForm from "./pages/vendor/ProductForm";
 import Profile from "./pages/Profile";
 import Communities from "./pages/Communities";
+import Services from "./pages/Services";
+import VendorServices from "./pages/vendor/Services";
+import ServiceForm from "./pages/vendor/ServiceForm";
 
 const queryClient = new QueryClient();
 
@@ -43,11 +46,14 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/plans" element={<Plans />} />
             <Route path="/catalog" element={<Catalog />} />
+            <Route path="/services" element={<Services />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/communities" element={<Communities />} />
             <Route path="/riders" element={<Riders />} />
             <Route path="/vendor/plans" element={<VendorPlans />} />
+            <Route path="/vendor/services" element={<VendorServices />} />
+            <Route path="/vendor/services/new" element={<ServiceForm />} />
             <Route path="/vendor/dashboard" element={<VendorDashboard />} />
             <Route path="/vendor/products/new" element={<ProductForm />} />
             <Route path="/vendor/products/:productId/edit" element={<ProductForm />} />
