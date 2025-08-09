@@ -8,6 +8,7 @@ import { useCart } from "@/hooks/useCart";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 
 interface Product {
   id: string;
@@ -32,6 +33,9 @@ export default function Catalog() {
   const [memberCommunities, setMemberCommunities] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const cart = useCart();
+  const [useNearMe, setUseNearMe] = useState(true);
+  const [radiusKm, setRadiusKm] = useState(10);
+  const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     setSEO(
@@ -111,6 +115,31 @@ export default function Catalog() {
     load();
   }, []);
 
+  // Get buyer location: profile lat/lng first, fallback to browser geolocation
+  useEffect(() => {
+    const initLoc = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (sessionData.session) {
+          const { data } = await supabase.from("profiles").select("latitude,longitude").maybeSingle();
+          if (data?.latitude && data?.longitude) {
+            setLoc({ lat: data.latitude, lng: data.longitude });
+            return;
+          }
+        }
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => setLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            () => void 0,
+            { enableHighAccuracy: true, timeout: 8000 }
+          );
+        }
+      } catch {}
+    };
+    initLoc();
+  }, []);
+
+
   const fmtPrice = (cents: number, currency: string) => {
     const amount = cents / 100;
     const code = currency?.toUpperCase?.() || "USD";
@@ -132,6 +161,34 @@ export default function Catalog() {
     return discounted;
   };
 
+  // Haversine distance (km)
+  const haversineKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const toRad = (v: number) => (v * Math.PI) / 180;
+    const R = 6371; // km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const productsNear = useMemo(() => {
+    const withDist = products.map((p) => {
+      const d = loc && p.pickup_lat != null && p.pickup_lng != null
+        ? haversineKm(loc.lat, loc.lng, p.pickup_lat as number, p.pickup_lng as number)
+        : null;
+      return { ...(p as any), _distanceKm: d } as any;
+    });
+    if (useNearMe && loc) {
+      return withDist
+        .filter((x: any) => x._distanceKm != null && x._distanceKm <= radiusKm)
+        .sort((a: any, b: any) => (a._distanceKm ?? 0) - (b._distanceKm ?? 0));
+    }
+    return withDist;
+  }, [products, loc, useNearMe, radiusKm]);
   const buyNow = async (p: Product) => {
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
@@ -200,6 +257,24 @@ export default function Catalog() {
         <p className="mt-2 max-w-prose text-muted-foreground">
           Member discounts apply automatically when you’re a member of the product’s community.
         </p>
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="near">Near me</Label>
+            <Switch id="near" checked={useNearMe} onCheckedChange={setUseNearMe} />
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-80">
+            <Label className="whitespace-nowrap">Radius: {radiusKm} km</Label>
+            <Slider
+              value={[radiusKm]}
+              onValueChange={(v) => setRadiusKm(v[0] ?? 10)}
+              min={1}
+              max={50}
+              step={1}
+              disabled={!loc}
+            />
+            {!loc && <span className="text-xs text-muted-foreground">Enable location</span>}
+          </div>
+        </div>
 
         {loading ? (
           <div className="mt-8 text-muted-foreground">Loading products...</div>
@@ -207,7 +282,7 @@ export default function Catalog() {
           <div className="mt-8 rounded-md border bg-card p-6 text-muted-foreground">No products yet.</div>
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {products.map((p) => {
+            {productsNear.map((p: any) => {
               const discounted = memberPrice(p);
               const discPercent = effectiveDiscountPercent(p);
               return (
@@ -225,6 +300,9 @@ export default function Catalog() {
                   <CardContent className="grid gap-3">
                     {p.description && (
                       <p className="text-sm text-muted-foreground">{p.description}</p>
+                    )}
+                    {p._distanceKm != null && (
+                      <div className="text-xs text-muted-foreground">Distance: {p._distanceKm.toFixed(1)} km</div>
                     )}
                     <div className="text-2xl font-semibold">
                       {discounted != null ? (
