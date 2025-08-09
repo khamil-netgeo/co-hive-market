@@ -80,7 +80,7 @@ const SiteHeader = () => {
                     )}
                     
                     {isRider && (
-                      <DropdownMenuItem onSelect={() => navigate("/rider/dashboard")}>Rider Dashboard</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => navigate("/rider/dashboard")}>Rider</DropdownMenuItem>
                     )}
                     
                     {/* Show Admin for admin-only users, Super Admin for superadmin users */}
