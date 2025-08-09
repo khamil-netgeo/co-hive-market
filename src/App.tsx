@@ -30,7 +30,10 @@ import VendorProducts from "./pages/vendor/VendorProducts";
 import ServiceForm from "./pages/vendor/ServiceForm";
 import Cart from "./pages/Cart";
 import StoreSettings from "./pages/vendor/StoreSettings";
-import RiderHub from "./pages/rider/Hub";
+import RiderDashboard from "./pages/rider/Dashboard";
+import RiderAssignments from "./pages/rider/Assignments";
+import RiderDeliveries from "./pages/rider/Deliveries";
+import RiderProfile from "./pages/rider/Profile";
 import RiderPayouts from "./pages/rider/Payouts";
 import { CartProvider } from "@/hooks/useCart";
 
@@ -59,7 +62,10 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/communities" element={<Communities />} />
               <Route path="/riders" element={<Riders />} />
-              <Route path="/rider" element={<RiderHub />} />
+              <Route path="/rider" element={<RiderDashboard />} />
+              <Route path="/rider/assignments" element={<RiderAssignments />} />
+              <Route path="/rider/deliveries" element={<RiderDeliveries />} />
+              <Route path="/rider/profile" element={<RiderProfile />} />
               <Route path="/rider/payouts" element={<RiderPayouts />} />
               
               <Route path="/vendor/services" element={<VendorServices />} />
