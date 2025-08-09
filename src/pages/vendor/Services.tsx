@@ -6,8 +6,9 @@ import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
+import ServiceImage from "@/components/service/ServiceImage";
 
-interface Service { id: string; name: string; subtitle?: string | null; description: string | null; price_cents: number; currency: string }
+interface Service { id: string; name: string; subtitle?: string | null; description: string | null; price_cents: number; currency: string; image_urls?: string[] | null }
 
 export default function VendorServices() {
   const { user } = useAuthRoles();
@@ -24,7 +25,7 @@ export default function VendorServices() {
         if (!vend) return;
         const { data, error } = await supabase
           .from("vendor_services")
-          .select("id,name,subtitle,description,price_cents,currency")
+          .select("id,name,subtitle,description,price_cents,currency,image_urls")
           .eq("vendor_id", (vend as any).id)
           .order("created_at", { ascending: false });
         if (error) throw error;
@@ -57,14 +58,26 @@ export default function VendorServices() {
         <div className="grid gap-4">
           {services.map((s) => (
             <Card key={s.id}>
-              <CardHeader>
-                <CardTitle>{s.name}</CardTitle>
-                {s.subtitle && <p className="text-sm text-muted-foreground mt-1">{s.subtitle}</p>}
-              </CardHeader>
-              <CardContent className="flex items-center justify-between">
-                <div className="text-sm text-muted-foreground max-w-prose">{s.description}</div>
-                <div className="font-medium">{fmt(s.price_cents, s.currency)}</div>
-              </CardContent>
+              <div className="flex">
+                <div className="w-24 h-24 flex-shrink-0">
+                  <ServiceImage 
+                    imageUrls={s.image_urls}
+                    serviceName={s.name}
+                    className="w-full h-full object-cover rounded-l-lg"
+                    fallbackClassName="w-full h-full bg-muted rounded-l-lg flex items-center justify-center"
+                  />
+                </div>
+                <div className="flex-1">
+                  <CardHeader>
+                    <CardTitle>{s.name}</CardTitle>
+                    {s.subtitle && <p className="text-sm text-muted-foreground mt-1">{s.subtitle}</p>}
+                  </CardHeader>
+                  <CardContent className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground max-w-prose">{s.description}</div>
+                    <div className="font-medium">{fmt(s.price_cents, s.currency)}</div>
+                  </CardContent>
+                </div>
+              </div>
             </Card>
           ))}
         </div>

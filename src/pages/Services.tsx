@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
+import ServiceImage from "@/components/service/ServiceImage";
 
 interface Service {
   id: string;
@@ -20,6 +21,7 @@ interface Service {
   service_area?: string | null;
   location_type?: string | null;
   availability_preset?: string | null;
+  image_urls?: string[] | null;
 }
 
 
@@ -38,7 +40,7 @@ export default function Services() {
       try {
         const { data, error } = await supabase
           .from("vendor_services")
-          .select("id,vendor_id,name,subtitle,description,price_cents,currency,status,duration_minutes,service_area,location_type,availability_preset")
+          .select("id,vendor_id,name,subtitle,description,price_cents,currency,status,duration_minutes,service_area,location_type,availability_preset,image_urls")
           .eq("status", "active")
           .order("created_at", { ascending: false });
         if (error) throw error;
@@ -54,6 +56,7 @@ export default function Services() {
           service_area: s.service_area ?? null,
           location_type: s.location_type ?? null,
           availability_preset: s.availability_preset ?? null,
+          image_urls: s.image_urls ?? null,
         })));
 
       } catch (e: any) {
@@ -200,6 +203,13 @@ export default function Services() {
           <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {displayed.map((svc) => (
               <Card key={svc.id} className="hover:shadow-elegant transition-shadow">
+                <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                  <ServiceImage 
+                    imageUrls={svc.image_urls}
+                    serviceName={svc.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <CardHeader>
                   <CardTitle>{svc.name}</CardTitle>
                   {svc.subtitle && (
