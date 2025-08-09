@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 export type CartItem = {
   product_id: string;
@@ -26,10 +26,11 @@ interface CartState {
 const Ctx = createContext<CartState | undefined>(undefined);
 const LS_KEY = "cart:v1";
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
-      const raw = localStorage.getItem(LS_KEY);
+      if (typeof window === 'undefined') return [];
+      const raw = window.localStorage.getItem(LS_KEY);
       return raw ? (JSON.parse(raw) as CartItem[]) : [];
     } catch {
       return [];
@@ -37,7 +38,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem(LS_KEY, JSON.stringify(items));
+    try {
+      if (typeof window === 'undefined') return;
+      window.localStorage.setItem(LS_KEY, JSON.stringify(items));
+    } catch {}
   }, [items]);
 
   const add: CartState["add"] = useCallback((item, qty = 1) => {
