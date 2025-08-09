@@ -3,23 +3,40 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarIcon } from "lucide-react";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+
+const DIETARY_OPTIONS = [
+  "vegan",
+  "vegetarian",
+  "gluten-free",
+  "halal",
+  "kosher",
+  "organic",
+] as const;
 
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().optional(),
-  price: z.string().min(1, "Price is required").regex(/^\d+(\.\d{1,2})?$/, "Invalid price format"),
+  price: z
+    .string()
+    .min(1, "Price is required")
+    .regex(/^\d+(\.\d{1,2})?$/, "Invalid price format"),
   currency: z.string().default("myr"),
   status: z.enum(["active", "inactive", "archived"]).default("inactive"),
   category: z.enum(["grocery", "food", "other"]).default("grocery"),
@@ -30,6 +47,8 @@ const productSchema = z.object({
   prep_time_minutes: z.string().optional(),
   pickup_lat: z.string().optional(),
   pickup_lng: z.string().optional(),
+  best_before: z.date().optional(),
+  dietary_tags: z.array(z.enum(DIETARY_OPTIONS)).optional().default([]),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -47,7 +66,7 @@ const ProductForm = () => {
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [saving, setSaving] = useState(false);
-
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const isEditing = Boolean(productId);
 
   const form = useForm<ProductFormData>({
@@ -71,8 +90,8 @@ const ProductForm = () => {
 
   useEffect(() => {
     setSEO(
-      `${isEditing ? 'Edit' : 'Create'} Product — CoopMarket`,
-      `${isEditing ? 'Edit your existing' : 'Create a new'} product listing in the community marketplace.`
+      `${isEditing ? 'Edit' : 'Create'} Product — Groceries & Food | CoopMarket`,
+      `${isEditing ? 'Edit' : 'Create'} simple listings tailored for groceries and prepared food.`
     );
     
     if (user && !loading) {
@@ -170,9 +189,24 @@ const ProductForm = () => {
 
     setSaving(true);
     try {
+      const sanitizeDescription = (desc?: string) =>
+        (desc || "")
+          .split("\n")
+          .filter((l) => !/^Best before:/i.test(l) && !/^Dietary:/i.test(l))
+          .join("\n")
+          .trim();
+
+      const baseDesc = sanitizeDescription(data.description);
+      const parts: string[] = [];
+      if (baseDesc) parts.push(baseDesc);
+      if (data.best_before) parts.push(`Best before: ${format(data.best_before, "PPP")}`);
+      if (data.dietary_tags && data.dietary_tags.length)
+        parts.push(`Dietary: ${data.dietary_tags.join(", ")}`);
+      const finalDescription = parts.join("\n");
+
       const productData = {
         name: data.name,
-        description: data.description || null,
+        description: finalDescription || null,
         price_cents: Math.round(parseFloat(data.price) * 100),
         currency: data.currency,
         status: data.status,
@@ -253,6 +287,7 @@ const ProductForm = () => {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Product name */}
                 <FormField
                   control={form.control}
                   name="name"
@@ -260,35 +295,15 @@ const ProductForm = () => {
                     <FormItem>
                       <FormLabel>Product Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter product name" {...field} />
+                        <Input placeholder="e.g. Fresh tomatoes, Chicken curry" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Describe your product..."
-                          className="min-h-[100px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Provide a detailed description of your product
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
+                {/* Price + Stock */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="price"
@@ -303,91 +318,12 @@ const ProductForm = () => {
                             {...field}
                           />
                         </FormControl>
+                        <FormDescription>Currency is set in More options</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="currency"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Currency</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select currency" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="usd">USD ($)</SelectItem>
-                            <SelectItem value="eur">EUR (€)</SelectItem>
-                            <SelectItem value="gbp">GBP (£)</SelectItem>
-                            <SelectItem value="myr">MYR (RM)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="archived">Archived</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Only active products will be visible to customers
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Category */}
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="grocery">Groceries</SelectItem>
-                          <SelectItem value="food">Food</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Choose “Groceries” or “Food” to enable delivery options and geo-sorting
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Inventory & specs */}
-                <div className="grid grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
                     name="stock_qty"
@@ -395,33 +331,7 @@ const ProductForm = () => {
                       <FormItem>
                         <FormLabel>Stock quantity</FormLabel>
                         <FormControl>
-                          <Input type="number" min={0} placeholder="0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="weight_grams"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Weight (grams)</FormLabel>
-                        <FormControl>
-                          <Input type="number" min={0} placeholder="e.g. 500" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="prep_time_minutes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Prep time (min)</FormLabel>
-                        <FormControl>
-                          <Input type="number" min={0} placeholder="e.g. 15" {...field} />
+                          <Input type="number" min={0} placeholder="e.g. 20" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -429,8 +339,63 @@ const ProductForm = () => {
                   />
                 </div>
 
+                {/* Type */}
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="grocery">Groceries</SelectItem>
+                          <SelectItem value="food">Prepared food</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Choose Groceries for items like produce, dairy, pantry. Choose Prepared food for cooked meals.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Quick presets */}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      form.setValue("category", "grocery");
+                      form.setValue("perishable", false);
+                      form.setValue("refrigeration_required", false);
+                      form.setValue("prep_time_minutes", "");
+                    }}
+                  >
+                    Groceries preset
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      form.setValue("category", "food");
+                      form.setValue("perishable", true);
+                      form.setValue("refrigeration_required", false);
+                      if (!form.getValues("prep_time_minutes")) form.setValue("prep_time_minutes", "15");
+                    }}
+                  >
+                    Prepared food preset
+                  </Button>
+                </div>
+
                 {/* Handling */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="perishable"
@@ -463,8 +428,105 @@ const ProductForm = () => {
                   />
                 </div>
 
+                {/* Best before (only if perishable) */}
+                {form.watch("perishable") && (
+                  <FormField
+                    control={form.control}
+                    name="best_before"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Best before (optional)</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-full sm:w-[240px] justify-start text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormDescription>This will be added to the description</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* Dietary tags */}
+                <FormField
+                  control={form.control}
+                  name="dietary_tags"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dietary tags (optional)</FormLabel>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {DIETARY_OPTIONS.map((opt) => {
+                          const checked = Array.isArray(field.value) && field.value.includes(opt);
+                          return (
+                            <label key={opt} className="flex items-center gap-2 rounded-md border p-2 cursor-pointer">
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={(isChecked) => {
+                                  const current: string[] = Array.isArray(field.value) ? field.value : [];
+                                  if (isChecked) {
+                                    field.onChange([...current, opt]);
+                                  } else {
+                                    field.onChange(current.filter((v) => v !== opt));
+                                  }
+                                }}
+                              />
+                              <span className="text-sm capitalize">{opt.replace("-", " ")}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      <FormDescription>These will be added to the description</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Description */}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Ingredients, storage, allergy info..."
+                          className="min-h-[100px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 {/* Pickup location */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
                     name="pickup_lat"
@@ -496,6 +558,93 @@ const ProductForm = () => {
                       Use my profile location
                     </Button>
                   </div>
+                </div>
+
+                {/* More options */}
+                <div className="space-y-2">
+                  <Button type="button" variant="outline" onClick={() => setShowAdvanced((v) => !v)}>
+                    {showAdvanced ? 'Hide' : 'More'} options
+                  </Button>
+                  {showAdvanced && (
+                    <div className="space-y-4 rounded-md border p-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="currency"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Currency</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select currency" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="usd">USD ($)</SelectItem>
+                                  <SelectItem value="eur">EUR (€)</SelectItem>
+                                  <SelectItem value="gbp">GBP (£)</SelectItem>
+                                  <SelectItem value="myr">MYR (RM)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="status"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Status</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select status" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="inactive">Inactive</SelectItem>
+                                  <SelectItem value="active">Active</SelectItem>
+                                  <SelectItem value="archived">Archived</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>Inactive products are hidden from customers</FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="weight_grams"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Weight (grams)</FormLabel>
+                              <FormControl>
+                                <Input type="number" min={0} placeholder="e.g. 500" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="prep_time_minutes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Prep time (min)</FormLabel>
+                              <FormControl>
+                                <Input type="number" min={0} placeholder="e.g. 15" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actions */}
