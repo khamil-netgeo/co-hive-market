@@ -6,18 +6,21 @@ import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Form } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
-import MediaUploader from "@/components/media/MediaUploader";
-import ServiceImage from "@/components/service/ServiceImage";
+import ServiceBasicInfo from "@/components/service/form/ServiceBasicInfo";
+import ServicePricing from "@/components/service/form/ServicePricing";
+import ServiceLocation from "@/components/service/form/ServiceLocation";
+import ServiceAddons from "@/components/service/form/ServiceAddons";
+import ServiceCategories from "@/components/service/form/ServiceCategories";
+import ServiceMedia from "@/components/service/form/ServiceMedia";
+import ServicePreview from "@/components/service/form/ServicePreview";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
 
 const PRICING_MODELS = ["fixed", "hourly", "per_unit"] as const;
 const LOCATION_TYPES = ["vendor", "customer", "remote"] as const;
@@ -60,12 +63,11 @@ export default function ServiceForm() {
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [addons, setAddons] = useState<Addon[]>([]);
-const [imageUrls, setImageUrls] = useState<string[]>([]);
-const [videoUrl, setVideoUrl] = useState("");
-const { serviceId } = useParams<{ serviceId?: string }>();
-// Categories state
-const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState("");
+  const { serviceId } = useParams<{ serviceId?: string }>();
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (serviceId) {
@@ -172,6 +174,15 @@ const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
             priceDelta: r.price_delta_cents ? (r.price_delta_cents / 100).toString() : "",
             timeDelta: r.time_delta_minutes ? String(r.time_delta_minutes) : "",
           })));
+
+          // Load selected categories for edit mode
+          try {
+            const { data: scRows } = await supabase
+              .from("service_categories")
+              .select("category_id")
+              .eq("service_id", serviceId);
+            setSelectedCategoryIds(((scRows as any[]) || []).map((r: any) => r.category_id));
+          } catch {}
         }
       } catch (e: any) {
         toast("Failed to load service", { description: e.message || String(e) });
@@ -259,15 +270,6 @@ const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
               price_delta_cents: a.priceDelta ? Math.round(parseFloat(a.priceDelta) * 100) : 0,
               time_delta_minutes: a.timeDelta ? Math.max(0, Math.round(parseFloat(a.timeDelta))) : 0,
           }));
-
-          // Prefill selected categories
-          try {
-            const { data: scRows } = await supabase
-              .from("service_categories")
-              .select("category_id")
-              .eq("service_id", serviceId);
-            setSelectedCategoryIds(((scRows as any[]) || []).map((r: any) => r.category_id));
-          } catch {}
           
           const { error: addErr } = await supabase.from("service_addons").insert(rows);
           if (addErr) throw addErr;
@@ -349,403 +351,145 @@ const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const updateAddon = (idx: number, patch: Partial<Addon>) =>
     setAddons((prev) => prev.map((a, i) => (i === idx ? { ...a, ...patch } : a)));
 
+  const toggleCategory = (categoryId: string) => {
+    setSelectedCategoryIds(prev => 
+      prev.includes(categoryId) 
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
   return (
-    <main className="container px-4 py-8">
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 animate-fade-in">
-          <CardHeader>
-            <CardTitle>Create Service</CardTitle>
-          </CardHeader>
-          <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* Essentials */}
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Service name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Home Cleaning, Private Tutor" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="subtitle"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Short subtitle (optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="One line value proposition" {...field} />
-                      </FormControl>
-                      <FormDescription>Shown in listings and helps SEO.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+    <main className="container px-4 py-6 pb-24 md:py-8">
+      <div className="space-y-6">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: "Vendor", href: "/vendor/services" },
+            { label: "Services", href: "/vendor/services" },
+            { label: serviceId ? "Edit Service" : "Create Service" },
+          ]}
+        />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Base price</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.01" placeholder="0.00" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>
+                {serviceId ? "Edit Service" : "Create New Service"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" id="service-form">
+                  <ServiceBasicInfo control={form.control} watch={watch} />
+                  <ServicePricing control={form.control} watch={watch} />
+                  <ServiceLocation control={form.control} watch={watch} />
+                  <ServiceAddons 
+                    addons={addons}
+                    onAddAddon={addAddon}
+                    onRemoveAddon={removeAddon}
+                    onUpdateAddon={updateAddon}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="pricing_model"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Pricing model</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select model" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="z-50 bg-popover">
-                            <SelectItem value="fixed">Fixed</SelectItem>
-                            <SelectItem value="hourly">Hourly</SelectItem>
-                            <SelectItem value="per_unit">Per unit</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  <ServiceCategories
+                    categories={categories}
+                    selectedCategoryIds={selectedCategoryIds}
+                    onToggleCategory={toggleCategory}
                   />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="duration_minutes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Typical duration (minutes)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min={0} placeholder="e.g. 60" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* When & Where */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="location_type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Location</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select location" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="z-50 bg-popover">
-                            <SelectItem value="vendor">At vendor</SelectItem>
-                            <SelectItem value="customer">At customer</SelectItem>
-                            <SelectItem value="remote">Remote / online</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  <ServiceMedia
+                    userId={user?.id}
+                    imageUrls={imageUrls}
+                    videoUrl={videoUrl}
+                    onImageUrlsChange={setImageUrls}
+                    onVideoUrlChange={setVideoUrl}
                   />
-
-                  <FormField
-                    control={form.control}
-                    name="availability_preset"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Availability preset</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select availability" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="z-50 bg-popover">
-                            {AVAIL_PRESETS.map(p => (
-                              <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {locationType !== "remote" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  
+                  {/* Policies */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Policies</h3>
                     <FormField
                       control={form.control}
-                      name="service_area"
+                      name="cancellation_policy"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Service area (districts/areas)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g. KLCC, Bangsar, PJ" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="radius_km"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Radius (km, optional)</FormLabel>
-                          <FormControl>
-                            <Input type="number" step="0.1" placeholder="e.g. 10" {...field} />
-                          </FormControl>
+                          <FormLabel>Cancellation policy</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select policy" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="z-50 bg-popover">
+                              <SelectItem value="flexible">Flexible</SelectItem>
+                              <SelectItem value="moderate">Moderate</SelectItem>
+                              <SelectItem value="strict">Strict</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
-                )}
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="lead_time_hours"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Minimum notice (hours)</FormLabel>
-                        <FormControl>
-                          <Input type="number" min={0} placeholder="e.g. 24" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+          {/* Preview Sidebar */}
+          <aside className="lg:col-span-1">
+            <ServicePreview
+              name={watch("name")}
+              subtitle={watch("subtitle")}
+              price={watch("price")}
+              currency={watch("currency")}
+              duration={watch("duration_minutes")}
+              locationType={watch("location_type")}
+              imageUrls={imageUrls}
+              pricingModel={watch("pricing_model")}
+            />
+          </aside>
+        </div>
 
-                  <FormField
-                    control={form.control}
-                    name="show_travel_fee"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-md border p-3">
-                        <div>
-                          <FormLabel>Charge travel fee</FormLabel>
-                          <FormDescription>Enable per‑km travel fee</FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                {showTravel && (
-                  <FormField
-                    control={form.control}
-                    name="travel_fee_per_km"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Travel fee per km (currency)</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.01" placeholder="e.g. 1.50" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+        {/* Sticky Action Bar */}
+        <div className="fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
+          <div className="container px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 text-sm min-w-0">
+                <span className="font-medium truncate">
+                  {watch("name") || "Untitled service"}
+                </span>
+                <span className="text-muted-foreground whitespace-nowrap">
+                  {(() => {
+                    const p = parseFloat(watch("price") || "");
+                    const cur = (watch("currency") || "myr").toUpperCase();
+                    if (isNaN(p)) return "";
+                    return new Intl.NumberFormat(cur === "MYR" ? "ms-MY" : "en-US", { 
+                      style: "currency", 
+                      currency: cur 
+                    }).format(p);
+                  })()}
+                </span>
               </div>
-
-              {/* Policies & Details */}
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="cancellation_policy"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cancellation policy</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select policy" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="z-50 bg-popover">
-                          <SelectItem value="flexible">Flexible</SelectItem>
-                          <SelectItem value="moderate">Moderate</SelectItem>
-                          <SelectItem value="strict">Strict</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>We'll include this in your listing details.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Details & inclusions</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="What's included, exclusions, requirements, certifications, safety notes..."
-                          className="min-h-[120px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="flex gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => navigate("/vendor/services")}
+                  className="hidden sm:flex"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  form="service-form"
+                  disabled={saving}
+                  onClick={form.handleSubmit(onSubmit)}
+                >
+                  {saving ? "Saving…" : (serviceId ? "Update" : "Publish")}
+                </Button>
               </div>
-
-              {/* Add-ons (simple) */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="font-medium">Add‑ons (optional)</div>
-                  <Button type="button" variant="secondary" onClick={addAddon}>Add add‑on</Button>
-                </div>
-                {addons.length > 0 && (
-                  <div className="space-y-2">
-                    {addons.map((a, i) => (
-                      <div key={i} className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                        <Input placeholder="Name (e.g. Deep clean)" value={a.name} onChange={e => updateAddon(i, { name: e.target.value })} />
-                        <Input placeholder="+Price (e.g. 20.00)" type="number" step="0.01" value={a.priceDelta} onChange={e => updateAddon(i, { priceDelta: e.target.value })} />
-                        <Input placeholder="+Time min (e.g. 15)" type="number" value={a.timeDelta} onChange={e => updateAddon(i, { timeDelta: e.target.value })} />
-                        <Button type="button" variant="outline" onClick={() => removeAddon(i)}>Remove</Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Categories */}
-              <div className="space-y-2">
-                <div className="font-medium">Categories</div>
-                {categories.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">No categories yet</div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {categories.map((c) => {
-                      const checked = selectedCategoryIds.includes(c.id);
-                      return (
-                        <label key={c.id} className="flex items-center gap-2 rounded-md border p-2 cursor-pointer">
-                          <Checkbox
-                            checked={checked}
-                            onCheckedChange={(v) => {
-                              const isOn = Boolean(v);
-                              setSelectedCategoryIds((prev) =>
-                                isOn ? Array.from(new Set([...prev, c.id])) : prev.filter((id) => id !== c.id)
-                              );
-                            }}
-                            aria-label={`Category ${c.name}`}
-                          />
-                          <span className="text-sm">{c.name}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
- 
-               {/* Currency (advanced minimal) */}
-              <FormField
-                control={form.control}
-                name="currency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Currency</FormLabel>
-                    <FormControl>
-                      <Input placeholder="myr" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Media */}
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="font-medium">Media</div>
-                  <MediaUploader bucket="service-images" folder={`${user?.id || 'anonymous'}/services`} value={imageUrls} onChange={setImageUrls} />
-                </div>
-                <div className="space-y-2">
-                  <FormLabel>Promo video URL (optional)</FormLabel>
-                  <Input placeholder="https://... (YouTube, Vimeo or MP4)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-0 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="font-medium truncate max-w-[200px] sm:max-w-[300px]">
-                    {watch("name") || "Untitled service"}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {(() => {
-                      const p = parseFloat(watch("price") || "");
-                      const cur = (watch("currency") || "myr").toUpperCase();
-                      if (isNaN(p)) return "";
-                      return new Intl.NumberFormat(cur === "MYR" ? "ms-MY" : "en-US", { style: "currency", currency: cur }).format(p);
-                    })()}
-                  </span>
-                </div>
-                <div className="flex gap-3 w-full sm:w-auto">
-                  <Button type="submit" className="w-full sm:w-auto" disabled={saving}>{saving ? "Saving…" : (serviceId ? "Update service" : "Publish service")}</Button>
-                  <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => navigate("/vendor/services")}>Cancel</Button>
-                </div>
-              </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-
-      <aside className="lg:col-span-1 space-y-4 sticky top-24 h-fit animate-fade-in">
-        <Card>
-          <CardHeader>
-            <CardTitle>Live Preview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="aspect-video w-full overflow-hidden rounded-md">
-              <ServiceImage imageUrls={imageUrls} serviceName={watch("name") || "Service"} className="w-full h-full object-cover" />
             </div>
-            <div>
-              <div className="text-lg font-semibold">{watch("name") || "Untitled service"}</div>
-              {watch("subtitle") && (
-                <p className="text-sm text-muted-foreground">{watch("subtitle")}</p>
-              )}
-            </div>
-            <div className="text-xl font-bold">
-              {(() => {
-                const p = parseFloat(watch("price") || "");
-                const cur = (watch("currency") || "myr").toUpperCase();
-                if (isNaN(p)) return "";
-                return new Intl.NumberFormat(cur === "MYR" ? "ms-MY" : "en-US", { style: "currency", currency: cur }).format(p);
-              })()}
-            </div>
-          </CardContent>
-        </Card>
-      </aside>
-
+          </div>
+        </div>
       </div>
     </main>
   );
