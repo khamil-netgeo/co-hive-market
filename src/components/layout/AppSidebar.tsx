@@ -24,7 +24,7 @@ const items = [
 
 const vendorItems = [
   { title: "Overview", url: "/vendor/dashboard", icon: LayoutGrid },
-  { title: "Products", url: "/catalog", icon: Package },
+  { title: "Products", url: "/vendor/products", icon: Package },
   { title: "Orders", url: "/vendor/orders", icon: ListOrdered },
   { title: "Analytics", url: "/vendor/analytics", icon: BarChart3 },
   { title: "Services", url: "/vendor/services", icon: Briefcase },

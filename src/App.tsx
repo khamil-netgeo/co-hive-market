@@ -26,6 +26,7 @@ import Profile from "./pages/Profile";
 import Communities from "./pages/Communities";
 import Services from "./pages/Services";
 import VendorServices from "./pages/vendor/Services";
+import VendorProducts from "./pages/vendor/VendorProducts";
 import ServiceForm from "./pages/vendor/ServiceForm";
 import Cart from "./pages/Cart";
 
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/vendor/services" element={<VendorServices />} />
               <Route path="/vendor/services/new" element={<ServiceForm />} />
               <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+              <Route path="/vendor/products" element={<VendorProducts />} />
               <Route path="/vendor/products/new" element={<ProductForm />} />
               <Route path="/vendor/products/:productId/edit" element={<ProductForm />} />
               <Route path="/vendor/orders" element={<VendorOrders />} />
