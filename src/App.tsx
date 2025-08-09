@@ -13,6 +13,7 @@ import VendorPlans from "./pages/VendorPlans";
 import Catalog from "./pages/Catalog";
 import Orders from "./pages/Orders";
 import VendorOrders from "./pages/VendorOrders";
+import Riders from "./pages/Riders";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/plans" element={<Plans />} />
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/riders" element={<Riders />} />
           <Route path="/vendor/plans" element={<VendorPlans />} />
           <Route path="/vendor/orders" element={<VendorOrders />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />

@@ -14,10 +14,14 @@ import {
   Clock3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { setSEO } from "@/lib/seo";
 
 const Index = () => {
   useEffect(() => {
-    document.title = "CoopMarket — Community-Powered Marketplace";
+    setSEO(
+      "CoopMarket — Community Marketplace",
+      "Buy, sell, and deliver in a community-powered marketplace for products, services, time and learning."
+    );
   }, []);
 
   const [subStatus, setSubStatus] = useState<null | {
@@ -45,7 +49,8 @@ const Index = () => {
             <a href="#roles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Roles</a>
             <a href="#categories" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Categories</a>
             <a href="/catalog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Catalog</a>
-            <a href="/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Plans</a>
+            <a href="/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Services</a>
+            <a href="/riders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Riders</a>
             <a href="/orders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Orders</a>
             <a href="/vendor/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Vendor</a>
             <a href="/vendor/orders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Vendor Orders</a>
@@ -60,6 +65,22 @@ const Index = () => {
       </header>
 
       <main>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "CoopMarket",
+              url: window.location.origin,
+              potentialAction: {
+                "@type": "SearchAction",
+                target: `${window.location.origin}/catalog?q={search_term_string}`,
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
         {/* Hero */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 -z-10 bg-gradient-primary animate-gradient-shift opacity-30" aria-hidden />
@@ -73,11 +94,17 @@ const Index = () => {
                 Vendors, riders, and buyers all benefit — and a main cooperative helps fund new growth.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Button variant="hero" size="lg" onClick={handleGetStarted}>
-                  Launch Your Community
+                <Button variant="hero" size="lg" asChild>
+                  <a href="/catalog">Browse Products</a>
                 </Button>
                 <Button variant="secondary" size="lg" asChild>
-                  <a href="#how">See how it works</a>
+                  <a href="/plans">Explore Services</a>
+                </Button>
+                <Button variant="outline" size="lg" asChild>
+                  <a href="/vendor/plans">Sell on CoopMarket</a>
+                </Button>
+                <Button variant="ghost" size="lg" asChild>
+                  <a href="/riders">Become a Rider</a>
                 </Button>
               </div>
               <ul className="mt-6 grid grid-cols-1 gap-2 text-sm text-muted-foreground sm:grid-cols-2">
@@ -95,6 +122,36 @@ const Index = () => {
                 loading="eager"
               />
             </div>
+          </div>
+        </section>
+
+        {/* Explore Marketplace */}
+        <section id="explore" className="container py-10 md:py-14">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Card className="hover:shadow-elegant transition-shadow">
+              <a href="/catalog" className="block">
+                <CardHeader>
+                  <CardTitle className="inline-flex items-center gap-2 text-2xl">
+                    <ShoppingBag /> Featured Products
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  Shop community-sourced goods. Support local makers and merchants.
+                </CardContent>
+              </a>
+            </Card>
+            <Card className="hover:shadow-elegant transition-shadow">
+              <a href="/plans" className="block">
+                <CardHeader>
+                  <CardTitle className="inline-flex items-center gap-2 text-2xl">
+                    <Wrench /> Featured Services
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  Discover bookable services from trusted community members.
+                </CardContent>
+              </a>
+            </Card>
           </div>
         </section>
 
