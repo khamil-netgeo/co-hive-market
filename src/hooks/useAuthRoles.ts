@@ -44,10 +44,12 @@ export default function useAuthRoles(): AuthRoles {
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("useAuthRoles: Initial session check", { session: session?.user?.id || null });
       setSession(session);
       setUser(session?.user ?? null);
       fetchRoles(session?.user?.id);
       setLoading(false);
+      console.log("useAuthRoles: Loading set to false");
     });
 
     return () => sub.subscription.unsubscribe();
