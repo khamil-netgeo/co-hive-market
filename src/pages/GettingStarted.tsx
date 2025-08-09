@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Users, ShoppingBag, Truck, UserPlus } from "lucide-react";
-import SiteHeader from "@/components/layout/SiteHeader";
-import SiteFooter from "@/components/layout/SiteFooter";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
@@ -89,12 +87,10 @@ const GettingStarted = () => {
 
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
-      <main className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gradient-brand mb-4">
+    <main className="container mx-auto px-4 py-16">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gradient-brand mb-4">
               Choose Your Role
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -280,11 +276,9 @@ const GettingStarted = () => {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-          </div>
         </div>
-      </main>
-      <SiteFooter />
-    </div>
+      </div>
+    </main>
   );
 };
 

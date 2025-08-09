@@ -36,10 +36,10 @@ const App = () => (
         <Routes>
           {/* Keep the landing page standalone to avoid double header/hero */}
           <Route path="/" element={<Index />} />
-          <Route path="/getting-started" element={<GettingStarted />} />
 
           {/* Shared layout for all other routes */}
           <Route element={<Layout />}>
+            <Route path="/getting-started" element={<GettingStarted />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/plans" element={<Plans />} />
             <Route path="/catalog" element={<Catalog />} />
