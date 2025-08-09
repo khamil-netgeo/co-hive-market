@@ -34,7 +34,7 @@ serve(async (req) => {
 
     const { data: delivery, error: dErr } = await supabaseAdmin
       .from("deliveries")
-      .select("id, rider_user_id, status")
+      .select("id, rider_user_id, status, order_id")
       .eq("id", delivery_id)
       .single();
     if (dErr || !delivery) {
@@ -64,6 +64,35 @@ serve(async (req) => {
       .select("id, status")
       .single();
     if (uErr) throw uErr;
+
+    // When delivered, record a rider earning once
+    if (newStatus === "delivered") {
+      // Check if an earning already exists for this order and rider
+      const { data: existing, error: checkErr } = await supabaseAdmin
+        .from("ledger_entries")
+        .select("id")
+        .eq("order_id", delivery.order_id)
+        .eq("entry_type", "rider_earning")
+        .eq("beneficiary_type", "rider")
+        .eq("beneficiary_id", userId)
+        .limit(1);
+      if (checkErr) {
+        console.error("Check existing rider earning failed", checkErr);
+      }
+      if (!existing || existing.length === 0) {
+        const { error: insErr } = await supabaseAdmin.from("ledger_entries").insert({
+          order_id: delivery.order_id,
+          entry_type: "rider_earning",
+          beneficiary_type: "rider",
+          beneficiary_id: userId,
+          amount_cents: 500, // MYR 5.00 per completed delivery
+          notes: `Rider earning for delivery ${delivery_id}`,
+        });
+        if (insErr) {
+          console.error("Insert rider earning failed", insErr);
+        }
+      }
+    }
 
     return new Response(JSON.stringify({ ok: true, delivery: updated }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
   } catch (e: any) {

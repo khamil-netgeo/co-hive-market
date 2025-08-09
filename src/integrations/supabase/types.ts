@@ -1042,13 +1042,15 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "superadmin"
-      beneficiary_type: "vendor" | "community" | "coop"
+      beneficiary_type: "vendor" | "community" | "coop" | "rider"
       ledger_entry_type:
         | "vendor_payout"
         | "community_share"
         | "coop_share"
         | "platform_fee"
         | "refund"
+        | "rider_earning"
+        | "rider_payout"
       member_type:
         | "vendor"
         | "delivery"
@@ -1186,13 +1188,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "superadmin"],
-      beneficiary_type: ["vendor", "community", "coop"],
+      beneficiary_type: ["vendor", "community", "coop", "rider"],
       ledger_entry_type: [
         "vendor_payout",
         "community_share",
         "coop_share",
         "platform_fee",
         "refund",
+        "rider_earning",
+        "rider_payout",
       ],
       member_type: [
         "vendor",

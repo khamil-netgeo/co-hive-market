@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.rider-update-delivery]
 verify_jwt = true
+
+[functions.rider-balance]
+verify_jwt = true

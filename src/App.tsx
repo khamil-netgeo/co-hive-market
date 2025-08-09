@@ -31,6 +31,7 @@ import ServiceForm from "./pages/vendor/ServiceForm";
 import Cart from "./pages/Cart";
 import StoreSettings from "./pages/vendor/StoreSettings";
 import RiderHub from "./pages/rider/Hub";
+import RiderPayouts from "./pages/rider/Payouts";
 import { CartProvider } from "@/hooks/useCart";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/communities" element={<Communities />} />
               <Route path="/riders" element={<Riders />} />
               <Route path="/rider" element={<RiderHub />} />
+              <Route path="/rider/payouts" element={<RiderPayouts />} />
               
               <Route path="/vendor/services" element={<VendorServices />} />
               <Route path="/vendor/services/new" element={<ServiceForm />} />

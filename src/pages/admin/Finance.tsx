@@ -26,10 +26,11 @@ interface Payout {
   status: string;
   amount_cents: number;
   currency: string;
-  vendor_id: string;
+  vendor_id?: string;
   method: string;
   reference: string | null;
   notes: string | null;
+  rider_user_id?: string;
 }
 
 const fmtCurrency = (cents: number, currency?: string) => {
@@ -50,6 +51,7 @@ const Finance = () => {
   const [orders, setOrders] = useState<Record<string, OrderInfo>>({});
   const [loading, setLoading] = useState(true);
   const [payouts, setPayouts] = useState<Payout[]>([]);
+  const [riderPayouts, setRiderPayouts] = useState<Payout[]>([]);
   const [payoutsLoading, setPayoutsLoading] = useState(true);
 
   const load = async () => {
@@ -99,13 +101,14 @@ const Finance = () => {
     try {
       const { data: s } = await supabase.auth.getSession();
       const uid = s.session?.user?.id;
+      const table = p.vendor_id ? "payouts" : "rider_payouts";
       const { error } = await supabase
-        .from("payouts")
+        .from(table)
         .update({ status: "approved", approved_by: uid ?? null, approved_at: new Date().toISOString() })
         .eq("id", p.id);
       if (error) throw error;
       toast("Payout approved");
-      await loadPayouts();
+      await Promise.all([loadPayouts(), loadRiderPayouts()]);
     } catch (e: any) {
       toast("Failed to approve", { description: e.message || String(e) });
     }
@@ -117,13 +120,14 @@ const Finance = () => {
     try {
       const { data: s } = await supabase.auth.getSession();
       const uid = s.session?.user?.id;
+      const table = p.vendor_id ? "payouts" : "rider_payouts";
       const { error } = await supabase
-        .from("payouts")
+        .from(table)
         .update({ status: "paid", paid_by: uid ?? null, paid_at: new Date().toISOString(), reference: ref.trim() })
         .eq("id", p.id);
       if (error) throw error;
       toast("Payout marked as paid");
-      await loadPayouts();
+      await Promise.all([loadPayouts(), loadRiderPayouts()]);
     } catch (e: any) {
       toast("Failed to mark paid", { description: e.message || String(e) });
     }
@@ -141,7 +145,7 @@ const Finance = () => {
       setPayouts(list);
 
       // Ensure vendor names are available
-      const vIds = Array.from(new Set(list.map(p => p.vendor_id)));
+      const vIds = Array.from(new Set(list.filter(p => p.vendor_id).map(p => p.vendor_id!)));
       const missing = vIds.filter(id => !vendors[id]);
       if (missing.length) {
         const { data: vRows, error: vErr } = await supabase.from("vendors").select("id,display_name").in("id", missing);
@@ -157,6 +161,23 @@ const Finance = () => {
     }
   };
 
+  const loadRiderPayouts = async () => {
+    try {
+      setPayoutsLoading(true);
+      const { data, error } = await supabase
+        .from("rider_payouts")
+        .select("id,created_at,status,amount_cents,currency,method,reference,notes,rider_user_id")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      setRiderPayouts((data as any[]) as Payout[]);
+    } catch (e: any) {
+      toast("Failed to load rider payouts", { description: e.message || String(e) });
+    } finally {
+      setPayoutsLoading(false);
+    }
+  };
+
   useEffect(() => {
     setSEO(
       "Admin Finance — CoopMarket",
@@ -164,6 +185,7 @@ const Finance = () => {
     );
     load();
     loadPayouts();
+    loadRiderPayouts();
   }, []);
 
   const totals = useMemo(() => {
@@ -216,7 +238,7 @@ const Finance = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Payout Requests</CardTitle>
+            <CardTitle>Vendor Payout Requests</CardTitle>
             <Button size="sm" variant="secondary" onClick={loadPayouts} disabled={payoutsLoading}>
               {payoutsLoading ? "Refreshing…" : "Refresh"}
             </Button>
@@ -242,11 +264,65 @@ const Finance = () => {
                     {payouts.map((p) => (
                       <TableRow key={p.id}>
                         <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{new Date(p.created_at).toLocaleString()}</TableCell>
-                        <TableCell className="text-sm">{vendors[p.vendor_id]?.display_name || p.vendor_id.slice(0, 6) + "…"}</TableCell>
+                        <TableCell className="text-sm">{p.vendor_id ? (vendors[p.vendor_id]?.display_name || p.vendor_id.slice(0, 6) + "…") : "—"}</TableCell>
                         <TableCell className="capitalize text-sm">{p.status}</TableCell>
                         <TableCell className="text-sm">{p.method}</TableCell>
                         <TableCell className="text-xs">{p.reference || "—"}</TableCell>
                         <TableCell className="text-right font-medium">{fmtCurrency(p.amount_cents, p.currency)}</TableCell>
+                        <TableCell className="text-right">
+                          {p.status === "requested" && (
+                            <Button size="sm" variant="outline" onClick={() => approvePayout(p)}>
+                              Approve
+                            </Button>
+                          )}
+                          {p.status === "approved" && (
+                            <Button size="sm" variant="hero" onClick={() => markPaid(p)}>
+                              Mark Paid
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Rider Payout Requests</CardTitle>
+            <Button size="sm" variant="secondary" onClick={loadRiderPayouts} disabled={payoutsLoading}>
+              {payoutsLoading ? "Refreshing…" : "Refresh"}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {riderPayouts.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No rider payout requests yet.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Rider</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Method</TableHead>
+                      <TableHead>Ref</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {riderPayouts.map((p) => (
+                      <TableRow key={p.id}>
+                        <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{new Date(p.created_at).toLocaleString()}</TableCell>
+                        <TableCell className="text-sm">{p.rider_user_id?.slice(0, 8)}…</TableCell>
+                        <TableCell className="capitalize text-sm">{p.status}</TableCell>
+                        <TableCell className="text-sm">{p.method}</TableCell>
+                        <TableCell className="text-xs">{p.reference || "—"}</TableCell>
+                        <TableCell className="text-right font-medium">{fmtCurrency(p.amount_cents)}</TableCell>
                         <TableCell className="text-right">
                           {p.status === "requested" && (
                             <Button size="sm" variant="outline" onClick={() => approvePayout(p)}>
@@ -299,7 +375,9 @@ const Finance = () => {
                           ? vendors[e.beneficiary_id || ""]?.display_name || `Vendor ${e.beneficiary_id?.slice(0, 6)}`
                           : e.beneficiary_type === "community"
                           ? communities[e.beneficiary_id || ""]?.name || `Community ${e.beneficiary_id?.slice(0, 6)}`
-                          : "Coop";
+                          : e.beneficiary_type === "coop"
+                          ? "Coop"
+                          : "Rider";
                       return (
                         <TableRow key={e.id}>
                           <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
