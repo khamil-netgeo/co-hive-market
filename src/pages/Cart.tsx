@@ -162,42 +162,59 @@ export default function Cart() {
   };
 
   return (
-    <main className="container py-12 md:py-16">
-      <h1 className="text-3xl font-semibold">Your Cart</h1>
-      <p className="mt-2 max-w-prose text-muted-foreground">Items are reserved for a limited time. Complete checkout to confirm.</p>
+    <main className="container py-6 md:py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-2xl md:text-3xl font-semibold">Your Cart</h1>
+      <p className="mt-2 max-w-prose text-muted-foreground text-sm md:text-base">Items are reserved for a limited time. Complete checkout to confirm.</p>
 
       {cart.items.length === 0 ? (
-        <Card className="mt-8">
-          <CardContent className="py-10 text-center text-muted-foreground">Your cart is empty.</CardContent>
+        <Card className="mt-6 md:mt-8">
+          <CardContent className="py-8 md:py-10 text-center text-muted-foreground">Your cart is empty.</CardContent>
         </Card>
       ) : (
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3 lg:grid-rows-[auto_auto]">
+        <div className="mt-6 md:mt-8 grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3 lg:grid-rows-[auto_auto]">
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Items</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              {cart.items.map((it) => (
-                <div key={it.product_id} className="flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="font-medium truncate">{it.name}</div>
-                    <div className="text-sm text-muted-foreground">{fmt(it.price_cents)} each</div>
+            <CardContent className="p-4 md:p-6">
+              <div className="space-y-4">
+                {cart.items.map((it) => (
+                  <div key={it.product_id} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="font-medium text-sm md:text-base leading-tight">{it.name}</h3>
+                        <p className="text-xs md:text-sm text-muted-foreground mt-1">{fmt(it.price_cents)} each</p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => cart.remove(it.product_id)}
+                        className="shrink-0 h-8 px-3 text-xs"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <label htmlFor={`qty-${it.product_id}`} className="text-sm font-medium">Qty:</label>
+                        <Input
+                          id={`qty-${it.product_id}`}
+                          type="number"
+                          min={1}
+                          max={999}
+                          className="w-16 h-8 text-sm"
+                          value={it.quantity}
+                          onChange={(e) => cart.updateQty(it.product_id, Number(e.target.value))}
+                        />
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-sm md:text-base">{fmt(it.price_cents * it.quantity)}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <label htmlFor={`qty-${it.product_id}`} className="sr-only">Quantity</label>
-                    <Input
-                      id={`qty-${it.product_id}`}
-                      type="number"
-                      min={1}
-                      max={999}
-                      className="w-20"
-                      value={it.quantity}
-                      onChange={(e) => cart.updateQty(it.product_id, Number(e.target.value))}
-                    />
-                    <Button variant="outline" onClick={() => cart.remove(it.product_id)}>Remove</Button>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </CardContent>
           </Card>
 
@@ -205,70 +222,73 @@ export default function Cart() {
             <CardHeader>
               <CardTitle>Shipping</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="pick">Pickup postcode</Label>
-                <Input id="pick" value={pickPostcode} onChange={(e) => setPickPostcode(e.target.value)} placeholder="e.g. 31650" />
-              </div>
-              <div className="rounded-md border bg-muted/20 p-3 text-sm">
-                <div className="font-medium">Shipping to</div>
-                <div className="text-muted-foreground">
-                  {profile?.address_line1 || profile?.postcode ? (
-                    <>
-                      {[profile?.address_line1, profile?.address_line2, profile?.city, profile?.state, profile?.postcode, profile?.country]
-                        .filter(Boolean)
-                        .join(", ")}
-                    </>
-                  ) : (
-                    "No address saved yet"
-                  )}
+            <CardContent className="p-4 md:p-6 space-y-4">
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="pick" className="text-sm font-medium">Pickup postcode</Label>
+                  <Input id="pick" value={pickPostcode} onChange={(e) => setPickPostcode(e.target.value)} placeholder="e.g. 31650" className="mt-1" />
                 </div>
-                <div className="mt-2">
-                  <Button asChild variant="outline" size="sm">
-                    <Link to="/profile">Edit address</Link>
+                <div className="rounded-md border bg-muted/20 p-3">
+                  <div className="font-medium text-sm">Shipping to</div>
+                  <div className="text-muted-foreground text-sm mt-1">
+                    {profile?.address_line1 || profile?.postcode ? (
+                      <>
+                        {[profile?.address_line1, profile?.address_line2, profile?.city, profile?.state, profile?.postcode, profile?.country]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </>
+                    ) : (
+                      "No address saved yet"
+                    )}
+                  </div>
+                  <div className="mt-2">
+                    <Button asChild variant="outline" size="sm" className="h-8 text-xs">
+                      <Link to="/profile">Edit address</Link>
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="weight" className="text-xs">Weight (kg)</Label>
+                    <Input id="weight" type="number" min={0.1} step={0.1} value={weight} onChange={(e) => setWeight(Number(e.target.value))} className="h-8 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="length" className="text-xs">L (cm)</Label>
+                    <Input id="length" type="number" min={0} value={length ?? ""} onChange={(e) => setLength(e.target.value === "" ? undefined : Number(e.target.value))} className="h-8 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="width" className="text-xs">W (cm)</Label>
+                    <Input id="width" type="number" min={0} value={width ?? ""} onChange={(e) => setWidth(e.target.value === "" ? undefined : Number(e.target.value))} className="h-8 text-sm" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="height" className="text-xs">H (cm)</Label>
+                    <Input id="height" type="number" min={0} value={height ?? ""} onChange={(e) => setHeight(e.target.value === "" ? undefined : Number(e.target.value))} className="h-8 text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <Button variant="secondary" onClick={getRates} disabled={loadingRates} className="w-full sm:w-auto">
+                    {loadingRates ? "Fetching rates…" : "Get rates"}
                   </Button>
                 </div>
+                {rates.length > 0 && (
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Select a courier</Label>
+                    <RadioGroup value={selectedRateId ?? ""} onValueChange={(v) => setSelectedRateId(v)} className="space-y-2">
+                      {rates.map((r) => (
+                        <div key={r.id} className="flex items-start gap-3 rounded-md border p-3">
+                          <RadioGroupItem id={r.id} value={r.id} className="mt-0.5" />
+                          <Label htmlFor={r.id} className="flex-1 cursor-pointer text-sm leading-tight">
+                            <div className="font-medium">{r.courier}</div>
+                            <div className="text-muted-foreground">{r.service}</div>
+                            <div className="font-semibold mt-1">{fmt(r.price_cents)}</div>
+                            {r.etd && <div className="text-xs text-muted-foreground mt-1">{r.etd}</div>}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="grid gap-2">
-                  <Label htmlFor="weight">Weight (kg)</Label>
-                  <Input id="weight" type="number" min={0.1} step={0.1} value={weight} onChange={(e) => setWeight(Number(e.target.value))} />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="length">L (cm)</Label>
-                  <Input id="length" type="number" min={0} value={length ?? ""} onChange={(e) => setLength(e.target.value === "" ? undefined : Number(e.target.value))} />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="width">W (cm)</Label>
-                  <Input id="width" type="number" min={0} value={width ?? ""} onChange={(e) => setWidth(e.target.value === "" ? undefined : Number(e.target.value))} />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="height">H (cm)</Label>
-                  <Input id="height" type="number" min={0} value={height ?? ""} onChange={(e) => setHeight(e.target.value === "" ? undefined : Number(e.target.value))} />
-                </div>
-              </div>
-              <div>
-                <Button variant="secondary" onClick={getRates} disabled={loadingRates}>
-                  {loadingRates ? "Fetching rates…" : "Get rates"}
-                </Button>
-              </div>
-              {rates.length > 0 && (
-                <div className="grid gap-2">
-                  <Label>Select a courier</Label>
-                  <RadioGroup value={selectedRateId ?? ""} onValueChange={(v) => setSelectedRateId(v)}>
-                    {rates.map((r) => (
-                      <div key={r.id} className="flex items-center gap-2 rounded-md border p-3">
-                        <RadioGroupItem id={r.id} value={r.id} />
-                        <Label htmlFor={r.id} className="flex-1 cursor-pointer">
-                          <span className="font-medium">{r.courier}</span> — <span>{r.service}</span>
-                          <span className="ml-2 font-semibold">{fmt(r.price_cents)}</span>
-                          {r.etd && <span className="ml-2 text-xs text-muted-foreground">{r.etd}</span>}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -276,31 +296,38 @@ export default function Cart() {
             <CardHeader>
               <CardTitle>Summary</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-3">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Items</span>
-                <span>{cart.count}</span>
+            <CardContent className="p-4 md:p-6 space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Items</span>
+                  <span className="font-medium">{cart.count}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="font-semibold">{fmt(cart.subtotal_cents)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Shipping</span>
+                  <span className="font-semibold">{shippingCents ? fmt(shippingCents) : "—"}</span>
+                </div>
+                <div className="border-t pt-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Total</span>
+                    <span className="text-lg md:text-xl font-semibold">{fmt(totalCents)}</span>
+                  </div>
+                </div>
+                <div className="space-y-2 pt-2">
+                  <Button variant="hero" onClick={checkout} disabled={checkingOut} className="w-full">
+                    {checkingOut ? "Redirecting…" : "Checkout"}
+                  </Button>
+                  <Button variant="ghost" onClick={cart.clear} className="w-full">Clear cart</Button>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-semibold">{fmt(cart.subtotal_cents)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Shipping</span>
-                <span className="font-semibold">{shippingCents ? fmt(shippingCents) : "—"}</span>
-              </div>
-              <div className="flex items-center justify-between border-t pt-2">
-                <span className="font-medium">Total</span>
-                <span className="text-xl font-semibold">{fmt(totalCents)}</span>
-              </div>
-              <Button variant="hero" onClick={checkout} disabled={checkingOut}>
-                {checkingOut ? "Redirecting…" : "Checkout"}
-              </Button>
-              <Button variant="ghost" onClick={cart.clear}>Clear cart</Button>
             </CardContent>
           </Card>
         </div>
-      )}
+        )}
+      </div>
     </main>
   );
 }
