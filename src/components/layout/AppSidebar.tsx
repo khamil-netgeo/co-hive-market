@@ -1,8 +1,9 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, Link } from "react-router-dom";
 import { ShoppingBag, Users, ListOrdered, Store, Shield } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarHeader,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -40,6 +41,12 @@ export default function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className={collapsed ? "w-14" : "w-60"}>
+      <SidebarHeader>
+        <Link to="/" className="inline-flex items-center gap-2 p-2">
+          <div className="h-7 w-7 rounded-md bg-gradient-primary" aria-hidden />
+          {!collapsed && <span className="text-lg font-semibold text-gradient-brand">CoopMarket</span>}
+        </Link>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Main</SidebarGroupLabel>
