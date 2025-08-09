@@ -21,6 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import MediaUploader from "@/components/media/MediaUploader";
+import ProductImage from "@/components/product/ProductImage";
 
 const DIETARY_OPTIONS = [
   "vegan",

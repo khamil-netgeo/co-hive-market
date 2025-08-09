@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
 import MediaUploader from "@/components/media/MediaUploader";
+import ServiceImage from "@/components/service/ServiceImage";
 
 const PRICING_MODELS = ["fixed", "hourly", "per_unit"] as const;
 const LOCATION_TYPES = ["vendor", "customer", "remote"] as const;
@@ -301,11 +302,12 @@ const { serviceId } = useParams<{ serviceId?: string }>();
 
   return (
     <main className="container px-4 py-8">
-      <Card className="mx-auto max-w-2xl">
-        <CardHeader>
-          <CardTitle>Create Service</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2 animate-fade-in">
+          <CardHeader>
+            <CardTitle>Create Service</CardTitle>
+          </CardHeader>
+          <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Essentials */}
@@ -615,14 +617,58 @@ const { serviceId } = useParams<{ serviceId?: string }>();
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 sticky bottom-0 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2">
-                <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Publish service"}</Button>
-                <Button type="button" variant="outline" onClick={() => navigate("/vendor/services")}>Cancel</Button>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-0 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3">
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="font-medium truncate max-w-[200px] sm:max-w-[300px]">
+                    {watch("name") || "Untitled service"}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {(() => {
+                      const p = parseFloat(watch("price") || "");
+                      const cur = (watch("currency") || "myr").toUpperCase();
+                      if (isNaN(p)) return "";
+                      return new Intl.NumberFormat(cur === "MYR" ? "ms-MY" : "en-US", { style: "currency", currency: cur }).format(p);
+                    })()}
+                  </span>
+                </div>
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <Button type="submit" className="w-full sm:w-auto" disabled={saving}>{saving ? "Saving…" : (serviceId ? "Update service" : "Publish service")}</Button>
+                  <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => navigate("/vendor/services")}>Cancel</Button>
+                </div>
               </div>
             </form>
           </Form>
         </CardContent>
       </Card>
+
+      <aside className="lg:col-span-1 space-y-4 sticky top-24 h-fit animate-fade-in">
+        <Card>
+          <CardHeader>
+            <CardTitle>Live Preview</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="aspect-video w-full overflow-hidden rounded-md">
+              <ServiceImage imageUrls={imageUrls} serviceName={watch("name") || "Service"} className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <div className="text-lg font-semibold">{watch("name") || "Untitled service"}</div>
+              {watch("subtitle") && (
+                <p className="text-sm text-muted-foreground">{watch("subtitle")}</p>
+              )}
+            </div>
+            <div className="text-xl font-bold">
+              {(() => {
+                const p = parseFloat(watch("price") || "");
+                const cur = (watch("currency") || "myr").toUpperCase();
+                if (isNaN(p)) return "";
+                return new Intl.NumberFormat(cur === "MYR" ? "ms-MY" : "en-US", { style: "currency", currency: cur }).format(p);
+              })()}
+            </div>
+          </CardContent>
+        </Card>
+      </aside>
+
+      </div>
     </main>
   );
 }
