@@ -12,6 +12,7 @@ import Catalog from "./pages/Catalog";
 import Orders from "./pages/Orders";
 import VendorOrders from "./pages/vendor/VendorOrders";
 import VendorAnalytics from "./pages/vendor/VendorAnalytics";
+import VendorPayouts from "./pages/vendor/VendorPayouts";
 import Riders from "./pages/Riders";
 import Layout from "@/components/layout/Layout";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -61,6 +62,7 @@ const App = () => (
               <Route path="/vendor/products/:productId/edit" element={<ProductForm />} />
               <Route path="/vendor/orders" element={<VendorOrders />} />
               <Route path="/vendor/analytics" element={<VendorAnalytics />} />
+              <Route path="/vendor/payouts" element={<VendorPayouts />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-canceled" element={<PaymentCanceled />} />
               <Route

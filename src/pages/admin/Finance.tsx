@@ -20,6 +20,17 @@ interface LedgerEntry {
 interface Vendor { id: string; display_name: string }
 interface Community { id: string; name: string }
 interface OrderInfo { id: string; currency: string }
+interface Payout {
+  id: string;
+  created_at: string;
+  status: string;
+  amount_cents: number;
+  currency: string;
+  vendor_id: string;
+  method: string;
+  reference: string | null;
+  notes: string | null;
+}
 
 const fmtCurrency = (cents: number, currency?: string) => {
   const amount = (cents || 0) / 100;
@@ -38,6 +49,8 @@ const Finance = () => {
   const [communities, setCommunities] = useState<Record<string, Community>>({});
   const [orders, setOrders] = useState<Record<string, OrderInfo>>({});
   const [loading, setLoading] = useState(true);
+  const [payouts, setPayouts] = useState<Payout[]>([]);
+  const [payoutsLoading, setPayoutsLoading] = useState(true);
 
   const load = async () => {
     try {
@@ -82,12 +95,42 @@ const Finance = () => {
     }
   };
 
+  const loadPayouts = async () => {
+    try {
+      setPayoutsLoading(true);
+      const { data, error } = await supabase
+        .from("payouts")
+        .select("id,created_at,status,amount_cents,currency,vendor_id,method,reference,notes")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      const list = (data as any[]) as Payout[];
+      setPayouts(list);
+
+      // Ensure vendor names are available
+      const vIds = Array.from(new Set(list.map(p => p.vendor_id)));
+      const missing = vIds.filter(id => !vendors[id]);
+      if (missing.length) {
+        const { data: vRows, error: vErr } = await supabase.from("vendors").select("id,display_name").in("id", missing);
+        if (vErr) throw vErr;
+        const vMap = { ...vendors } as Record<string, Vendor>;
+        (vRows as any[]).forEach(v => (vMap[v.id] = v));
+        setVendors(vMap);
+      }
+    } catch (e: any) {
+      toast("Failed to load payouts", { description: e.message || String(e) });
+    } finally {
+      setPayoutsLoading(false);
+    }
+  };
+
   useEffect(() => {
     setSEO(
       "Admin Finance — CoopMarket",
       "Admin view for ledger entries and revenue splits on CoopMarket."
     );
     load();
+    loadPayouts();
   }, []);
 
   const totals = useMemo(() => {

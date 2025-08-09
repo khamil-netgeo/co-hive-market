@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.mapbox-token]
 verify_jwt = false
+
+[functions.vendor-balance]
+verify_jwt = true
