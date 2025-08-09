@@ -18,6 +18,7 @@ const GettingStarted = () => {
   const [loadingCommunities, setLoadingCommunities] = useState(true);
 
   useEffect(() => {
+    console.log("GettingStarted: Authentication state", { user, loading, loadingCommunities });
     setSEO(
       "Get Started — CoopMarket",
       "Join a community marketplace and start buying, selling, or delivering products and services."
@@ -112,6 +113,7 @@ const GettingStarted = () => {
             </p>
           </div>
 
+          
           {!user && (
             <div className="text-center mb-12">
               <Card className="max-w-md mx-auto">
