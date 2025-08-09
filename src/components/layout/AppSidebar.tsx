@@ -1,5 +1,5 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
-import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package } from "lucide-react";
+import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -29,6 +29,7 @@ const vendorItems = [
   { title: "Analytics", url: "/vendor/analytics", icon: BarChart3 },
   { title: "Services", url: "/vendor/services", icon: Briefcase },
   { title: "Payouts", url: "/vendor/payouts", icon: Wallet },
+  { title: "Store Settings", url: "/vendor/store-settings", icon: Settings },
 ];
 
 export default function AppSidebar() {

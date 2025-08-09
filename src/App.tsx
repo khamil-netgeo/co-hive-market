@@ -29,6 +29,7 @@ import VendorServices from "./pages/vendor/Services";
 import VendorProducts from "./pages/vendor/VendorProducts";
 import ServiceForm from "./pages/vendor/ServiceForm";
 import Cart from "./pages/Cart";
+import StoreSettings from "./pages/vendor/StoreSettings";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/vendor/orders" element={<VendorOrders />} />
               <Route path="/vendor/analytics" element={<VendorAnalytics />} />
               <Route path="/vendor/payouts" element={<VendorPayouts />} />
+              <Route path="/vendor/store-settings" element={<StoreSettings />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-canceled" element={<PaymentCanceled />} />
               <Route

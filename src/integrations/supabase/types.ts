@@ -777,9 +777,12 @@ export type Database = {
           active: boolean
           community_id: string
           created_at: string
+          description: string | null
           display_name: string
           id: string
+          logo_url: string | null
           member_discount_override_percent: number | null
+          opening_hours: Json | null
           updated_at: string
           user_id: string
         }
@@ -787,9 +790,12 @@ export type Database = {
           active?: boolean
           community_id: string
           created_at?: string
+          description?: string | null
           display_name: string
           id?: string
+          logo_url?: string | null
           member_discount_override_percent?: number | null
+          opening_hours?: Json | null
           updated_at?: string
           user_id: string
         }
@@ -797,9 +803,12 @@ export type Database = {
           active?: boolean
           community_id?: string
           created_at?: string
+          description?: string | null
           display_name?: string
           id?: string
+          logo_url?: string | null
           member_discount_override_percent?: number | null
+          opening_hours?: Json | null
           updated_at?: string
           user_id?: string
         }
