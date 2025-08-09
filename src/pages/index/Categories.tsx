@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingBag, Wrench, GraduationCap, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface CategoriesProps {
   onGetStarted: () => void;
@@ -47,21 +48,32 @@ const Categories = ({ onGetStarted }: CategoriesProps) => (
       </div>
     </div>
     
-    <div className="mt-16 text-center animate-fade-in-up">
+    <div className="mt-16 rounded-2xl bg-gradient-to-r from-primary to-primary/80 p-8 text-center text-white">
       <div className="mx-auto mb-6 max-w-2xl">
-        <h3 className="text-2xl font-bold mb-4">Ready to Get Started?</h3>
-        <p className="text-muted-foreground">
-          Join our community marketplace and start connecting with local vendors and customers today.
+        <h3 className="text-2xl font-bold mb-4">Ready to Join Our Marketplace?</h3>
+        <p className="text-primary-foreground/90">
+          Start selling your products or services today. Join thousands of successful vendors in our thriving community.
         </p>
       </div>
-      <Button 
-        size="lg" 
-        className="group hover-lift"
-        onClick={onGetStarted}
-      >
-        Join the Community
-        <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-      </Button>
+      <div className="flex flex-wrap items-center justify-center gap-4">
+        <Button 
+          size="lg" 
+          variant="secondary"
+          className="group hover-lift"
+          onClick={onGetStarted}
+        >
+          Start Selling Today
+          <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </Button>
+        <Button 
+          size="lg" 
+          variant="outline"
+          className="border-white/20 bg-white/10 text-white hover:bg-white/20"
+          asChild
+        >
+          <Link to="/catalog">Browse Marketplace</Link>
+        </Button>
+      </div>
     </div>
   </section>
 );

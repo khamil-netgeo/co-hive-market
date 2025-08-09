@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { setSEO } from "@/lib/seo";
 import Hero from "./index/Hero";
 import Explore from "./index/Explore";
+import FeaturedListings from "./index/FeaturedListings";
+import TrustSection from "./index/TrustSection";
+import Testimonials from "./index/Testimonials";
 import Categories from "./index/Categories";
 
 const Index = () => {
@@ -43,7 +46,10 @@ const Index = () => {
           }}
         />
         <Hero onGetStarted={handleGetStarted} />
+        <FeaturedListings />
         <Explore />
+        <TrustSection />
+        <Testimonials />
         <Categories onGetStarted={handleGetStarted} />
       </main>
       <SiteFooter />
