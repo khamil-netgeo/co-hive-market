@@ -48,6 +48,7 @@ const superAdminItems = [
   { title: "Global Settings", url: "/superadmin/settings", icon: Settings },
   { title: "Feature Flags", url: "/superadmin/feature-flags", icon: Flag },
   { title: "Announcements", url: "/superadmin/announcements", icon: Megaphone },
+  { title: "Categories", url: "/superadmin/categories", icon: LayoutGrid },
   { title: "Content Reports", url: "/superadmin/reports", icon: AlertTriangle },
   { title: "Audit Logs", url: "/superadmin/audit-logs", icon: ScrollText },
   { title: "Admin Dashboard", url: "/admin", icon: Shield },

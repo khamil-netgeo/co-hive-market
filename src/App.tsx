@@ -27,6 +27,7 @@ import FeatureFlags from "./pages/superadmin/FeatureFlags";
 import Announcements from "./pages/superadmin/Announcements";
 import AuditLogs from "./pages/superadmin/AuditLogs";
 import ContentReports from "./pages/superadmin/ContentReports";
+import Categories from "./pages/superadmin/Categories";
 import Finance from "./pages/admin/Finance";
 import AdminKYC from "./pages/admin/KYC";
 import AdminKYCRequirements from "./pages/admin/KYCRequirements";
@@ -200,6 +201,16 @@ const App = () => (
                   <RequireSuperadmin>
                     <SuperAdminLayout>
                       <ContentReports />
+                    </SuperAdminLayout>
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/categories"
+                element={
+                  <RequireSuperadmin>
+                    <SuperAdminLayout>
+                      <Categories />
                     </SuperAdminLayout>
                   </RequireSuperadmin>
                 }
