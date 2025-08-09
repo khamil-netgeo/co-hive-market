@@ -25,7 +25,9 @@ const FeatureFlags = () => {
   };
 
   const add = async () => {
-    const { error } = await supabase.from("feature_flags").insert({ key, description });
+    const { error } = await supabase
+      .from("feature_flags")
+      .upsert({ key, description }, { onConflict: "key" });
     if (error) return toast({ title: "Failed to add flag", description: error.message });
     setKey(""); setDescription("");
     await load();

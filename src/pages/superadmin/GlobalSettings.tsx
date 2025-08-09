@@ -28,9 +28,11 @@ const GlobalSettings = () => {
   const add = async () => {
     try {
       const parsed = value ? JSON.parse(value) : {};
-      const { error } = await supabase.from("app_settings").insert({ key, value: parsed, description });
+      const { error } = await supabase
+        .from("app_settings")
+        .upsert({ key, value: parsed, description }, { onConflict: "key" });
       if (error) throw error;
-      toast({ title: "Setting added" });
+      toast({ title: "Setting saved" });
       setKey(""); setValue(""); setDescription("");
       await load();
     } catch (e: any) {
