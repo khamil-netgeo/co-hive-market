@@ -36,18 +36,11 @@ export default function Auth() {
       "Securely sign in or create your Locca Co-op account to buy, sell, and join your community."
     );
 
-    // Redirect if already logged in
-    const init = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        window.location.replace("/");
-      }
-    };
-    init();
+    // Do not auto-redirect on initial load; allow user to interact with the form
 
     // Keep session reactive (no heavy logic here)
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) window.location.replace("/");
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) window.location.replace("/");
     });
     return () => {
       sub.subscription.unsubscribe();
