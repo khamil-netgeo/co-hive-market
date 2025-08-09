@@ -20,6 +20,8 @@ import Dashboard from "./pages/admin/Dashboard";
 import RequireAdmin from "./components/auth/RequireAdmin";
 import Finance from "./pages/admin/Finance";
 import GettingStarted from "./pages/GettingStarted";
+import VendorDashboard from "./pages/vendor/VendorDashboard";
+import ProductForm from "./pages/vendor/ProductForm";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,9 @@ const App = () => (
             <Route path="/orders" element={<Orders />} />
             <Route path="/riders" element={<Riders />} />
             <Route path="/vendor/plans" element={<VendorPlans />} />
+            <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+            <Route path="/vendor/products/new" element={<ProductForm />} />
+            <Route path="/vendor/products/:productId/edit" element={<ProductForm />} />
             <Route path="/vendor/orders" element={<VendorOrders />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-canceled" element={<PaymentCanceled />} />
