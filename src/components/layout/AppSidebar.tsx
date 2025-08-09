@@ -1,5 +1,5 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
-import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings, Truck, DollarSign, User } from "lucide-react";
+import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings, Truck, DollarSign, User, Globe, UserCog, Flag, Megaphone, AlertTriangle, ScrollText } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -42,6 +42,16 @@ const riderItems = [
   { title: "Payouts", url: "/rider/payouts", icon: DollarSign },
 ];
 
+const superAdminItems = [
+  { title: "Dashboard", url: "/superadmin", icon: Globe },
+  { title: "Users & Roles", url: "/superadmin/users", icon: UserCog },
+  { title: "Global Settings", url: "/superadmin/settings", icon: Settings },
+  { title: "Feature Flags", url: "/superadmin/feature-flags", icon: Flag },
+  { title: "Announcements", url: "/superadmin/announcements", icon: Megaphone },
+  { title: "Content Reports", url: "/superadmin/reports", icon: AlertTriangle },
+  { title: "Audit Logs", url: "/superadmin/audit-logs", icon: ScrollText },
+];
+
 export default function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
@@ -54,6 +64,7 @@ export default function AppSidebar() {
   const adminItem = (isAdmin || isSuperadmin) ? { title: "Admin", url: "/admin", icon: Shield } : null;
   const isVendorPath = currentPath.startsWith("/vendor");
   const isRiderPath = currentPath.startsWith("/rider");
+  const isSuperAdminPath = currentPath.startsWith("/superadmin");
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
@@ -132,6 +143,35 @@ export default function AppSidebar() {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {riderItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} end className={getNavCls}>
+                            <item.icon className="mr-2 h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        )}
+
+        {user && isSuperadmin && !collapsed && (
+          <Collapsible defaultOpen={isSuperAdminPath}>
+            <SidebarGroup>
+              <CollapsibleTrigger asChild>
+                <SidebarGroupLabel className="cursor-pointer flex items-center justify-between hover:bg-muted/50 px-2 py-1 rounded">
+                  Super Admin
+                  <ChevronDown className="h-4 w-4" />
+                </SidebarGroupLabel>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {superAdminItems.map((item) => (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild>
                           <NavLink to={item.url} end className={getNavCls}>
