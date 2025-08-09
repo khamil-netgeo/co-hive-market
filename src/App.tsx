@@ -11,6 +11,8 @@ import PaymentCanceled from "./pages/PaymentCanceled";
 import Plans from "./pages/Plans";
 import VendorPlans from "./pages/VendorPlans";
 import Catalog from "./pages/Catalog";
+import Orders from "./pages/Orders";
+import VendorOrders from "./pages/VendorOrders";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +27,9 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/plans" element={<Plans />} />
           <Route path="/catalog" element={<Catalog />} />
+          <Route path="/orders" element={<Orders />} />
           <Route path="/vendor/plans" element={<VendorPlans />} />
+          <Route path="/vendor/orders" element={<VendorOrders />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-canceled" element={<PaymentCanceled />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
