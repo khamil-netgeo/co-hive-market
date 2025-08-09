@@ -50,6 +50,10 @@ const superAdminItems = [
   { title: "Announcements", url: "/superadmin/announcements", icon: Megaphone },
   { title: "Content Reports", url: "/superadmin/reports", icon: AlertTriangle },
   { title: "Audit Logs", url: "/superadmin/audit-logs", icon: ScrollText },
+  { title: "Admin Dashboard", url: "/admin", icon: Shield },
+  { title: "Finance", url: "/admin/finance", icon: DollarSign },
+  { title: "KYC", url: "/admin/kyc", icon: User },
+  { title: "KYC Requirements", url: "/admin/kyc-requirements", icon: Briefcase },
 ];
 
 export default function AppSidebar() {
@@ -61,17 +65,15 @@ export default function AppSidebar() {
   const { isRider } = useIsRider();
   const { isVendor } = useIsVendor();
 
-  const adminItem = (isAdmin || isSuperadmin) ? { title: "Admin", url: "/admin", icon: Shield } : null;
   const isVendorPath = currentPath.startsWith("/vendor");
   const isRiderPath = currentPath.startsWith("/rider");
-  const isSuperAdminPath = currentPath.startsWith("/superadmin");
+  const isSuperAdminPath = currentPath.startsWith("/superadmin") || currentPath.startsWith("/admin");
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
 
   const allItems = [
     ...items,
-    ...(adminItem ? [adminItem] : []),
   ];
 
   return (
