@@ -6,6 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import MapPicker from "@/components/map/MapPicker";
 
 interface Membership { community_id: string; member_type: string }
 interface Community { id: string; name: string }
@@ -14,11 +19,35 @@ interface Vendor { id: string; display_name: string; community_id: string; activ
 export default function Profile() {
   const { user, roles, loading, signOut } = useAuthRoles();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [communitiesById, setCommunitiesById] = useState<Record<string, Community>>({});
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
+  type ProfileRow = {
+    address_line1: string | null;
+    address_line2: string | null;
+    city: string | null;
+    state: string | null;
+    postcode: string | null;
+    country: string | null;
+    phone: string | null;
+    latitude: number | null;
+    longitude: number | null;
+  };
+  const [profile, setProfile] = useState<ProfileRow>({
+    address_line1: null,
+    address_line2: null,
+    city: null,
+    state: null,
+    postcode: null,
+    country: "MY",
+    phone: null,
+    latitude: null,
+    longitude: null,
+  });
+  const [saving, setSaving] = useState(false);
   useEffect(() => {
     setSEO("My Profile — CoopMarket", "View your account, roles, memberships, and vendor info.");
     const init = async () => {
@@ -51,6 +80,45 @@ export default function Profile() {
     };
     init();
   }, [navigate]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const load = async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!error && data) {
+        const d: any = data as any;
+        setProfile({
+          address_line1: d.address_line1 ?? null,
+          address_line2: d.address_line2 ?? null,
+          city: d.city ?? null,
+          state: d.state ?? null,
+          postcode: d.postcode ?? null,
+          country: d.country ?? "MY",
+          phone: d.phone ?? null,
+          latitude: d.latitude ?? null,
+          longitude: d.longitude ?? null,
+        });
+      }
+    };
+    load();
+  }, [user?.id]);
+
+  const handleSaveAddress = async () => {
+    if (!user?.id) return;
+    setSaving(true);
+    const payload = { id: user.id, ...profile } as any;
+    const { error } = await supabase.from("profiles").upsert(payload);
+    setSaving(false);
+    if (error) {
+      toast({ title: "Failed to save address", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Address saved", description: "Your address and location were updated." });
+    }
+  };
 
   const userIdShort = useMemo(() => user?.id ? `${user.id.slice(0, 8)}…` : "", [user?.id]);
 
@@ -115,6 +183,98 @@ export default function Profile() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Address & Location */}
+      <section className="mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Address & Location</CardTitle>
+            <CardDescription>Save your delivery address and precise map location</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="address1">Address line 1</Label>
+                  <Textarea
+                    id="address1"
+                    placeholder="Apartment, street, etc."
+                    value={profile.address_line1 ?? ""}
+                    onChange={(e) => setProfile((p) => ({ ...p, address_line1: e.target.value || null }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address2">Address line 2</Label>
+                  <Input
+                    id="address2"
+                    value={profile.address_line2 ?? ""}
+                    onChange={(e) => setProfile((p) => ({ ...p, address_line2: e.target.value || null }))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={profile.city ?? ""}
+                      onChange={(e) => setProfile((p) => ({ ...p, city: e.target.value || null }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State</Label>
+                    <Input
+                      id="state"
+                      value={profile.state ?? ""}
+                      onChange={(e) => setProfile((p) => ({ ...p, state: e.target.value || null }))}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="postcode">Postcode</Label>
+                    <Input
+                      id="postcode"
+                      value={profile.postcode ?? ""}
+                      onChange={(e) => setProfile((p) => ({ ...p, postcode: e.target.value || null }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Input
+                      id="country"
+                      value={profile.country ?? ""}
+                      onChange={(e) => setProfile((p) => ({ ...p, country: e.target.value || null }))}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={profile.phone ?? ""}
+                    onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value || null }))}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={handleSaveAddress} disabled={saving}>{saving ? 'Saving…' : 'Save address'}</Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <MapPicker
+                  value={{ latitude: profile.latitude, longitude: profile.longitude }}
+                  onChange={({ latitude, longitude }) => setProfile((p) => ({ ...p, latitude, longitude }))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {profile.latitude && profile.longitude
+                    ? `Selected: ${profile.latitude.toFixed(6)}, ${profile.longitude.toFixed(6)}`
+                    : 'Pick your location by clicking on the map or use the geolocate control.'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
       {/* Vendor */}
       <section className="mt-6">
