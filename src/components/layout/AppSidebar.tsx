@@ -1,5 +1,5 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
-import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings } from "lucide-react";
+import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings, Truck } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import useAuthRoles from "@/hooks/useAuthRoles";
+import useIsRider from "@/hooks/useIsRider";
+import useIsVendor from "@/hooks/useIsVendor";
 
 const items = [
   { title: "Catalog", url: "/catalog", icon: ShoppingBag },
@@ -38,9 +40,12 @@ export default function AppSidebar() {
   const location = useLocation();
   const { user, isAdmin, isSuperadmin } = useAuthRoles();
   const currentPath = location.pathname;
+  const { isRider } = useIsRider();
+  const { isVendor } = useIsVendor();
 
   const adminItem = (isAdmin || isSuperadmin) ? { title: "Admin", url: "/admin", icon: Shield } : null;
   const isVendorPath = currentPath.startsWith("/vendor");
+  const isRiderPath = currentPath.startsWith("/rider");
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
@@ -77,7 +82,7 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {user && !collapsed && (
+        {user && isVendor && !collapsed && (
           <Collapsible defaultOpen={isVendorPath}>
             <SidebarGroup>
               <CollapsibleTrigger asChild>
@@ -105,6 +110,34 @@ export default function AppSidebar() {
             </SidebarGroup>
           </Collapsible>
         )}
+
+        {user && isRider && !collapsed && (
+          <Collapsible defaultOpen={isRiderPath}>
+            <SidebarGroup>
+              <CollapsibleTrigger asChild>
+                <SidebarGroupLabel className="cursor-pointer flex items-center justify-between hover:bg-muted/50 px-2 py-1 rounded">
+                  Rider
+                  <ChevronDown className="h-4 w-4" />
+                </SidebarGroupLabel>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <NavLink to="/rider" end className={getNavCls}>
+                          <Truck className="mr-2 h-4 w-4" />
+                          <span>Rider Hub</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        )}
+
       </SidebarContent>
     </Sidebar>
   );
