@@ -12,6 +12,11 @@ interface DeliveryAssignmentCardProps {
   onDecline: (id: string) => void;
 }
 
+function openExternalMap(lat: number, lng: number) {
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+  window.open(url, '_blank');
+}
+
 export default function DeliveryAssignmentCard({ 
   assignment, 
   onAccept, 
@@ -158,7 +163,7 @@ export default function DeliveryAssignmentCard({
 
         {/* Navigation Button for Accepted Deliveries */}
         {assignment.status === 'accepted' && assignment.delivery?.pickup_lat && assignment.delivery?.pickup_lng && (
-          <Button className="w-full" variant="outline">
+          <Button className="w-full" variant="outline" onClick={() => openExternalMap(assignment.delivery!.pickup_lat!, assignment.delivery!.pickup_lng!)}>
             <Navigation className="h-4 w-4 mr-2" />
             Navigate to Pickup
           </Button>

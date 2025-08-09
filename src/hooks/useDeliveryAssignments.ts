@@ -76,26 +76,11 @@ export function useDeliveryAssignments() {
 
   const acceptAssignment = async (assignmentId: string) => {
     try {
-      const { error } = await supabase
-        .from('delivery_assignments')
-        .update({
-          status: 'accepted',
-          responded_at: new Date().toISOString(),
-        })
-        .eq('id', assignmentId);
-
+      // Use edge function to securely claim the delivery and set rider on the delivery
+      const { data, error } = await supabase.functions.invoke('rider-claim-delivery', {
+        body: { assignment_id: assignmentId },
+      });
       if (error) throw error;
-
-      // Mark other pending assignments for the same delivery as expired
-      const assignment = assignments.find(a => a.id === assignmentId);
-      if (assignment) {
-        await supabase
-          .from('delivery_assignments')
-          .update({ status: 'expired' })
-          .eq('delivery_id', assignment.delivery_id)
-          .neq('id', assignmentId)
-          .eq('status', 'pending');
-      }
 
       toast({
         title: "Success",
@@ -104,9 +89,10 @@ export function useDeliveryAssignments() {
 
       fetchAssignments();
     } catch (error: any) {
+      console.error('Accept assignment error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || 'Failed to accept delivery',
         variant: "destructive",
       });
     }

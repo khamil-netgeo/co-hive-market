@@ -7,12 +7,31 @@ import { Button } from "@/components/ui/button";
 import RiderStatusCard from "@/components/rider/RiderStatusCard";
 import RiderProfileForm from "@/components/rider/RiderProfileForm";
 import useIsRider from "@/hooks/useIsRider";
+import { useDeliveryAssignments } from "@/hooks/useDeliveryAssignments";
+import DeliveryAssignmentCard from "@/components/rider/DeliveryAssignmentCard";
+import TripPanel from "@/components/rider/TripPanel";
+
+interface ActiveDelivery {
+  id: string;
+  status: string;
+  order_id: string;
+  pickup_address?: string | null;
+  dropoff_address?: string | null;
+  pickup_lat?: number | null;
+  pickup_lng?: number | null;
+  dropoff_lat?: number | null;
+  dropoff_lng?: number | null;
+  created_at: string;
+}
 
 const RiderHub = () => {
   const { isRider, loading: riderLoading } = useIsRider();
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [deliveries, setDeliveries] = useState<Array<{ id: string; order_id: string; status: string; created_at: string }>>([]);
+  const [active, setActive] = useState<ActiveDelivery | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { assignments, loading: assigning, acceptAssignment, declineAssignment, refetch } = useDeliveryAssignments();
 
   useEffect(() => {
     setSEO(
@@ -28,6 +47,7 @@ const RiderHub = () => {
         const user = sessionData.session?.user;
         setSignedIn(!!user);
         if (!user) return;
+        // My deliveries list
         const { data, error } = await supabase
           .from("deliveries")
           .select("id, order_id, status, created_at")
@@ -35,6 +55,18 @@ const RiderHub = () => {
           .order("created_at", { ascending: false });
         if (error) throw error;
         setDeliveries((data as any[]) || []);
+
+        // Active delivery (not yet delivered)
+        const { data: act, error: aerr } = await supabase
+          .from("deliveries")
+          .select("id, order_id, status, created_at, pickup_address, dropoff_address, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng")
+          .eq("rider_user_id", user.id)
+          .neq("status", "delivered")
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (aerr) throw aerr;
+        setActive((act as any) || null);
       } catch (e: any) {
         toast("Failed to load deliveries", { description: e.message || String(e) });
       } finally {
@@ -85,6 +117,32 @@ const RiderHub = () => {
           </div>
 
           <aside className="lg:col-span-2 space-y-6">
+            {/* New Assignments */}
+            <Card>
+              <CardHeader>
+                <CardTitle>New Assignments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {assigning ? (
+                  <div className="text-sm text-muted-foreground">Checking for assignments…</div>
+                ) : assignments.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">No new assignments right now.</div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4">
+                    {assignments.map((a) => (
+                      <DeliveryAssignmentCard key={a.id} assignment={a} onAccept={async (id) => { await acceptAssignment(id); await refetch(); }} onDecline={declineAssignment} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Active Trip */}
+            {active && (
+              <TripPanel delivery={active} />
+            )}
+
+            {/* My Deliveries */}
             <Card>
               <CardHeader>
                 <CardTitle>My Deliveries</CardTitle>

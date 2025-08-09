@@ -29,3 +29,9 @@ verify_jwt = false
 
 [functions.vendor-balance]
 verify_jwt = true
+
+[functions.rider-claim-delivery]
+verify_jwt = true
+
+[functions.rider-update-delivery]
+verify_jwt = true
