@@ -5,6 +5,7 @@ import { Truck, Clock3, Users } from "lucide-react";
 import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import useIsRider from "@/hooks/useIsRider";
 
 const Riders = () => {
   useEffect(() => {
@@ -16,15 +17,18 @@ const Riders = () => {
 
   const [deliveries, setDeliveries] = useState<Array<{id:string; order_id:string; status:string; created_at:string}>>([]);
   const [loading, setLoading] = useState(true);
-
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const { isRider, loading: isRiderLoading } = useIsRider();
   useEffect(() => {
     const load = async () => {
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         if (!sessionData.session) {
+          setSignedIn(false);
           setLoading(false);
           return;
         }
+        setSignedIn(true);
         const riderId = sessionData.session.user.id;
         const { data, error } = await supabase
           .from("deliveries")
@@ -53,9 +57,21 @@ const Riders = () => {
             Flexible hours. Fair payouts. Real community impact.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Button variant="hero" size="lg" asChild>
-              <a href="/auth">Get Started</a>
-            </Button>
+            {signedIn ? (
+              isRider ? (
+                <Button variant="hero" size="lg" asChild>
+                  <a href="/rider">Go to Rider Hub</a>
+                </Button>
+              ) : (
+                <Button variant="hero" size="lg" asChild>
+                  <a href="/getting-started">Become a Rider</a>
+                </Button>
+              )
+            ) : (
+              <Button variant="hero" size="lg" asChild>
+                <a href="/auth">Sign in to apply</a>
+              </Button>
+            )}
             <Button variant="secondary" size="lg" asChild>
               <a href="/#how">How it works</a>
             </Button>
@@ -102,7 +118,9 @@ const Riders = () => {
           {loading ? (
             <div className="mt-4 text-muted-foreground">Loading your deliveries…</div>
           ) : deliveries.length === 0 ? (
-            <div className="mt-4 text-muted-foreground">No deliveries assigned yet. Sign in or check back later.</div>
+            <div className="mt-4 text-muted-foreground">
+              {signedIn ? (isRiderLoading ? "Checking rider status…" : (isRider ? "No deliveries assigned yet." : "Join as a rider to start receiving assignments.")) : "Sign in to view your deliveries."}
+            </div>
           ) : (
             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
               {deliveries.map((d) => (
@@ -122,9 +140,21 @@ const Riders = () => {
         </div>
 
         <div className="mt-10 text-center">
-          <Button variant="outline" size="lg" asChild>
-            <a href="/auth">Apply now</a>
-          </Button>
+          {signedIn ? (
+            isRider ? (
+              <Button variant="outline" size="lg" asChild>
+                <a href="/rider">Open Rider Hub</a>
+              </Button>
+            ) : (
+              <Button variant="outline" size="lg" asChild>
+                <a href="/getting-started">Join as Rider</a>
+              </Button>
+            )
+          ) : (
+            <Button variant="outline" size="lg" asChild>
+              <a href="/auth">Sign in to apply</a>
+            </Button>
+          )}
         </div>
       </section>
     </main>

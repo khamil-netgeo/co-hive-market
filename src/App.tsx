@@ -30,6 +30,7 @@ import VendorProducts from "./pages/vendor/VendorProducts";
 import ServiceForm from "./pages/vendor/ServiceForm";
 import Cart from "./pages/Cart";
 import StoreSettings from "./pages/vendor/StoreSettings";
+import RiderHub from "./pages/rider/Hub";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/communities" element={<Communities />} />
               <Route path="/riders" element={<Riders />} />
+              <Route path="/rider" element={<RiderHub />} />
               
               <Route path="/vendor/services" element={<VendorServices />} />
               <Route path="/vendor/services/new" element={<ServiceForm />} />

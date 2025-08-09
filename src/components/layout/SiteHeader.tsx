@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthRoles from "@/hooks/useAuthRoles";
+import useIsRider from "@/hooks/useIsRider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const SiteHeader = () => {
   const { user, isAdmin, isSuperadmin, signOut } = useAuthRoles();
+  const { isRider } = useIsRider();
   const navigate = useNavigate();
 
   const initials = (user?.email?.[0] || "?").toUpperCase();
@@ -21,7 +23,15 @@ const SiteHeader = () => {
           <Link to="/catalog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Products</Link>
           <Link to="/services" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Services</Link>
           <Link to="/communities" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Communities</Link>
-          <Link to="/riders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Community</Link>
+          {user ? (
+            isRider ? (
+              <Link to="/rider" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Rider</Link>
+            ) : (
+              <Link to="/riders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Become a Rider</Link>
+            )
+          ) : (
+            <Link to="/riders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Riders</Link>
+          )}
           <Link to="/orders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Orders</Link>
           {user && (
             <Link to="/vendor/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Vendor</Link>
