@@ -3,8 +3,11 @@ import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchEasyParcelRates } from "@/lib/shipping";
 import { toast } from "sonner";
 
 export default function Cart() {
@@ -12,11 +15,84 @@ export default function Cart() {
   const [checkingOut, setCheckingOut] = useState(false);
   useMemo(() => setSEO("Cart | CoopMarket", "Review your items and checkout securely."), []);
 
+  // Shipping state
+  type RateOption = { id: string; courier: string; service: string; price_cents: number; etd?: string; raw?: any };
+  const [pickPostcode, setPickPostcode] = useState("");
+  const [pickState, setPickState] = useState("");
+  const [pickCountry, setPickCountry] = useState("MY");
+  const [sendPostcode, setSendPostcode] = useState("");
+  const [sendState, setSendState] = useState("");
+  const [sendCountry, setSendCountry] = useState("MY");
+  const [weight, setWeight] = useState<number>(1);
+  const [length, setLength] = useState<number | undefined>(undefined);
+  const [width, setWidth] = useState<number | undefined>(undefined);
+  const [height, setHeight] = useState<number | undefined>(undefined);
+  const [rates, setRates] = useState<RateOption[]>([]);
+  const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
+  const [loadingRates, setLoadingRates] = useState(false);
+
   const fmt = (cents: number) =>
     new Intl.NumberFormat((cart.currency || "USD").toUpperCase() === "MYR" ? "ms-MY" : "en-US", {
       style: "currency",
       currency: (cart.currency || "USD").toUpperCase(),
     }).format((cents || 0) / 100);
+
+  const selectedRate = useMemo(() => rates.find((r) => r.id === selectedRateId) || null, [rates, selectedRateId]);
+  const shippingCents = selectedRate?.price_cents ?? 0;
+  const totalCents = cart.subtotal_cents + shippingCents;
+
+  const toCents = (v: any) => {
+    const n = Number(String(v ?? "").toString().replace(/[^0-9.]/g, ""));
+    return Math.round((isNaN(n) ? 0 : n) * 100);
+  };
+  const flatten = (x: any): any[] => Array.isArray(x) ? x.flatMap(flatten) : (typeof x === "object" && x ? Object.values(x).flatMap(flatten) : []);
+  const parseRates = (payload: any): RateOption[] => {
+    const arr = flatten(payload).filter((it: any) => typeof it === "object");
+    const options: RateOption[] = [];
+    let i = 0;
+    for (const it of arr) {
+      const price_cents = toCents((it.price ?? it.rate ?? it.total ?? it.fee));
+      const courier = String(it.courier || it.courier_name || it.provider || it.company || it.name || it.service_id || "Courier");
+      const service = String(it.service || it.desc || it.service_name || it.plan || "");
+      const etd = (it.etd || it.delivery || it.estimated_delivery_time) as string | undefined;
+      if (price_cents > 0) {
+        options.push({ id: `${courier}-${service}-${i++}`.replace(/\s+/g, "-"), courier, service, price_cents, etd, raw: it });
+      }
+    }
+    return options;
+  };
+
+  const getRates = async () => {
+    if (!pickPostcode || !sendPostcode || !weight) {
+      toast("Enter shipping details", { description: "Pickup, destination postcodes and weight are required." });
+      return;
+    }
+    try {
+      setLoadingRates(true);
+      const res = await fetchEasyParcelRates({
+        pick_postcode: pickPostcode,
+        pick_state: pickState || undefined,
+        pick_country: pickCountry || "MY",
+        send_postcode: sendPostcode,
+        send_state: sendState || undefined,
+        send_country: sendCountry || "MY",
+        weight: Number(weight) || 1,
+        length: length || undefined,
+        width: width || undefined,
+        height: height || undefined,
+        domestic: (pickCountry || "MY") === (sendCountry || "MY"),
+        cod: false,
+      });
+      const opts = parseRates((res as any)?.data ?? (res as any));
+      setRates(opts);
+      setSelectedRateId(opts[0]?.id ?? null);
+      if (!opts.length) toast("No rates found", { description: "Try adjusting weight or postcodes." });
+    } catch (e: any) {
+      toast("Rate lookup failed", { description: e.message || String(e) });
+    } finally {
+      setLoadingRates(false);
+    }
+  };
 
   const checkout = async () => {
     try {
@@ -32,10 +108,14 @@ export default function Cart() {
         return;
       }
       setCheckingOut(true);
+      if (!selectedRate) {
+        toast("Select a shipping option", { description: "Fetch rates and choose a courier before checkout." });
+        return;
+      }
       const { data, error } = await supabase.functions.invoke("create-payment", {
         body: {
           name: `Cart purchase (${cart.count} item${cart.count > 1 ? "s" : ""})`,
-          amount_cents: cart.subtotal_cents,
+          amount_cents: totalCents,
           currency: cart.currency,
           success_path: "/payment-success",
           cancel_path: "/payment-canceled",
@@ -96,6 +176,62 @@ export default function Cart() {
 
           <Card>
             <CardHeader>
+              <CardTitle>Shipping</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="pick">Pickup postcode</Label>
+                <Input id="pick" value={pickPostcode} onChange={(e) => setPickPostcode(e.target.value)} placeholder="e.g. 31650" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="send">Destination postcode</Label>
+                <Input id="send" value={sendPostcode} onChange={(e) => setSendPostcode(e.target.value)} placeholder="e.g. 50450" />
+              </div>
+              <div className="grid grid-cols-4 gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="weight">Weight (kg)</Label>
+                  <Input id="weight" type="number" min={0.1} step={0.1} value={weight} onChange={(e) => setWeight(Number(e.target.value))} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="length">L (cm)</Label>
+                  <Input id="length" type="number" min={0} value={length ?? ""} onChange={(e) => setLength(e.target.value === "" ? undefined : Number(e.target.value))} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="width">W (cm)</Label>
+                  <Input id="width" type="number" min={0} value={width ?? ""} onChange={(e) => setWidth(e.target.value === "" ? undefined : Number(e.target.value))} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="height">H (cm)</Label>
+                  <Input id="height" type="number" min={0} value={height ?? ""} onChange={(e) => setHeight(e.target.value === "" ? undefined : Number(e.target.value))} />
+                </div>
+              </div>
+              <div>
+                <Button variant="secondary" onClick={getRates} disabled={loadingRates}>
+                  {loadingRates ? "Fetching rates…" : "Get rates"}
+                </Button>
+              </div>
+              {rates.length > 0 && (
+                <div className="grid gap-2">
+                  <Label>Select a courier</Label>
+                  <RadioGroup value={selectedRateId ?? ""} onValueChange={(v) => setSelectedRateId(v)}>
+                    {rates.map((r) => (
+                      <div key={r.id} className="flex items-center gap-2 rounded-md border p-3">
+                        <RadioGroupItem id={r.id} value={r.id} />
+                        <Label htmlFor={r.id} className="flex-1 cursor-pointer">
+                          <span className="font-medium">{r.courier}</span> — <span>{r.service}</span>
+                          <span className="ml-2 font-semibold">{fmt(r.price_cents)}</span>
+                          {r.etd && <span className="ml-2 text-xs text-muted-foreground">{r.etd}</span>}
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Summary</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-3">
@@ -107,7 +243,14 @@ export default function Cart() {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-semibold">{fmt(cart.subtotal_cents)}</span>
               </div>
-              <p className="text-xs text-muted-foreground">Shipping and taxes are calculated at checkout.</p>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Shipping</span>
+                <span className="font-semibold">{shippingCents ? fmt(shippingCents) : "—"}</span>
+              </div>
+              <div className="flex items-center justify-between border-t pt-2">
+                <span className="font-medium">Total</span>
+                <span className="text-xl font-semibold">{fmt(totalCents)}</span>
+              </div>
               <Button variant="hero" onClick={checkout} disabled={checkingOut}>
                 {checkingOut ? "Redirecting…" : "Checkout"}
               </Button>
