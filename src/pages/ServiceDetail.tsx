@@ -10,6 +10,7 @@ import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
 import ServiceImage from "@/components/service/ServiceImage";
 import { Briefcase, MapPin, Clock, Calendar, Star, ArrowLeft } from "lucide-react";
+import BookingDatePicker from "@/components/service/BookingDatePicker";
 
 interface Service {
   id: string;
@@ -269,9 +270,10 @@ export default function ServiceDetail() {
 
   const discountPercent = getDiscountPercent();
   const memberPrice = getMemberPrice();
+  const scheduledDate = scheduledDateTime ? new Date(scheduledDateTime) : undefined;
 
   return (
-    <main className="container px-4 py-6 md:py-12">
+    <main className="container px-4 py-6 pb-24 md:py-12">
       <div className="space-y-6">
         {/* Navigation */}
         <Button variant="ghost" asChild className="mb-4">
@@ -406,13 +408,12 @@ export default function ServiceDetail() {
                   <Label htmlFor="datetime" className="text-sm font-medium">
                     Preferred date & time (optional)
                   </Label>
-                  <Input
-                    id="datetime"
-                    type="datetime-local"
-                    value={scheduledDateTime}
-                    onChange={(e) => setScheduledDateTime(e.target.value)}
-                    className="mt-1"
-                  />
+                  <div className="mt-1">
+                    <BookingDatePicker
+                      value={scheduledDate}
+                      onChange={(d) => setScheduledDateTime(d ? d.toISOString() : "")}
+                    />
+                  </div>
                 </div>
                 
                 <div>
@@ -440,8 +441,20 @@ export default function ServiceDetail() {
               </CardContent>
             </Card>
           </div>
+          </div>
         </div>
-      </div>
-    </main>
-  );
-}
+
+        {/* Sticky mobile CTA */}
+        <div className="md:hidden fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container px-4 py-3 flex items-center justify-between gap-3">
+            <div className="text-base font-semibold">
+              {fmtPrice(memberPrice || service.price_cents, service.currency)}
+            </div>
+            <Button variant="hero" className="min-w-[140px]" onClick={bookService}>
+              Book & Pay
+            </Button>
+          </div>
+        </div>
+      </main>
+    );
+  }

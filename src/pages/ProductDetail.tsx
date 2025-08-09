@@ -292,7 +292,7 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <main className="container px-4 py-6 md:py-12">
+    <main className="container px-4 py-6 pb-24 md:py-12">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-semibold">Product not found</h1>
           <Button asChild>
@@ -439,6 +439,24 @@ export default function ProductDetail() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Trust & shipping */}
+            <div className="space-y-4">
+              <ProductTrustBadges />
+              <ShippingEstimator defaultWeightKg={product.weight_grams ? Math.max(0.1, product.weight_grams / 1000) : 1} />
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Sticky mobile CTA */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container px-4 py-3 flex items-center justify-between gap-3">
+          <div className="text-base font-semibold">
+            {fmtPrice(memberPrice || product.price_cents, product.currency)}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" onClick={addToCart}>Add</Button>
+            <Button variant="hero" onClick={buyNow}>Buy now</Button>
           </div>
         </div>
       </div>
