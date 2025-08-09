@@ -15,6 +15,9 @@ import Orders from "./pages/Orders";
 import VendorOrders from "./pages/VendorOrders";
 import Riders from "./pages/Riders";
 import Layout from "@/components/layout/Layout";
+import AdminLayout from "./pages/admin/AdminLayout";
+import Dashboard from "./pages/admin/Dashboard";
+import RequireAdmin from "./components/auth/RequireAdmin";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +42,16 @@ const App = () => (
             <Route path="/vendor/orders" element={<VendorOrders />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-canceled" element={<PaymentCanceled />} />
+            <Route
+              path="/admin"
+              element={
+                <RequireAdmin>
+                  <AdminLayout>
+                    <Dashboard />
+                  </AdminLayout>
+                </RequireAdmin>
+              }
+            />
             {/* Catch-all inside layout */}
             <Route path="*" element={<NotFound />} />
           </Route>

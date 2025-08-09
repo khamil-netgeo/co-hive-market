@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-
+import useAuthRoles from "@/hooks/useAuthRoles";
 const SiteHeader = () => {
+  const { isAdmin, isSuperadmin } = useAuthRoles();
   const handleGetStarted = () => {
     toast("To enable accounts and roles, connect Supabase (top-right green button).", {
       description: "We’ll wire up Superadmin, Vendor, Delivery & Buyer once connected.",
@@ -20,6 +21,9 @@ const SiteHeader = () => {
           <Link to="/catalog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Products</Link>
           <Link to="/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Services</Link>
           <Link to="/riders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Community</Link>
+          {(isAdmin || isSuperadmin) && (
+            <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Admin</Link>
+          )}
         </nav>
         <div className="flex items-center gap-3">
           <Button variant="hero" onClick={handleGetStarted}>Get Started</Button>
