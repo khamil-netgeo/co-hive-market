@@ -22,6 +22,7 @@ import Finance from "./pages/admin/Finance";
 import GettingStarted from "./pages/GettingStarted";
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import ProductForm from "./pages/vendor/ProductForm";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/plans" element={<Plans />} />
             <Route path="/catalog" element={<Catalog />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/riders" element={<Riders />} />
             <Route path="/vendor/plans" element={<VendorPlans />} />
             <Route path="/vendor/dashboard" element={<VendorDashboard />} />

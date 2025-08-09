@@ -21,6 +21,10 @@ const SiteHeader = () => {
           <Link to="/catalog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Products</Link>
           <Link to="/plans" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Services</Link>
           <Link to="/riders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Community</Link>
+          <Link to="/orders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Orders</Link>
+          {user && (
+            <Link to="/vendor/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Vendor</Link>
+          )}
           {(isAdmin || isSuperadmin) && (
             <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Admin</Link>
           )}
@@ -43,14 +47,20 @@ const SiteHeader = () => {
                     <span className="hidden sm:inline text-sm">{user.email}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Signed in as<br />{user.email}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => navigate("/")}>Home</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => navigate("/getting-started")}>Getting Started</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={async () => { await signOut(); navigate("/"); }}>Sign out</DropdownMenuItem>
-                </DropdownMenuContent>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>Signed in as<br />{user.email}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => navigate("/")}>Home</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => navigate("/profile")}>Profile</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => navigate("/orders")}>My Orders</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => navigate("/catalog")}>Catalog</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => navigate("/vendor/dashboard")}>Vendor Dashboard</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => navigate("/getting-started")}>Getting Started</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={async () => { await signOut(); navigate("/"); }}>Sign out</DropdownMenuItem>
+                  </DropdownMenuContent>
               </DropdownMenu>
             </>
           )}
