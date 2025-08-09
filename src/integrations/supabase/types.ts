@@ -1029,6 +1029,45 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          rating: number
+          status: Database["public"]["Enums"]["review_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["review_target"]
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          status?: Database["public"]["Enums"]["review_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["review_target"]
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          status?: Database["public"]["Enums"]["review_status"]
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["review_target"]
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       rider_payouts: {
         Row: {
           amount_cents: number
@@ -1502,7 +1541,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      product_rating_summary: {
+        Row: {
+          avg_rating: number | null
+          product_id: string | null
+          review_count: number | null
+        }
+        Relationships: []
+      }
+      service_rating_summary: {
+        Row: {
+          avg_rating: number | null
+          review_count: number | null
+          service_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       assign_delivery_to_riders: {
@@ -1559,6 +1613,8 @@ export type Database = {
         | "rider"
       order_status: "pending" | "paid" | "canceled" | "fulfilled" | "refunded"
       product_status: "active" | "inactive" | "archived"
+      review_status: "pending" | "approved" | "rejected"
+      review_target: "product" | "service"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1707,6 +1763,8 @@ export const Constants = {
       ],
       order_status: ["pending", "paid", "canceled", "fulfilled", "refunded"],
       product_status: ["active", "inactive", "archived"],
+      review_status: ["pending", "approved", "rejected"],
+      review_target: ["product", "service"],
     },
   },
 } as const
