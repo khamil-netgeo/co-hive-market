@@ -126,25 +126,52 @@ export type Database = {
       deliveries: {
         Row: {
           created_at: string
+          dropoff_address: string | null
+          dropoff_lat: number | null
+          dropoff_lng: number | null
           id: string
+          notes: string | null
           order_id: string
+          pickup_address: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
           rider_user_id: string | null
+          scheduled_dropoff_at: string | null
+          scheduled_pickup_at: string | null
           status: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          dropoff_address?: string | null
+          dropoff_lat?: number | null
+          dropoff_lng?: number | null
           id?: string
+          notes?: string | null
           order_id: string
+          pickup_address?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           rider_user_id?: string | null
+          scheduled_dropoff_at?: string | null
+          scheduled_pickup_at?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          dropoff_address?: string | null
+          dropoff_lat?: number | null
+          dropoff_lng?: number | null
           id?: string
+          notes?: string | null
           order_id?: string
+          pickup_address?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
           rider_user_id?: string | null
+          scheduled_dropoff_at?: string | null
+          scheduled_pickup_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -297,40 +324,58 @@ export type Database = {
       }
       products: {
         Row: {
+          category: string | null
           community_id: string
           created_at: string
           currency: string
           description: string | null
           id: string
           name: string
+          perishable: boolean
+          prep_time_minutes: number | null
           price_cents: number
+          refrigeration_required: boolean
           status: Database["public"]["Enums"]["product_status"]
+          stock_qty: number
           updated_at: string
           vendor_id: string
+          weight_grams: number | null
         }
         Insert: {
+          category?: string | null
           community_id: string
           created_at?: string
           currency?: string
           description?: string | null
           id?: string
           name: string
+          perishable?: boolean
+          prep_time_minutes?: number | null
           price_cents: number
+          refrigeration_required?: boolean
           status?: Database["public"]["Enums"]["product_status"]
+          stock_qty?: number
           updated_at?: string
           vendor_id: string
+          weight_grams?: number | null
         }
         Update: {
+          category?: string | null
           community_id?: string
           created_at?: string
           currency?: string
           description?: string | null
           id?: string
           name?: string
+          perishable?: boolean
+          prep_time_minutes?: number | null
           price_cents?: number
+          refrigeration_required?: boolean
           status?: Database["public"]["Enums"]["product_status"]
+          stock_qty?: number
           updated_at?: string
           vendor_id?: string
+          weight_grams?: number | null
         }
         Relationships: [
           {
@@ -357,6 +402,8 @@ export type Database = {
           country: string
           created_at: string
           id: string
+          latitude: number | null
+          longitude: number | null
           phone: string | null
           postcode: string | null
           state: string | null
@@ -369,6 +416,8 @@ export type Database = {
           country?: string
           created_at?: string
           id: string
+          latitude?: number | null
+          longitude?: number | null
           phone?: string | null
           postcode?: string | null
           state?: string | null
@@ -381,6 +430,8 @@ export type Database = {
           country?: string
           created_at?: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           phone?: string | null
           postcode?: string | null
           state?: string | null
