@@ -8,6 +8,7 @@ import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import VendorSubnav from "@/components/vendor/VendorSubnav";
 
 interface Product {
   id: string;
@@ -161,50 +162,42 @@ const VendorDashboard = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gradient-brand">
-            Vendor Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Welcome back, {vendor.display_name}
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button asChild className="w-full sm:w-auto">
-            <Link to="/vendor/products/new" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Product
-            </Link>
-          </Button>
-          <Button variant="secondary" asChild className="w-full sm:w-auto">
-            <Link to="/vendor/services/new" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Service
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link to="/vendor/orders" className="flex items-center gap-2">
-              Manage Orders
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link to="/vendor/analytics" className="flex items-center gap-2">
-              View Analytics
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link to="/vendor/services" className="flex items-center gap-2">
-              Manage Services
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="w-full sm:w-auto">
-            <Link to="/vendor/payouts" className="flex items-center gap-2">
-              Payouts
-            </Link>
-          </Button>
-        </div>
+    <div className="container mx-auto px-4 py-6">
+      <VendorSubnav />
+
+      <div className="flex flex-col sm:flex-row gap-2 justify-end mt-4 mb-6">
+        <Button asChild className="w-full sm:w-auto">
+          <Link to="/vendor/products/new" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Product
+          </Link>
+        </Button>
+        <Button variant="secondary" asChild className="w-full sm:w-auto">
+          <Link to="/vendor/services/new" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Service
+          </Link>
+        </Button>
+        <Button variant="outline" asChild className="w-full sm:w-auto">
+          <Link to="/vendor/orders" className="flex items-center gap-2">
+            Manage Orders
+          </Link>
+        </Button>
+        <Button variant="outline" asChild className="w-full sm:w-auto">
+          <Link to="/vendor/analytics" className="flex items-center gap-2">
+            View Analytics
+          </Link>
+        </Button>
+        <Button variant="outline" asChild className="w-full sm:w-auto">
+          <Link to="/vendor/services" className="flex items-center gap-2">
+            Manage Services
+          </Link>
+        </Button>
+        <Button variant="outline" asChild className="w-full sm:w-auto">
+          <Link to="/vendor/payouts" className="flex items-center gap-2">
+            Payouts
+          </Link>
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
