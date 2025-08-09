@@ -8,17 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 interface KycUploaderProps {
-  role: "buyer" | "vendor" | "rider";
+  role?: "buyer" | "vendor" | "rider" | "admin"; // Optional: base KYC is shared across roles
 }
 
 type Submission = {
-  id: string;
   status: string;
   front_id_path: string | null;
   back_id_path: string | null;
   selfie_path: string | null;
   notes: string | null;
   created_at: string;
+  reviewed_at?: string | null;
 };
 
 export default function KycUploader({ role }: KycUploaderProps) {
@@ -36,12 +36,9 @@ export default function KycUploader({ role }: KycUploaderProps) {
       const uid = data.user?.id;
       if (!uid) return setLoading(false);
       const { data: row, error } = await supabase
-        .from("kyc_submissions")
-        .select("id,status,front_id_path,back_id_path,selfie_path,notes,created_at")
+        .from("kyc_profiles")
+        .select("status,front_id_path,back_id_path,selfie_path,notes,created_at,reviewed_at")
         .eq("user_id", uid)
-        .eq("role", role)
-        .order("created_at", { ascending: false })
-        .limit(1)
         .maybeSingle();
       if (!error && row) {
         setSub(row as any);
@@ -89,7 +86,8 @@ export default function KycUploader({ role }: KycUploaderProps) {
 
       const upload = async (f: File | null, key: string) => {
         if (!f) return null;
-        const path = `${uid}/${role}/${key}-${Date.now()}-${f.name}`;
+        const roleFolder = role ?? 'base';
+        const path = `${uid}/${roleFolder}/${key}-${Date.now()}-${f.name}`;
         const { error } = await supabase.storage.from("kyc-docs").upload(path, f, { upsert: false, cacheControl: "3600" });
         if (error) throw error;
         return path;
@@ -100,9 +98,9 @@ export default function KycUploader({ role }: KycUploaderProps) {
       const selfiePath = await upload(selfie, "selfie");
 
       if (sub && sub.status === "rejected") {
-        // Update existing rejected submission to pending with new docs
+        // Update existing rejected profile to pending with new docs
         const { error } = await supabase
-          .from("kyc_submissions")
+          .from("kyc_profiles")
           .update({
             status: "pending",
             front_id_path: frontPath ?? sub.front_id_path,
@@ -110,14 +108,13 @@ export default function KycUploader({ role }: KycUploaderProps) {
             selfie_path: selfiePath ?? sub.selfie_path,
             notes: null,
           })
-          .eq("id", sub.id);
+          .eq("user_id", uid);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("kyc_submissions")
+          .from("kyc_profiles")
           .insert({
             user_id: uid,
-            role,
             status: "pending",
             front_id_path: frontPath,
             back_id_path: backPath,

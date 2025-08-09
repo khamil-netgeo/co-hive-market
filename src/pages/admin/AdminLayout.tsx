@@ -12,6 +12,12 @@ const AdminLayout = ({ children }: { children?: React.ReactNode }) => {
           <Link to="/admin/finance" className="hover:text-foreground transition-colors">
             Finance
           </Link>
+          <Link to="/admin/kyc" className="hover:text-foreground transition-colors">
+            KYC
+          </Link>
+          <Link to="/admin/kyc-requirements" className="hover:text-foreground transition-colors">
+            KYC Requirements
+          </Link>
         </nav>
       </header>
       <section className="grid gap-6">

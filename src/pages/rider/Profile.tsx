@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AvatarUploader from "@/components/common/AvatarUploader";
 import KycUploader from "@/components/kyc/KycUploader";
+import KycRequirements from "@/components/kyc/KycRequirements";
 
 const RiderProfile = () => {
   const { isRider, loading: riderLoading } = useIsRider();
@@ -63,7 +64,8 @@ const RiderProfile = () => {
 
         <div className="space-y-6">
           <AvatarUploader title="Profile Photo" />
-          <KycUploader role="rider" />
+          <KycUploader />
+          <KycRequirements role="rider" />
           <RiderProfileForm />
         </div>
       </section>

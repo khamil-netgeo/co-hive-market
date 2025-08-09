@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Image as ImageIcon, Save } from "lucide-react";
 import { setSEO } from "@/lib/seo";
 import KycUploader from "@/components/kyc/KycUploader";
+import KycRequirements from "@/components/kyc/KycRequirements";
 
 interface OpeningDay {
   open: string;
@@ -335,8 +336,9 @@ export default function StoreSettings() {
         </CardContent>
       </Card>
 
-      <div className="mt-6">
-        <KycUploader role="vendor" />
+      <div className="mt-6 space-y-6">
+        <KycUploader />
+        <KycRequirements role="vendor" />
       </div>
 
       <div className="mt-6 flex justify-center sm:justify-end">

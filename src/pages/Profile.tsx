@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import MapPicker from "@/components/map/MapPicker";
 import AvatarUploader from "@/components/common/AvatarUploader";
 import KycUploader from "@/components/kyc/KycUploader";
+import KycRequirements from "@/components/kyc/KycRequirements";
 
 interface Membership { community_id: string; member_type: string }
 interface Community { id: string; name: string }
@@ -189,7 +190,25 @@ export default function Profile() {
       {/* Avatar & Identity */}
       <section className="mt-6 grid gap-6 md:grid-cols-2">
         <AvatarUploader />
-        <KycUploader role="buyer" />
+        <KycUploader />
+      </section>
+
+      <section className="mt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Role-specific Requirements</CardTitle>
+            <CardDescription>Complete any additional requirements for your roles</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Lazy import would be ideal; kept simple for now */}
+            <div className="space-y-4">
+              {/* Buyer requirements if any */}
+              <div>
+                <KycRequirements role="buyer" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
       {/* Address & Location */}

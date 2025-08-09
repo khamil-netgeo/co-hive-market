@@ -235,6 +235,134 @@ export type Database = {
           },
         ]
       }
+      kyc_profiles: {
+        Row: {
+          back_id_path: string | null
+          created_at: string
+          front_id_path: string | null
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          selfie_path: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          back_id_path?: string | null
+          created_at?: string
+          front_id_path?: string | null
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          back_id_path?: string | null
+          created_at?: string
+          front_id_path?: string | null
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          selfie_path?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kyc_requirement_submissions: {
+        Row: {
+          created_at: string
+          file_path: string | null
+          id: string
+          notes: string | null
+          requirement_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          value_text: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          notes?: string | null
+          requirement_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          value_text?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          notes?: string | null
+          requirement_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          value_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kyc_requirement_submissions_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "kyc_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kyc_requirements: {
+        Row: {
+          created_at: string
+          description: string | null
+          enabled: boolean
+          id: string
+          input_type: string
+          key: string
+          label: string
+          required: boolean
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          input_type?: string
+          key: string
+          label: string
+          required?: boolean
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          id?: string
+          input_type?: string
+          key?: string
+          label?: string
+          required?: boolean
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       kyc_submissions: {
         Row: {
           back_id_path: string | null

@@ -19,6 +19,8 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import RequireAdmin from "./components/auth/RequireAdmin";
 import Finance from "./pages/admin/Finance";
+import AdminKYC from "./pages/admin/KYC";
+import AdminKYCRequirements from "./pages/admin/KYCRequirements";
 import GettingStarted from "./pages/GettingStarted";
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import ProductForm from "./pages/vendor/ProductForm";
@@ -97,6 +99,26 @@ const App = () => (
                   <RequireAdmin>
                     <AdminLayout>
                       <Finance />
+                    </AdminLayout>
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="/admin/kyc"
+                element={
+                  <RequireAdmin>
+                    <AdminLayout>
+                      <AdminKYC />
+                    </AdminLayout>
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="/admin/kyc-requirements"
+                element={
+                  <RequireAdmin>
+                    <AdminLayout>
+                      <AdminKYCRequirements />
                     </AdminLayout>
                   </RequireAdmin>
                 }

@@ -7,9 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 interface KycRow {
-  id: string;
   user_id: string;
-  role: string;
   status: string;
   front_id_path: string | null;
   back_id_path: string | null;
@@ -26,8 +24,8 @@ export default function AdminKYC() {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from("kyc_submissions")
-        .select("id,user_id,role,status,front_id_path,back_id_path,selfie_path,notes,created_at")
+        .from("kyc_profiles")
+        .select("user_id,status,front_id_path,back_id_path,selfie_path,notes,created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       setRows((data as any[]) || []);
@@ -53,9 +51,9 @@ export default function AdminKYC() {
       const { data: s } = await supabase.auth.getSession();
       const uid = s.session?.user?.id;
       const { error } = await supabase
-        .from("kyc_submissions")
+        .from("kyc_profiles")
         .update({ status: "approved", reviewed_by: uid ?? null, reviewed_at: new Date().toISOString(), notes: row.notes || null })
-        .eq("id", row.id);
+        .eq("user_id", row.user_id);
       if (error) throw error;
       toast.success("Approved");
       load();
@@ -70,9 +68,9 @@ export default function AdminKYC() {
       const { data: s } = await supabase.auth.getSession();
       const uid = s.session?.user?.id;
       const { error } = await supabase
-        .from("kyc_submissions")
+        .from("kyc_profiles")
         .update({ status: "rejected", reviewed_by: uid ?? null, reviewed_at: new Date().toISOString(), notes: (reason || null) })
-        .eq("id", row.id);
+        .eq("user_id", row.user_id);
       if (error) throw error;
       toast("Marked as rejected");
       load();
@@ -105,7 +103,7 @@ export default function AdminKYC() {
                   <TableRow>
                     <TableHead>Created</TableHead>
                     <TableHead>User</TableHead>
-                    <TableHead>Role</TableHead>
+                    
                     <TableHead>Status</TableHead>
                     <TableHead>Docs</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -113,10 +111,10 @@ export default function AdminKYC() {
                 </TableHeader>
                 <TableBody>
                   {rows.map((r) => (
-                    <TableRow key={r.id}>
+                    <TableRow key={`${r.user_id}-${r.created_at}`}>
                       <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{new Date(r.created_at).toLocaleString()}</TableCell>
                       <TableCell className="text-sm font-mono">{r.user_id.slice(0, 8)}…</TableCell>
-                      <TableCell className="capitalize text-sm">{r.role}</TableCell>
+                      
                       <TableCell className="capitalize text-sm">{r.status}</TableCell>
                       <TableCell className="text-sm">
                         <div className="flex gap-2">
