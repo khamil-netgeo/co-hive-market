@@ -14,6 +14,7 @@ import Catalog from "./pages/Catalog";
 import Orders from "./pages/Orders";
 import VendorOrders from "./pages/VendorOrders";
 import Riders from "./pages/Riders";
+import Layout from "@/components/layout/Layout";
 
 const queryClient = new QueryClient();
 
@@ -24,18 +25,23 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Keep the landing page standalone to avoid double header/hero */}
           <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/plans" element={<Plans />} />
-          <Route path="/catalog" element={<Catalog />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/riders" element={<Riders />} />
-          <Route path="/vendor/plans" element={<VendorPlans />} />
-          <Route path="/vendor/orders" element={<VendorOrders />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/payment-canceled" element={<PaymentCanceled />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+
+          {/* Shared layout for all other routes */}
+          <Route element={<Layout />}>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/plans" element={<Plans />} />
+            <Route path="/catalog" element={<Catalog />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/riders" element={<Riders />} />
+            <Route path="/vendor/plans" element={<VendorPlans />} />
+            <Route path="/vendor/orders" element={<VendorOrders />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-canceled" element={<PaymentCanceled />} />
+            {/* Catch-all inside layout */}
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
