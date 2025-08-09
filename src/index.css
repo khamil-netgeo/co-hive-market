@@ -125,6 +125,7 @@ All colors MUST be HSL.
 @layer components {
   .bg-gradient-primary { background-image: var(--gradient-primary); }
   .shadow-elegant { box-shadow: var(--shadow-elegant); }
+  .shadow-glow { box-shadow: var(--shadow-glow); }
   .text-gradient-brand {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
@@ -135,6 +136,31 @@ All colors MUST be HSL.
     background-size: 200% 200%;
     animation: gradient-shift 14s ease infinite;
   }
+  
+  /* Interactive elements */
+  .hover-lift {
+    transition: var(--transition-smooth);
+    @apply hover:shadow-elegant hover:-translate-y-1;
+  }
+  
+  .hero-badge {
+    @apply inline-flex items-center rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary ring-1 ring-inset ring-primary/20 backdrop-blur-sm;
+  }
+  
+  .feature-card {
+    @apply group relative overflow-hidden rounded-lg border bg-card/50 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-card hover:shadow-elegant;
+  }
+  
+  .grid-fade-in > * {
+    animation-fill-mode: both;
+  }
+  
+  .grid-fade-in > *:nth-child(1) { animation-delay: 0.1s; }
+  .grid-fade-in > *:nth-child(2) { animation-delay: 0.2s; }
+  .grid-fade-in > *:nth-child(3) { animation-delay: 0.3s; }
+  .grid-fade-in > *:nth-child(4) { animation-delay: 0.4s; }
+  .grid-fade-in > *:nth-child(5) { animation-delay: 0.5s; }
+  .grid-fade-in > *:nth-child(6) { animation-delay: 0.6s; }
 }
 
 @keyframes gradient-shift {
