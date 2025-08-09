@@ -12,6 +12,9 @@ import Breadcrumbs from "@/components/common/Breadcrumbs";
 import ShareButtons from "@/components/common/ShareButtons";
 import ProductTrustBadges from "@/components/product/ProductTrustBadges";
 import ShippingEstimator from "@/components/product/ShippingEstimator";
+import ReviewSummary from "@/components/reviews/ReviewSummary";
+import ReviewList from "@/components/reviews/ReviewList";
+import ReviewForm from "@/components/reviews/ReviewForm";
 
 interface Product {
   id: string;
@@ -447,6 +450,21 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+
+        <section id="reviews" className="mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Reviews</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <ReviewSummary targetType="product" targetId={product.id} />
+              </div>
+              <ReviewList targetType="product" targetId={product.id} />
+              <ReviewForm targetType="product" targetId={product.id} />
+            </CardContent>
+          </Card>
+        </section>
       </div>
       {/* Sticky mobile CTA */}
       <div className="md:hidden fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

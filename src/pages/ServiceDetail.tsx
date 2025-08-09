@@ -11,6 +11,9 @@ import { toast } from "sonner";
 import ServiceImage from "@/components/service/ServiceImage";
 import { Briefcase, MapPin, Clock, Calendar, Star, ArrowLeft } from "lucide-react";
 import BookingDatePicker from "@/components/service/BookingDatePicker";
+import ReviewSummary from "@/components/reviews/ReviewSummary";
+import ReviewList from "@/components/reviews/ReviewList";
+import ReviewForm from "@/components/reviews/ReviewForm";
 
 interface Service {
   id: string;
@@ -443,6 +446,21 @@ export default function ServiceDetail() {
           </div>
           </div>
         </div>
+
+        <section id="reviews" className="mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Reviews</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <ReviewSummary targetType="service" targetId={service.id} />
+              </div>
+              <ReviewList targetType="service" targetId={service.id} />
+              <ReviewForm targetType="service" targetId={service.id} />
+            </CardContent>
+          </Card>
+        </section>
 
         {/* Sticky mobile CTA */}
         <div className="md:hidden fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
