@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import RiderNavigation from "@/components/rider/RiderNavigation";
 import { Link } from "react-router-dom";
 
 interface PayoutRow {
@@ -144,101 +143,95 @@ export default function RiderPayouts() {
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-4">
-          <div className="lg:col-span-1">
-            <RiderNavigation />
-          </div>
-
-          <div className="lg:col-span-3 space-y-6">
-            <section className="grid gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader><CardTitle>Available</CardTitle></CardHeader>
-                <CardContent className="text-2xl font-semibold">
-                  {fmt(balances?.available_cents || 0, balances?.currency || "MYR")}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle>Pending Requests</CardTitle></CardHeader>
-                <CardContent className="text-2xl font-semibold">
-                  {fmt(balances?.pending_cents || 0, balances?.currency || "MYR")}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle>Paid To Date</CardTitle></CardHeader>
-                <CardContent className="text-2xl font-semibold">
-                  {fmt(balances?.paid_cents || 0, balances?.currency || "MYR")}
-                </CardContent>
-              </Card>
-            </section>
-
+        <div className="space-y-6">
+          <section className="grid gap-4 md:grid-cols-3">
             <Card>
-              <CardHeader>
-                <CardTitle>Request Payout</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3 md:grid-cols-3">
-                  <div>
-                    <label className="block text-sm mb-1">Amount</label>
-                    <Input type="number" min={0} step="0.01" value={amount}
-                      onChange={(e) => setAmount(parseFloat(e.target.value))}
-                      placeholder="0.00" />
-                    <div className="text-xs text-muted-foreground mt-1">Max: {fmt(balances?.available_cents || 0, balances?.currency || "MYR")}</div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm mb-1">Notes (bank details or instructions)</label>
-                    <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g., Bank XYZ, Acc 1234" />
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Button onClick={submit} disabled={!canRequest || submitting} variant="hero">
-                    {submitting ? "Submitting…" : "Submit Request"}
-                  </Button>
-                </div>
+              <CardHeader><CardTitle>Available</CardTitle></CardHeader>
+              <CardContent className="text-2xl font-semibold">
+                {fmt(balances?.available_cents || 0, balances?.currency || "MYR")}
               </CardContent>
             </Card>
-
             <Card>
-              <CardHeader>
-                <CardTitle>Payout History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {payouts.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">No payout requests yet.</div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Method</TableHead>
-                          <TableHead>Ref</TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
-                          <TableHead></TableHead>
+              <CardHeader><CardTitle>Pending Requests</CardTitle></CardHeader>
+              <CardContent className="text-2xl font-semibold">
+                {fmt(balances?.pending_cents || 0, balances?.currency || "MYR")}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>Paid To Date</CardTitle></CardHeader>
+              <CardContent className="text-2xl font-semibold">
+                {fmt(balances?.paid_cents || 0, balances?.currency || "MYR")}
+              </CardContent>
+            </Card>
+          </section>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Request Payout</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 md:grid-cols-3">
+                <div>
+                  <label className="block text-sm mb-1">Amount</label>
+                  <Input type="number" min={0} step="0.01" value={amount}
+                    onChange={(e) => setAmount(parseFloat(e.target.value))}
+                    placeholder="0.00" />
+                  <div className="text-xs text-muted-foreground mt-1">Max: {fmt(balances?.available_cents || 0, balances?.currency || "MYR")}</div>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm mb-1">Notes (bank details or instructions)</label>
+                  <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g., Bank XYZ, Acc 1234" />
+                </div>
+              </div>
+              <div className="mt-4">
+                <Button onClick={submit} disabled={!canRequest || submitting} variant="hero">
+                  {submitting ? "Submitting…" : "Submit Request"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Payout History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {payouts.length === 0 ? (
+                <div className="text-sm text-muted-foreground">No payout requests yet.</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead>Ref</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {payouts.map(p => (
+                        <TableRow key={p.id}>
+                          <TableCell className="text-sm text-muted-foreground">{new Date(p.created_at).toLocaleString()}</TableCell>
+                          <TableCell className="capitalize">{p.status}</TableCell>
+                          <TableCell>{p.method}</TableCell>
+                          <TableCell className="text-xs">{p.reference || "—"}</TableCell>
+                          <TableCell className="text-right font-medium">{fmt(p.amount_cents, p.currency)}</TableCell>
+                          <TableCell className="text-right">
+                            {p.status === "requested" && (
+                              <Button size="sm" variant="outline" onClick={() => cancelRequest(p.id)}>Cancel</Button>
+                            )}
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {payouts.map(p => (
-                          <TableRow key={p.id}>
-                            <TableCell className="text-sm text-muted-foreground">{new Date(p.created_at).toLocaleString()}</TableCell>
-                            <TableCell className="capitalize">{p.status}</TableCell>
-                            <TableCell>{p.method}</TableCell>
-                            <TableCell className="text-xs">{p.reference || "—"}</TableCell>
-                            <TableCell className="text-right font-medium">{fmt(p.amount_cents, p.currency)}</TableCell>
-                            <TableCell className="text-right">
-                              {p.status === "requested" && (
-                                <Button size="sm" variant="outline" onClick={() => cancelRequest(p.id)}>Cancel</Button>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </section>
     </main>

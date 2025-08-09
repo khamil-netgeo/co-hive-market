@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { setSEO } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
-import RiderNavigation from "@/components/rider/RiderNavigation";
 import RiderProfileForm from "@/components/rider/RiderProfileForm";
 import useIsRider from "@/hooks/useIsRider";
 import { Link } from "react-router-dom";
@@ -60,14 +59,8 @@ const RiderProfile = () => {
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-4">
-          <div className="lg:col-span-1">
-            <RiderNavigation />
-          </div>
-
-          <div className="lg:col-span-3">
-            <RiderProfileForm />
-          </div>
+        <div>
+          <RiderProfileForm />
         </div>
       </section>
     </main>

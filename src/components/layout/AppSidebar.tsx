@@ -1,5 +1,5 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
-import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings, Truck } from "lucide-react";
+import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings, Truck, DollarSign, User } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -32,6 +32,14 @@ const vendorItems = [
   { title: "Services", url: "/vendor/services", icon: Briefcase },
   { title: "Payouts", url: "/vendor/payouts", icon: Wallet },
   { title: "Store Settings", url: "/vendor/store-settings", icon: Settings },
+];
+
+const riderItems = [
+  { title: "Dashboard", url: "/rider", icon: LayoutGrid },
+  { title: "Assignments", url: "/rider/assignments", icon: Package },
+  { title: "Deliveries", url: "/rider/deliveries", icon: Truck },
+  { title: "Profile", url: "/rider/profile", icon: User },
+  { title: "Payouts", url: "/rider/payouts", icon: DollarSign },
 ];
 
 export default function AppSidebar() {
@@ -123,14 +131,16 @@ export default function AppSidebar() {
               <CollapsibleContent>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <NavLink to="/rider" end className={getNavCls}>
-                          <Truck className="mr-2 h-4 w-4" />
-                          <span>Rider Hub</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    {riderItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} end className={getNavCls}>
+                            <item.icon className="mr-2 h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </CollapsibleContent>

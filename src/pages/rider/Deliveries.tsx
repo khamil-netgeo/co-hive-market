@@ -3,7 +3,6 @@ import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import RiderNavigation from "@/components/rider/RiderNavigation";
 import TripPanel from "@/components/rider/TripPanel";
 
 interface ActiveDelivery {
@@ -77,19 +76,14 @@ const RiderDeliveries = () => {
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-4">
-          <div className="lg:col-span-1">
-            <RiderNavigation />
-          </div>
+        <div className="space-y-6">
+          {/* Active Trip */}
+          {active && (
+            <TripPanel delivery={active} />
+          )}
 
-          <div className="lg:col-span-3 space-y-6">
-            {/* Active Trip */}
-            {active && (
-              <TripPanel delivery={active} />
-            )}
-
-            {/* Delivery History */}
-            <Card>
+          {/* Delivery History */}
+          <Card>
               <CardHeader>
                 <CardTitle>Delivery History</CardTitle>
               </CardHeader>
@@ -121,9 +115,8 @@ const RiderDeliveries = () => {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
     </main>

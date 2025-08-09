@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { setSEO } from "@/lib/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import RiderNavigation from "@/components/rider/RiderNavigation";
 import { useDeliveryAssignments } from "@/hooks/useDeliveryAssignments";
 import DeliveryAssignmentCard from "@/components/rider/DeliveryAssignmentCard";
 
@@ -25,16 +24,11 @@ const RiderAssignments = () => {
           </p>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-4">
-          <div className="lg:col-span-1">
-            <RiderNavigation />
-          </div>
-
-          <div className="lg:col-span-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>New Assignments</CardTitle>
-              </CardHeader>
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>New Assignments</CardTitle>
+            </CardHeader>
               <CardContent>
                 {loading ? (
                   <div className="text-sm text-muted-foreground">Checking for assignments…</div>
@@ -60,9 +54,8 @@ const RiderAssignments = () => {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
     </main>

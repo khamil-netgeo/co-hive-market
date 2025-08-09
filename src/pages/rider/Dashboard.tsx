@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import RiderStatusCard from "@/components/rider/RiderStatusCard";
-import RiderNavigation from "@/components/rider/RiderNavigation";
 import useIsRider from "@/hooks/useIsRider";
 import { useDeliveryAssignments } from "@/hooks/useDeliveryAssignments";
 import { Link } from "react-router-dom";
@@ -112,21 +111,16 @@ const RiderDashboard = () => {
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-4">
-          <div className="lg:col-span-1">
-            <RiderNavigation />
-          </div>
+        <div className="space-y-6">
+          {/* Status Overview */}
+          <RiderStatusCard />
 
-          <div className="lg:col-span-3 space-y-6">
-            {/* Status Overview */}
-            <RiderStatusCard />
-
-            {/* Quick Stats */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Total Deliveries</CardTitle>
-                </CardHeader>
+          {/* Quick Stats */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Total Deliveries</CardTitle>
+              </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalDeliveries}</div>
                 </CardContent>
@@ -157,10 +151,10 @@ const RiderDashboard = () => {
                   </Button>
                 </CardContent>
               </Card>
-            </div>
+          </div>
 
-            {/* Quick Actions */}
-            <Card>
+          {/* Quick Actions */}
+          <Card>
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
@@ -179,9 +173,8 @@ const RiderDashboard = () => {
                     <Link to="/rider/payouts">Request Payout</Link>
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
     </main>
