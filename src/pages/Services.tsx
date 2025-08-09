@@ -32,7 +32,11 @@ export default function Services() {
   const [notesById, setNotesById] = useState<Record<string, string>>({});
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"newest" | "price_asc" | "price_desc">("newest");
-  const [visibleCount, setVisibleCount] = useState(9);
+const [visibleCount, setVisibleCount] = useState(9);
+// Categories filter state
+const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+const [categoryFilter, setCategoryFilter] = useState<string>("all");
+const [serviceCats, setServiceCats] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     setSEO("Book Local Services | CoopMarket", "Find, compare, and book community services with secure checkout.");
@@ -59,7 +63,30 @@ export default function Services() {
           image_urls: s.image_urls ?? null,
         })));
 
-      } catch (e: any) {
+        // Fetch categories and service-category mapping
+        const serviceIds = (((data as any[]) || []).map((s: any) => s.id)).filter(Boolean);
+        const [catRes, scRes] = await Promise.all([
+          supabase
+            .from("categories")
+            .select("id,name,type,is_active,sort_order")
+            .eq("is_active", true)
+            .in("type", ["services", "both"])
+            .order("sort_order", { ascending: true })
+            .order("name", { ascending: true }),
+          serviceIds.length
+            ? supabase.from("service_categories").select("service_id,category_id").in("service_id", serviceIds)
+            : Promise.resolve({ data: [], error: null } as any),
+        ]);
+        if ((catRes as any).error) throw (catRes as any).error;
+        if ((scRes as any).error) throw (scRes as any).error;
+        setCategories((((catRes as any).data as any[]) || []).map((c: any) => ({ id: c.id, name: c.name })));
+        const map: Record<string, string[]> = {};
+        (((scRes as any).data as any[]) || []).forEach((row: any) => {
+          (map[row.service_id] ||= []).push(row.category_id);
+        });
+        setServiceCats(map);
+ 
+       } catch (e: any) {
         toast("Failed to load services", { description: e.message || String(e) });
       } finally {
         setLoading(false);
@@ -79,11 +106,14 @@ export default function Services() {
         s.name.toLowerCase().includes(q) || (s.description ?? "").toLowerCase().includes(q)
       );
     }
+    if (categoryFilter !== "all") {
+      arr = arr.filter((s) => (serviceCats[s.id] || []).includes(categoryFilter));
+    }
     if (sort === "price_asc") arr.sort((a, b) => (a.price_cents || 0) - (b.price_cents || 0));
     else if (sort === "price_desc") arr.sort((a, b) => (b.price_cents || 0) - (a.price_cents || 0));
     // "newest" is default from query order
     return arr;
-  }, [services, query, sort]);
+  }, [services, query, sort, categoryFilter, serviceCats]);
 
   const displayed = useMemo(() => normalized.slice(0, visibleCount), [normalized, visibleCount]);
 
@@ -179,18 +209,34 @@ export default function Services() {
           aria-label="Search services"
           className="w-full md:max-w-md"
         />
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">Sort</span>
-          <Select value={sort} onValueChange={(v) => setSort(v as any)}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Newest" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="price_asc">Price: Low to High</SelectItem>
-              <SelectItem value="price_desc">Price: High to Low</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Category</span>
+            <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="All categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Sort</span>
+            <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Newest" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                <SelectItem value="price_desc">Price: High to Low</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </section>
 

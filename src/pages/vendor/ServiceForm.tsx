@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
@@ -62,6 +63,9 @@ export default function ServiceForm() {
 const [imageUrls, setImageUrls] = useState<string[]>([]);
 const [videoUrl, setVideoUrl] = useState("");
 const { serviceId } = useParams<{ serviceId?: string }>();
+// Categories state
+const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (serviceId) {
@@ -106,6 +110,26 @@ const { serviceId } = useParams<{ serviceId?: string }>();
     () => AVAIL_PRESETS.find(a => a.id === watch("availability_preset"))?.label ?? "",
     [watch("availability_preset")]
   );
+
+  // Load active service categories (services or both)
+  useEffect(() => {
+    const loadCats = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("categories")
+          .select("id,name,type,is_active,sort_order")
+          .eq("is_active", true)
+          .in("type", ["services", "both"])
+          .order("sort_order", { ascending: true })
+          .order("name", { ascending: true });
+        if (error) throw error;
+        setCategories(((data as any[]) || []).map((c: any) => ({ id: c.id, name: c.name })));
+      } catch (e: any) {
+        // Do not block the form
+      }
+    };
+    loadCats();
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -234,11 +258,29 @@ const { serviceId } = useParams<{ serviceId?: string }>();
               name: a.name.trim(),
               price_delta_cents: a.priceDelta ? Math.round(parseFloat(a.priceDelta) * 100) : 0,
               time_delta_minutes: a.timeDelta ? Math.max(0, Math.round(parseFloat(a.timeDelta))) : 0,
-            }));
+          }));
+
+          // Prefill selected categories
+          try {
+            const { data: scRows } = await supabase
+              .from("service_categories")
+              .select("category_id")
+              .eq("service_id", serviceId);
+            setSelectedCategoryIds(((scRows as any[]) || []).map((r: any) => r.category_id));
+          } catch {}
+          
           const { error: addErr } = await supabase.from("service_addons").insert(rows);
           if (addErr) throw addErr;
         }
 
+        // Sync categories
+        await supabase.from("service_categories").delete().eq("service_id", serviceId);
+        if (selectedCategoryIds.length) {
+          const catRows = selectedCategoryIds.map((cid) => ({ service_id: serviceId as string, category_id: cid }));
+          const { error: scErr } = await supabase.from("service_categories").insert(catRows);
+          if (scErr) throw scErr;
+        }
+ 
         toast.success("Service updated");
         navigate("/vendor/services");
         return;
@@ -284,10 +326,17 @@ const { serviceId } = useParams<{ serviceId?: string }>();
           }));
         const { error: addErr } = await supabase.from("service_addons").insert(rows);
         if (addErr) throw addErr;
-      }
+       }
 
-      toast.success("Service created");
-      navigate("/vendor/services");
+       // Insert categories mapping
+       if (newId && selectedCategoryIds.length) {
+         const catRows = selectedCategoryIds.map((cid) => ({ service_id: newId, category_id: cid }));
+         const { error: scErr } = await supabase.from("service_categories").insert(catRows);
+         if (scErr) throw scErr;
+       }
+ 
+       toast.success("Service created");
+       navigate("/vendor/services");
     } catch (e: any) {
       toast(serviceId ? "Failed to update service" : "Failed to create service", { description: e.message || String(e) });
     } finally {
@@ -589,7 +638,36 @@ const { serviceId } = useParams<{ serviceId?: string }>();
                 )}
               </div>
 
-              {/* Currency (advanced minimal) */}
+              {/* Categories */}
+              <div className="space-y-2">
+                <div className="font-medium">Categories</div>
+                {categories.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">No categories yet</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {categories.map((c) => {
+                      const checked = selectedCategoryIds.includes(c.id);
+                      return (
+                        <label key={c.id} className="flex items-center gap-2 rounded-md border p-2 cursor-pointer">
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(v) => {
+                              const isOn = Boolean(v);
+                              setSelectedCategoryIds((prev) =>
+                                isOn ? Array.from(new Set([...prev, c.id])) : prev.filter((id) => id !== c.id)
+                              );
+                            }}
+                            aria-label={`Category ${c.name}`}
+                          />
+                          <span className="text-sm">{c.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+ 
+               {/* Currency (advanced minimal) */}
               <FormField
                 control={form.control}
                 name="currency"

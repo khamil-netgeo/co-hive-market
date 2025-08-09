@@ -38,7 +38,11 @@ export default function Catalog() {
   const cart = useCart();
   const [useNearMe, setUseNearMe] = useState(true);
   const [radiusKm, setRadiusKm] = useState(10);
-  const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
+const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
+// Category filter state
+const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+const [categoryFilter, setCategoryFilter] = useState<string>("all");
+const [productCats, setProductCats] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     setSEO(
@@ -75,7 +79,8 @@ export default function Catalog() {
 
         const { data: sessionData } = await supabase.auth.getSession();
 
-        const [vendRes, commRes, memberRes] = await Promise.all([
+        const productIds = prods.map((p) => p.id);
+        const [vendRes, commRes, memberRes, catRes, pcRes] = await Promise.all([
           vendorIds.length
             ? supabase
                 .from("vendors")
@@ -93,6 +98,19 @@ export default function Catalog() {
                 .from("community_members")
                 .select("community_id")
             : Promise.resolve({ data: [], error: null } as any),
+          supabase
+            .from("categories")
+            .select("id,name,type,is_active,sort_order")
+            .eq("is_active", true)
+            .in("type", ["products", "both"])
+            .order("sort_order", { ascending: true })
+            .order("name", { ascending: true }),
+          productIds.length
+            ? supabase
+                .from("product_categories")
+                .select("product_id,category_id")
+                .in("product_id", productIds)
+            : Promise.resolve({ data: [], error: null } as any),
         ]);
 
         if (vendRes.error) throw vendRes.error;
@@ -102,14 +120,22 @@ export default function Catalog() {
         const vMap: Record<string, Vendor> = {};
         (vendRes.data as any[]).forEach((v) => (vMap[v.id] = v));
         setVendorsById(vMap);
-
+ 
         const cMap: Record<string, Community> = {};
         (commRes.data as any[]).forEach((c) => (cMap[c.id] = c));
         setCommunitiesById(cMap);
-
+ 
         const mSet = new Set<string>();
         (memberRes.data as any[]).forEach((m) => mSet.add(m.community_id));
         setMemberCommunities(mSet);
+
+        // Categories and product-category mapping
+        setCategories(((catRes.data as any[]) || []).map((c: any) => ({ id: c.id, name: c.name })));
+        const pm: Record<string, string[]> = {};
+        ((pcRes.data as any[]) || []).forEach((r: any) => {
+          (pm[r.product_id] ||= []).push(r.category_id);
+        });
+        setProductCats(pm);
       } catch (e: any) {
         toast("Failed to load catalog", { description: e.message || String(e) });
       } finally {
@@ -144,8 +170,14 @@ export default function Catalog() {
     initLoc();
   }, []);
 
-
-  const fmtPrice = (cents: number, currency: string) => {
+  // Category filter
+  const productsFiltered = useMemo(() => {
+    if (categoryFilter === "all") return products;
+    return products.filter((p) => (productCats[p.id] || []).includes(categoryFilter));
+  }, [products, productCats, categoryFilter]);
+ 
+ 
+   const fmtPrice = (cents: number, currency: string) => {
     const amount = cents / 100;
     const code = currency?.toUpperCase?.() || "USD";
     return new Intl.NumberFormat(code === "MYR" ? "ms-MY" : "en-US", { style: "currency", currency: code }).format(amount);
@@ -181,7 +213,7 @@ export default function Catalog() {
   };
 
   const productsNear = useMemo(() => {
-    const withDist = products.map((p) => {
+    const withDist = productsFiltered.map((p) => {
       const d = loc && p.pickup_lat != null && p.pickup_lng != null
         ? haversineKm(loc.lat, loc.lng, p.pickup_lat as number, p.pickup_lng as number)
         : null;
@@ -193,7 +225,7 @@ export default function Catalog() {
         .sort((a: any, b: any) => (a._distanceKm ?? 0) - (b._distanceKm ?? 0));
     }
     return withDist;
-  }, [products, loc, useNearMe, radiusKm]);
+  }, [productsFiltered, loc, useNearMe, radiusKm]);
   const buyNow = async (p: Product) => {
     try {
       const { data, error } = await supabase.functions.invoke("create-payment", {
@@ -278,6 +310,20 @@ export default function Catalog() {
               disabled={!loc}
             />
             {!loc && <span className="text-xs text-muted-foreground">Enable location</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="whitespace-nowrap text-sm">Category</Label>
+            <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
+              <SelectTrigger className="w-56">
+                <SelectValue placeholder="All categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
