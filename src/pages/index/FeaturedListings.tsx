@@ -131,7 +131,7 @@ const FeaturedListings = () => {
             <p className="mt-2 text-muted-foreground">Book trusted professionals in your area</p>
           </div>
           <Button variant="outline" asChild>
-            <Link to="/plans">
+            <Link to="/services">
               View All <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>

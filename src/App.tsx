@@ -9,8 +9,6 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCanceled from "./pages/PaymentCanceled";
-import Plans from "./pages/Plans";
-import VendorPlans from "./pages/VendorPlans";
 import Catalog from "./pages/Catalog";
 import Orders from "./pages/Orders";
 import VendorOrders from "./pages/VendorOrders";
@@ -47,7 +45,7 @@ const App = () => (
             <Route element={<Layout />}>
               <Route path="/getting-started" element={<GettingStarted />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/plans" element={<Plans />} />
+              
               <Route path="/catalog" element={<Catalog />} />
               <Route path="/services" element={<Services />} />
               <Route path="/cart" element={<Cart />} />
@@ -55,7 +53,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/communities" element={<Communities />} />
               <Route path="/riders" element={<Riders />} />
-              <Route path="/vendor/plans" element={<VendorPlans />} />
+              
               <Route path="/vendor/services" element={<VendorServices />} />
               <Route path="/vendor/services/new" element={<ServiceForm />} />
               <Route path="/vendor/dashboard" element={<VendorDashboard />} />

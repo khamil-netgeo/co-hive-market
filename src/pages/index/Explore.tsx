@@ -28,7 +28,7 @@ const Explore = () => (
       </div>
       
       <div className="feature-card animate-fade-in-up">
-        <Link to="/plans" className="block" aria-label="Go to services">
+        <Link to="/services" className="block" aria-label="Go to services">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
             <Wrench className="h-6 w-6 text-primary" />
           </div>

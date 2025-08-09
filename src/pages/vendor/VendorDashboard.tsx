@@ -189,11 +189,6 @@ const VendorDashboard = () => {
               Manage Services
             </Link>
           </Button>
-          <Button variant="outline" asChild>
-            <Link to="/vendor/plans" className="flex items-center gap-2">
-              Service Plans
-            </Link>
-          </Button>
         </div>
       </div>
 

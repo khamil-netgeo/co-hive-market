@@ -71,7 +71,7 @@ const Hero = ({ onGetStarted }: HeroProps) => {
               </Link>
             </Button>
             <Button variant="secondary" size="lg" className="hover-lift" asChild>
-              <Link to="/plans">
+              <Link to="/services">
                 <Wrench className="h-4 w-4" /> Book Services
               </Link>
             </Button>

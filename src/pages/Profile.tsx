@@ -305,7 +305,7 @@ export default function Profile() {
                       <Button size="sm" asChild variant="secondary"><Link to="/vendor/dashboard">Dashboard</Link></Button>
                       <Button size="sm" asChild variant="outline"><Link to="/vendor/products/new">New Product</Link></Button>
                       <Button size="sm" asChild variant="outline"><Link to="/vendor/orders">Orders</Link></Button>
-                      <Button size="sm" asChild variant="outline"><Link to="/vendor/plans">Plans</Link></Button>
+                      
                     </div>
                   </div>
                 ))}

@@ -89,7 +89,7 @@ const VendorOrders = () => {
             <a href="/catalog">Catalog</a>
           </Button>
           <Button variant="outline" asChild>
-            <a href="/vendor/plans">Vendor Plans</a>
+            <a href="/vendor/services">Vendor Services</a>
           </Button>
           <Button variant="outline" onClick={() => refetch()}>Refresh</Button>
         </div>
