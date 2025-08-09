@@ -47,7 +47,7 @@ export function useReviewSummary(targetType: TargetType, targetId: string): UseQ
     queryFn: async (): Promise<RatingSummary> => {
       const view = getSummaryView(targetType);
       const key = getSummaryKey(targetType);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from(view)
         .select("*")
         .eq(key, targetId)
@@ -62,7 +62,7 @@ export function useApprovedReviews(targetType: TargetType, targetId: string): Us
   return useQuery({
     queryKey: ["approved-reviews", targetType, targetId] as const,
     queryFn: async (): Promise<ReviewRecord[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("reviews")
         .select("*")
         .eq("target_type", targetType)
@@ -81,7 +81,7 @@ export function useOwnReview(targetType: TargetType, targetId: string): UseQuery
     queryKey: ["own-review", targetType, targetId, userId] as const,
     enabled: !!userId,
     queryFn: async (): Promise<ReviewRecord | null> => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("reviews")
         .select("*")
         .eq("target_type", targetType)
@@ -113,7 +113,7 @@ export function useSubmitReview() {
         throw err;
       }
       const { targetType, targetId, rating, title, body } = payload;
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("reviews")
         .upsert(
           [
@@ -148,7 +148,7 @@ export function useDeleteOwnDraftReview(targetType: TargetType, targetId: string
   return useMutation({
     mutationFn: async () => {
       if (!userId) throw new Error("Please sign in.");
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("reviews")
         .delete()
         .eq("user_id", userId)
