@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
 
 interface AvatarUploaderProps {
@@ -11,6 +13,7 @@ interface AvatarUploaderProps {
 }
 
 export default function AvatarUploader({ title = "Avatar" }: AvatarUploaderProps) {
+  const { user } = useAuthRoles();
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
@@ -27,6 +30,7 @@ export default function AvatarUploader({ title = "Avatar" }: AvatarUploaderProps
   }, []);
 
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : currentUrl ?? undefined), [file, currentUrl]);
+  const initials = useMemo(() => (user?.email?.[0] || "?").toUpperCase(), [user?.email]);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null;
@@ -66,21 +70,38 @@ export default function AvatarUploader({ title = "Avatar" }: AvatarUploaderProps
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-start gap-4">
-          {previewUrl ? (
-            <img src={previewUrl} alt="Avatar preview" className="h-20 w-20 rounded-full object-cover border" loading="lazy" />
-          ) : (
-            <div className="h-20 w-20 rounded-full border flex items-center justify-center text-muted-foreground">No image</div>
-          )}
-          <div className="flex-1 space-y-2">
-            <Label htmlFor="avatar">Upload new</Label>
+      <CardContent className="space-y-6">
+        {/* Large Avatar Display */}
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+              <AvatarImage src={previewUrl} alt="Profile avatar" />
+              <AvatarFallback className="text-2xl font-semibold bg-gradient-primary text-white">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          
+          {/* User Info */}
+          <div className="text-center">
+            <div className="font-medium text-lg">{user?.email?.split('@')[0] || 'User'}</div>
+            <div className="text-sm text-muted-foreground">{user?.email}</div>
+          </div>
+        </div>
+
+        {/* Upload Controls */}
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="avatar">Upload new avatar</Label>
             <Input id="avatar" type="file" accept="image/*" onChange={onFileChange} />
             <p className="text-xs text-muted-foreground">Max 5MB. Square images look best.</p>
           </div>
-        </div>
-        <div className="flex justify-end">
-          <Button onClick={save} disabled={!file || saving}>{saving ? "Saving…" : "Save avatar"}</Button>
+          
+          <div className="flex justify-end">
+            <Button onClick={save} disabled={!file || saving}>
+              {saving ? "Updating…" : "Update Avatar"}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
