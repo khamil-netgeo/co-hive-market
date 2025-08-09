@@ -12,7 +12,6 @@ import { Package, Calendar, Eye, DollarSign, TrendingUp, Users } from "lucide-re
 import { toast } from "sonner";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { useNavigate, Link } from "react-router-dom";
-import VendorSubnav from "@/components/vendor/VendorSubnav";
 
 interface Order {
   id: string;
@@ -248,7 +247,6 @@ const VendorOrders = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <VendorSubnav />
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gradient-brand">

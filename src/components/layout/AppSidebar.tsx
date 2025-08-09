@@ -1,5 +1,5 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
-import { ShoppingBag, Users, ListOrdered, Store, Shield } from "lucide-react";
+import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +12,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import useAuthRoles from "@/hooks/useAuthRoles";
 
 const items = [
@@ -21,6 +22,14 @@ const items = [
   { title: "Orders", url: "/orders", icon: ListOrdered },
 ];
 
+const vendorItems = [
+  { title: "Overview", url: "/vendor/dashboard", icon: LayoutGrid },
+  { title: "Orders", url: "/vendor/orders", icon: ListOrdered },
+  { title: "Analytics", url: "/vendor/analytics", icon: BarChart3 },
+  { title: "Services", url: "/vendor/services", icon: Briefcase },
+  { title: "Payouts", url: "/vendor/payouts", icon: Wallet },
+];
+
 export default function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
@@ -28,15 +37,14 @@ export default function AppSidebar() {
   const { user, isAdmin, isSuperadmin } = useAuthRoles();
   const currentPath = location.pathname;
 
-  const vendorItem = user ? { title: "Vendor", url: "/vendor/dashboard", icon: Store } : null;
   const adminItem = (isAdmin || isSuperadmin) ? { title: "Admin", url: "/admin", icon: Shield } : null;
+  const isVendorPath = currentPath.startsWith("/vendor");
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
 
   const allItems = [
     ...items,
-    ...(vendorItem ? [vendorItem] : []),
     ...(adminItem ? [adminItem] : []),
   ];
 
@@ -66,6 +74,35 @@ export default function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {user && !collapsed && (
+          <Collapsible defaultOpen={isVendorPath}>
+            <SidebarGroup>
+              <CollapsibleTrigger asChild>
+                <SidebarGroupLabel className="cursor-pointer flex items-center justify-between hover:bg-muted/50 px-2 py-1 rounded">
+                  Vendor
+                  <ChevronDown className="h-4 w-4" />
+                </SidebarGroupLabel>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {vendorItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={item.url} end className={getNavCls}>
+                            <item.icon className="mr-2 h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        )}
       </SidebarContent>
     </Sidebar>
   );

@@ -8,7 +8,6 @@ import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import VendorSubnav from "@/components/vendor/VendorSubnav";
 
 interface Product {
   id: string;
@@ -163,7 +162,6 @@ const VendorDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <VendorSubnav />
 
       <div className="flex flex-col sm:flex-row gap-2 justify-end mt-4 mb-6">
         <Button asChild className="w-full sm:w-auto">
