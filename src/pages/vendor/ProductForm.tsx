@@ -300,7 +300,8 @@ const ProductForm = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto">
+    <div className="grid gap-6 lg:grid-cols-3">
+      <div className="lg:col-span-2 animate-fade-in">
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="sm" asChild>
             <Link to="/vendor/dashboard" className="flex items-center gap-2">
@@ -698,20 +699,62 @@ const ProductForm = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-4">
-                  <Button type="submit" disabled={saving}>
-                    {saving ? 'Saving...' : (isEditing ? 'Update Product' : 'Create Product')}
-                  </Button>
-                  <Button type="button" variant="outline" asChild>
-                    <Link to="/vendor/dashboard">Cancel</Link>
-                  </Button>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-0 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-3">
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="font-medium truncate max-w-[200px] sm:max-w-[300px]">
+                      {form.watch("name") || "Untitled product"}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {(() => {
+                        const p = parseFloat(form.watch("price") || "");
+                        const cur = (form.watch("currency") || "myr").toUpperCase();
+                        if (isNaN(p)) return "";
+                        return new Intl.NumberFormat(cur === "MYR" ? "ms-MY" : "en-US", { style: "currency", currency: cur }).format(p);
+                      })()}
+                    </span>
+                  </div>
+                  <div className="flex gap-3 w-full sm:w-auto">
+                    <Button type="submit" className="w-full sm:w-auto" disabled={saving}>
+                      {saving ? 'Saving...' : (isEditing ? 'Update Product' : 'Create Product')}
+                    </Button>
+                    <Button type="button" variant="outline" className="w-full sm:w-auto" asChild>
+                      <Link to="/vendor/dashboard">Cancel</Link>
+                    </Button>
+                  </div>
                 </div>
               </form>
             </Form>
           </CardContent>
         </Card>
       </div>
+
+      <aside className="lg:col-span-1 space-y-4 sticky top-24 h-fit animate-fade-in">
+        <Card>
+          <CardHeader>
+            <CardTitle>Live Preview</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="aspect-video w-full overflow-hidden rounded-md">
+              <ProductImage imageUrls={imageUrls} productName={form.watch("name") || "Product"} className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <div className="text-lg font-semibold">{form.watch("name") || "Untitled product"}</div>
+              <p className="text-sm text-muted-foreground capitalize">{form.watch("category") || "grocery"}</p>
+            </div>
+            <div className="text-xl font-bold">
+              {(() => {
+                const p = parseFloat(form.watch("price") || "");
+                const cur = (form.watch("currency") || "myr").toUpperCase();
+                if (isNaN(p)) return "";
+                return new Intl.NumberFormat(cur === "MYR" ? "ms-MY" : "en-US", { style: "currency", currency: cur }).format(p);
+              })()}
+            </div>
+            {imageUrls?.length ? <p className="text-xs text-muted-foreground">{imageUrls.length} image{imageUrls.length>1?'s':''} uploaded</p> : null}
+          </CardContent>
+        </Card>
+      </aside>
     </div>
+  </div>
   );
 };
 
