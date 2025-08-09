@@ -208,41 +208,53 @@ export default function StoreSettings() {
         <CardHeader>
           <CardTitle>Opening Hours</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <CardContent className="space-y-4">
           {days.map((d) => (
-            <div key={d} className="flex items-center justify-between gap-3 border rounded-md p-3">
-              <div className="capitalize font-medium min-w-16">{d}</div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <Label className="text-xs">Open</Label>
-                  <Input
-                    type="time"
-                    value={hours[d].open}
-                    onChange={(e) => setDay(d, { open: e.target.value })}
-                    className="h-9 w-28"
-                    disabled={hours[d].closed}
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Label className="text-xs">Close</Label>
-                  <Input
-                    type="time"
-                    value={hours[d].close}
-                    onChange={(e) => setDay(d, { close: e.target.value })}
-                    className="h-9 w-28"
-                    disabled={hours[d].closed}
-                  />
-                </div>
+            <div key={d} className="space-y-3 border rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="font-medium text-lg capitalize min-w-20">{d}</div>
                 <div className="flex items-center gap-2">
                   <input
                     id={`closed-${d}`}
                     type="checkbox"
                     checked={hours[d].closed}
                     onChange={(e) => setDay(d, { closed: e.target.checked })}
+                    className="w-4 h-4"
                   />
-                  <Label htmlFor={`closed-${d}`} className="text-xs">Closed</Label>
+                  <Label htmlFor={`closed-${d}`} className="text-sm font-medium cursor-pointer">
+                    Closed
+                  </Label>
                 </div>
               </div>
+              
+              {!hours[d].closed && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Open</Label>
+                    <Input
+                      type="time"
+                      value={hours[d].open}
+                      onChange={(e) => setDay(d, { open: e.target.value })}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Close</Label>
+                    <Input
+                      type="time"
+                      value={hours[d].close}
+                      onChange={(e) => setDay(d, { close: e.target.value })}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {hours[d].closed && (
+                <div className="text-center py-4 text-muted-foreground">
+                  Closed all day
+                </div>
+              )}
             </div>
           ))}
         </CardContent>
