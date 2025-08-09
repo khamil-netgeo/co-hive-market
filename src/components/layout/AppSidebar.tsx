@@ -20,7 +20,6 @@ import useIsVendor from "@/hooks/useIsVendor";
 
 const items = [
   { title: "Catalog", url: "/catalog", icon: ShoppingBag },
-  { title: "Services", url: "/services", icon: Store },
   { title: "Communities", url: "/communities", icon: Users },
   { title: "Orders", url: "/orders", icon: ListOrdered },
 ];
