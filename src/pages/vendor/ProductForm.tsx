@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import MediaUploader from "@/components/media/MediaUploader";
 import ProductImage from "@/components/product/ProductImage";
@@ -61,6 +62,14 @@ interface Vendor {
   community_id: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  type: "product" | "service" | "both";
+  parent_id: string | null;
+  sort_order: number;
+}
+
 const ProductForm = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
@@ -69,9 +78,11 @@ const ProductForm = () => {
   const [loadingData, setLoadingData] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [videoUrl, setVideoUrl] = useState("");
-  const isEditing = Boolean(productId);
+const [imageUrls, setImageUrls] = useState<string[]>([]);
+const [videoUrl, setVideoUrl] = useState("");
+const isEditing = Boolean(productId);
+const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
+const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -122,10 +133,21 @@ const ProductForm = () => {
         return;
       }
 
-      setVendor(vendorData);
+setVendor(vendorData);
 
-      // If editing, fetch product data
-      if (isEditing && productId) {
+// Load available categories (product/both)
+const { data: cats, error: catsErr } = await supabase
+  .from("categories")
+  .select("id,name,type,parent_id,sort_order,is_active")
+  .eq("is_active", true)
+  .in("type", ["product", "both"])
+  .order("sort_order", { ascending: true })
+  .order("name", { ascending: true });
+if (catsErr) throw catsErr;
+setAvailableCategories((cats as any) || []);
+
+// If editing, fetch product data
+if (isEditing && productId) {
         const { data: productData, error: productError } = await supabase
           .from("products")
           .select("*")
@@ -172,23 +194,31 @@ const ProductForm = () => {
           .join("\n")
           .trim();
 
-        form.reset({
-          name: productData.name,
-          description: baseDesc,
-          price: (productData.price_cents / 100).toFixed(2),
-          currency: productData.currency,
-          status: productData.status as "active" | "inactive" | "archived",
-          category: (productData as any).category || "grocery",
-          perishable: Boolean((productData as any).perishable),
-          refrigeration_required: Boolean((productData as any).refrigeration_required),
-          weight_grams: (productData as any).weight_grams?.toString() || "",
-          stock_qty: ((productData as any).stock_qty ?? 0).toString(),
-          prep_time_minutes: (productData as any).prep_time_minutes?.toString() || "",
-          pickup_lat: (productData as any).pickup_lat?.toString() || "",
-          pickup_lng: (productData as any).pickup_lng?.toString() || "",
-          best_before: parsedDate,
-          dietary_tags: parsedDiet,
-        });
+form.reset({
+  name: productData.name,
+  description: baseDesc,
+  price: (productData.price_cents / 100).toFixed(2),
+  currency: productData.currency,
+  status: productData.status as "active" | "inactive" | "archived",
+  category: (productData as any).category || "grocery",
+  perishable: Boolean((productData as any).perishable),
+  refrigeration_required: Boolean((productData as any).refrigeration_required),
+  weight_grams: (productData as any).weight_grams?.toString() || "",
+  stock_qty: ((productData as any).stock_qty ?? 0).toString(),
+  prep_time_minutes: (productData as any).prep_time_minutes?.toString() || "",
+  pickup_lat: (productData as any).pickup_lat?.toString() || "",
+  pickup_lng: (productData as any).pickup_lng?.toString() || "",
+  best_before: parsedDate,
+  dietary_tags: parsedDiet,
+});
+
+// Load selected categories for this product
+const { data: pc, error: pcErr } = await supabase
+  .from("product_categories")
+  .select("category_id")
+  .eq("product_id", productId);
+if (pcErr) throw pcErr;
+setSelectedCategoryIds(((pc as any) || []).map((r: any) => r.category_id));
       }
 
     } catch (error) {
@@ -220,70 +250,92 @@ const ProductForm = () => {
     }
   };
 
-  const onSubmit = async (data: ProductFormData) => {
-    if (!vendor) return;
+const onSubmit = async (data: ProductFormData) => {
+  if (!vendor) return;
 
-    setSaving(true);
-    try {
-      const sanitizeDescription = (desc?: string) =>
-        (desc || "")
-          .split("\n")
-          .filter((l) => !/^Best before:/i.test(l) && !/^Dietary:/i.test(l))
-          .join("\n")
-          .trim();
+  setSaving(true);
+  try {
+    const sanitizeDescription = (desc?: string) =>
+      (desc || "")
+        .split("\n")
+        .filter((l) => !/^Best before:/i.test(l) && !/^Dietary:/i.test(l))
+        .join("\n")
+        .trim();
 
-      const baseDesc = sanitizeDescription(data.description);
-      const parts: string[] = [];
-      if (baseDesc) parts.push(baseDesc);
-      if (data.best_before) parts.push(`Best before: ${format(data.best_before, "PPP")}`);
-      if (data.dietary_tags && data.dietary_tags.length)
-        parts.push(`Dietary: ${data.dietary_tags.join(", ")}`);
-      const finalDescription = parts.join("\n");
+    const baseDesc = sanitizeDescription(data.description);
+    const parts: string[] = [];
+    if (baseDesc) parts.push(baseDesc);
+    if (data.best_before) parts.push(`Best before: ${format(data.best_before, "PPP")}`);
+    if (data.dietary_tags && data.dietary_tags.length)
+      parts.push(`Dietary: ${data.dietary_tags.join(", ")}`);
+    const finalDescription = parts.join("\n");
 
-      const productData = {
-        name: data.name,
-        description: finalDescription || null,
-        price_cents: Math.round(parseFloat(data.price) * 100),
-        currency: data.currency,
-        status: data.status,
-        vendor_id: vendor.id,
-        community_id: vendor.community_id,
-        category: data.category,
-        perishable: !!data.perishable,
-        refrigeration_required: !!data.refrigeration_required,
-        weight_grams: data.weight_grams ? parseInt(data.weight_grams, 10) : null,
-        stock_qty: data.stock_qty ? Math.max(0, parseInt(data.stock_qty, 10)) : 0,
-        prep_time_minutes: data.prep_time_minutes ? parseInt(data.prep_time_minutes, 10) : null,
-        pickup_lat: data.pickup_lat ? parseFloat(data.pickup_lat) : null,
-        pickup_lng: data.pickup_lng ? parseFloat(data.pickup_lng) : null,
-        image_urls: imageUrls.length ? imageUrls : null,
-        video_url: videoUrl ? videoUrl.trim() : null,
-      };
-      if (isEditing && productId) {
-        const { error } = await supabase
-          .from("products")
-          .update(productData)
-          .eq("id", productId);
+    const productData = {
+      name: data.name,
+      description: finalDescription || null,
+      price_cents: Math.round(parseFloat(data.price) * 100),
+      currency: data.currency,
+      status: data.status,
+      vendor_id: vendor.id,
+      community_id: vendor.community_id,
+      category: data.category,
+      perishable: !!data.perishable,
+      refrigeration_required: !!data.refrigeration_required,
+      weight_grams: data.weight_grams ? parseInt(data.weight_grams, 10) : null,
+      stock_qty: data.stock_qty ? Math.max(0, parseInt(data.stock_qty, 10)) : 0,
+      prep_time_minutes: data.prep_time_minutes ? parseInt(data.prep_time_minutes, 10) : null,
+      pickup_lat: data.pickup_lat ? parseFloat(data.pickup_lat) : null,
+      pickup_lng: data.pickup_lng ? parseFloat(data.pickup_lng) : null,
+      image_urls: imageUrls.length ? imageUrls : null,
+      video_url: videoUrl ? videoUrl.trim() : null,
+    };
 
-        if (error) throw error;
-        toast.success("Product updated successfully");
-      } else {
-        const { error } = await supabase
-          .from("products")
-          .insert(productData);
+    let productIdToUse: string | null = null;
 
-        if (error) throw error;
-        toast.success("Product created successfully");
-      }
-
-      navigate("/vendor/dashboard");
-    } catch (error) {
-      console.error("Error saving product:", error);
-      toast.error("Failed to save product");
-    } finally {
-      setSaving(false);
+    if (isEditing && productId) {
+      const { error } = await supabase
+        .from("products")
+        .update(productData)
+        .eq("id", productId);
+      if (error) throw error;
+      productIdToUse = productId;
+      toast.success("Product updated successfully");
+    } else {
+      const { data: inserted, error } = await supabase
+        .from("products")
+        .insert(productData)
+        .select("id")
+        .single();
+      if (error) throw error;
+      productIdToUse = (inserted as any)?.id || null;
+      toast.success("Product created successfully");
     }
-  };
+
+    // Sync product categories
+    if (productIdToUse) {
+      const { error: delErr } = await supabase
+        .from("product_categories")
+        .delete()
+        .eq("product_id", productIdToUse);
+      if (delErr) throw delErr;
+
+      if (selectedCategoryIds.length > 0) {
+        const rows = selectedCategoryIds.map((cid) => ({ product_id: productIdToUse!, category_id: cid }));
+        const { error: insErr } = await supabase
+          .from("product_categories")
+          .insert(rows as any);
+        if (insErr) throw insErr;
+      }
+    }
+
+    navigate("/vendor/dashboard");
+  } catch (error) {
+    console.error("Error saving product:", error);
+    toast.error("Failed to save product");
+  } finally {
+    setSaving(false);
+  }
+};
 
   if (loading || loadingData) {
     return (
@@ -405,33 +457,63 @@ const ProductForm = () => {
                   )}
                 />
 
-                {/* Quick presets */}
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      form.setValue("category", "grocery");
-                      form.setValue("perishable", false);
-                      form.setValue("refrigeration_required", false);
-                      form.setValue("prep_time_minutes", "");
-                    }}
-                  >
-                    Groceries preset
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => {
-                      form.setValue("category", "food");
-                      form.setValue("perishable", true);
-                      form.setValue("refrigeration_required", false);
-                      if (!form.getValues("prep_time_minutes")) form.setValue("prep_time_minutes", "15");
-                    }}
-                  >
-                    Prepared food preset
-                  </Button>
-                </div>
+{/* Categories (from Super Admin) */}
+<div className="space-y-2">
+  <FormLabel>Categories</FormLabel>
+  <ScrollArea className="h-40 rounded-md border p-2">
+    <div className="grid gap-2">
+      {availableCategories.length === 0 ? (
+        <div className="text-sm text-muted-foreground">No categories available.</div>
+      ) : (
+        availableCategories.map((c) => {
+          const checked = selectedCategoryIds.includes(c.id);
+          return (
+            <label key={c.id} className="flex items-center gap-2 rounded-md p-1 cursor-pointer">
+              <Checkbox
+                checked={checked}
+                onCheckedChange={() => {
+                  setSelectedCategoryIds((prev) =>
+                    prev.includes(c.id) ? prev.filter((id) => id !== c.id) : [...prev, c.id]
+                  );
+                }}
+              />
+              <span className="text-sm">{c.name}</span>
+            </label>
+          );
+        })
+      )}
+    </div>
+  </ScrollArea>
+  <p className="text-xs text-muted-foreground">Select all relevant categories.</p>
+</div>
+
+{/* Quick presets */}
+<div className="flex flex-col sm:flex-row gap-2">
+  <Button
+    type="button"
+    variant="secondary"
+    onClick={() => {
+      form.setValue("category", "grocery");
+      form.setValue("perishable", false);
+      form.setValue("refrigeration_required", false);
+      form.setValue("prep_time_minutes", "");
+    }}
+  >
+    Groceries preset
+  </Button>
+  <Button
+    type="button"
+    variant="secondary"
+    onClick={() => {
+      form.setValue("category", "food");
+      form.setValue("perishable", true);
+      form.setValue("refrigeration_required", false);
+      if (!form.getValues("prep_time_minutes")) form.setValue("prep_time_minutes", "15");
+    }}
+  >
+    Prepared food preset
+  </Button>
+</div>
 
                 {/* Handling */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
