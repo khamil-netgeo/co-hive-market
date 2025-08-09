@@ -121,10 +121,57 @@ serve(async (req) => {
 
     if (oErr) throw oErr;
 
-    return new Response(JSON.stringify({ order }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Compute and record ledger splits (vendor/community/coop)
+    const { data: communityCfg, error: cfgErr } = await service
+      .from("communities")
+      .select("coop_fee_percent, community_fee_percent")
+      .eq("id", community_id as string)
+      .maybeSingle();
+    if (cfgErr) throw cfgErr;
+
+    const total = order.total_amount_cents ?? Math.round(amount_cents!);
+    const coopPct = communityCfg?.coop_fee_percent ?? 0;
+    const communityPct = communityCfg?.community_fee_percent ?? 0;
+
+    const coopShare = Math.max(0, Math.round((total * coopPct) / 100));
+    const communityShare = Math.max(0, Math.round((total * communityPct) / 100));
+    const vendorPayout = Math.max(0, total - coopShare - communityShare);
+
+    const { error: ledgerErr } = await service.from("ledger_entries").insert([
+      {
+        order_id: order.id,
+        entry_type: "vendor_payout",
+        beneficiary_type: "vendor",
+        beneficiary_id: vendor_id as string,
+        amount_cents: vendorPayout,
+        notes: `Vendor payout for order ${order.id}`,
+      },
+      {
+        order_id: order.id,
+        entry_type: "community_share",
+        beneficiary_type: "community",
+        beneficiary_id: community_id as string,
+        amount_cents: communityShare,
+        notes: `Community share for order ${order.id}`,
+      },
+      {
+        order_id: order.id,
+        entry_type: "coop_share",
+        beneficiary_type: "coop",
+        beneficiary_id: null,
+        amount_cents: coopShare,
+        notes: `Coop share for order ${order.id}`,
+      },
+    ]);
+    if (ledgerErr) throw ledgerErr;
+
+    return new Response(
+      JSON.stringify({ order, splits: { vendor_payout_cents: vendorPayout, community_share_cents: communityShare, coop_share_cents: coopShare } }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("verify-payment error:", message);
