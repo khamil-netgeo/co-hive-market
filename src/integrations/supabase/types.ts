@@ -445,6 +445,44 @@ export type Database = {
         }
         Relationships: []
       }
+      service_addons: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          price_delta_cents: number
+          service_id: string
+          time_delta_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          price_delta_cents?: number
+          service_id: string
+          time_delta_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          price_delta_cents?: number
+          service_id?: string
+          time_delta_minutes?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_addons_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_bookings: {
         Row: {
           buyer_user_id: string
@@ -593,41 +631,80 @@ export type Database = {
       }
       vendor_services: {
         Row: {
+          availability_preset: string
+          booking_window_days: number | null
+          buffer_minutes: number | null
+          cancellation_policy: string
+          capacity: number | null
           created_at: string
           currency: string
+          deposit_cents: number | null
           description: string | null
           duration_minutes: number | null
+          has_addons: boolean
           id: string
+          location_type: string
+          min_notice_minutes: number | null
           name: string
           price_cents: number
+          pricing_model: string
           service_area: string | null
+          service_radius_km: number | null
           status: string
+          subtitle: string | null
+          travel_fee_per_km_cents: number | null
           updated_at: string
           vendor_id: string
         }
         Insert: {
+          availability_preset?: string
+          booking_window_days?: number | null
+          buffer_minutes?: number | null
+          cancellation_policy?: string
+          capacity?: number | null
           created_at?: string
           currency?: string
+          deposit_cents?: number | null
           description?: string | null
           duration_minutes?: number | null
+          has_addons?: boolean
           id?: string
+          location_type?: string
+          min_notice_minutes?: number | null
           name: string
           price_cents: number
+          pricing_model?: string
           service_area?: string | null
+          service_radius_km?: number | null
           status?: string
+          subtitle?: string | null
+          travel_fee_per_km_cents?: number | null
           updated_at?: string
           vendor_id: string
         }
         Update: {
+          availability_preset?: string
+          booking_window_days?: number | null
+          buffer_minutes?: number | null
+          cancellation_policy?: string
+          capacity?: number | null
           created_at?: string
           currency?: string
+          deposit_cents?: number | null
           description?: string | null
           duration_minutes?: number | null
+          has_addons?: boolean
           id?: string
+          location_type?: string
+          min_notice_minutes?: number | null
           name?: string
           price_cents?: number
+          pricing_model?: string
           service_area?: string | null
+          service_radius_km?: number | null
           status?: string
+          subtitle?: string | null
+          travel_fee_per_km_cents?: number | null
           updated_at?: string
           vendor_id?: string
         }
