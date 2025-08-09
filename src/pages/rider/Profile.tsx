@@ -5,6 +5,8 @@ import RiderProfileForm from "@/components/rider/RiderProfileForm";
 import useIsRider from "@/hooks/useIsRider";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import AvatarUploader from "@/components/common/AvatarUploader";
+import KycUploader from "@/components/kyc/KycUploader";
 
 const RiderProfile = () => {
   const { isRider, loading: riderLoading } = useIsRider();
@@ -59,7 +61,9 @@ const RiderProfile = () => {
           </div>
         )}
 
-        <div>
+        <div className="space-y-6">
+          <AvatarUploader title="Profile Photo" />
+          <KycUploader role="rider" />
           <RiderProfileForm />
         </div>
       </section>

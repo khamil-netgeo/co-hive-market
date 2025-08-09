@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Image as ImageIcon, Save } from "lucide-react";
 import { setSEO } from "@/lib/seo";
+import KycUploader from "@/components/kyc/KycUploader";
 
 interface OpeningDay {
   open: string;
@@ -333,6 +334,10 @@ export default function StoreSettings() {
           ))}
         </CardContent>
       </Card>
+
+      <div className="mt-6">
+        <KycUploader role="vendor" />
+      </div>
 
       <div className="mt-6 flex justify-center sm:justify-end">
         <Button onClick={save} disabled={saving || !vendorId} className="w-full sm:w-auto min-w-32">

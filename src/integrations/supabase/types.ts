@@ -235,6 +235,51 @@ export type Database = {
           },
         ]
       }
+      kyc_submissions: {
+        Row: {
+          back_id_path: string | null
+          created_at: string
+          front_id_path: string | null
+          id: string
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          role: string
+          selfie_path: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          back_id_path?: string | null
+          created_at?: string
+          front_id_path?: string | null
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role: string
+          selfie_path?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          back_id_path?: string | null
+          created_at?: string
+          front_id_path?: string | null
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role?: string
+          selfie_path?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ledger_entries: {
         Row: {
           amount_cents: number
@@ -522,6 +567,7 @@ export type Database = {
         Row: {
           address_line1: string | null
           address_line2: string | null
+          avatar_url: string | null
           city: string | null
           country: string
           created_at: string
@@ -536,6 +582,7 @@ export type Database = {
         Insert: {
           address_line1?: string | null
           address_line2?: string | null
+          avatar_url?: string | null
           city?: string | null
           country?: string
           created_at?: string
@@ -550,6 +597,7 @@ export type Database = {
         Update: {
           address_line1?: string | null
           address_line2?: string | null
+          avatar_url?: string | null
           city?: string | null
           country?: string
           created_at?: string

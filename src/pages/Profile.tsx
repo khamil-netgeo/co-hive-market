@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import MapPicker from "@/components/map/MapPicker";
+import AvatarUploader from "@/components/common/AvatarUploader";
+import KycUploader from "@/components/kyc/KycUploader";
 
 interface Membership { community_id: string; member_type: string }
 interface Community { id: string; name: string }
@@ -183,6 +185,12 @@ export default function Profile() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Avatar & Identity */}
+      <section className="mt-6 grid gap-6 md:grid-cols-2">
+        <AvatarUploader />
+        <KycUploader role="buyer" />
+      </section>
 
       {/* Address & Location */}
       <section className="mt-6">
