@@ -1,4 +1,5 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
+import { useState } from "react";
 import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings, Truck, DollarSign, User, Globe, UserCog, Flag, Megaphone, AlertTriangle, ScrollText } from "lucide-react";
 import {
   Sidebar,
@@ -64,6 +65,14 @@ export default function AppSidebar() {
   const isRiderPath = currentPath.startsWith("/rider");
   const isSuperAdminPath = currentPath.startsWith("/superadmin") || currentPath.startsWith("/admin");
 
+  // State to control which section is open (only one at a time)
+  const [openSection, setOpenSection] = useState<'vendor' | 'rider' | 'superadmin' | null>(() => {
+    if (isVendorPath) return 'vendor';
+    if (isRiderPath) return 'rider';
+    if (isSuperAdminPath) return 'superadmin';
+    return null;
+  });
+
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
 
@@ -99,7 +108,7 @@ export default function AppSidebar() {
         </SidebarGroup>
 
         {user && isVendor && !collapsed && (
-          <Collapsible defaultOpen={isVendorPath}>
+          <Collapsible open={openSection === 'vendor'} onOpenChange={(open) => setOpenSection(open ? 'vendor' : null)}>
             <SidebarGroup>
               <CollapsibleTrigger asChild>
                 <SidebarGroupLabel className="cursor-pointer flex items-center justify-between hover:bg-muted/50 px-2 py-1 rounded">
@@ -128,7 +137,7 @@ export default function AppSidebar() {
         )}
 
         {user && isRider && !collapsed && (
-          <Collapsible defaultOpen={isRiderPath}>
+          <Collapsible open={openSection === 'rider'} onOpenChange={(open) => setOpenSection(open ? 'rider' : null)}>
             <SidebarGroup>
               <CollapsibleTrigger asChild>
                 <SidebarGroupLabel className="cursor-pointer flex items-center justify-between hover:bg-muted/50 px-2 py-1 rounded">
@@ -157,7 +166,7 @@ export default function AppSidebar() {
         )}
 
         {user && isSuperadmin && !collapsed && (
-          <Collapsible defaultOpen={isSuperAdminPath}>
+          <Collapsible open={openSection === 'superadmin'} onOpenChange={(open) => setOpenSection(open ? 'superadmin' : null)}>
             <SidebarGroup>
               <CollapsibleTrigger asChild>
                 <SidebarGroupLabel className="cursor-pointer flex items-center justify-between hover:bg-muted/50 px-2 py-1 rounded">
