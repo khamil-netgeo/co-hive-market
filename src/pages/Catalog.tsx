@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
+import { useCart } from "@/hooks/useCart";
 
 interface Product {
   id: string;
@@ -24,6 +25,7 @@ export default function Catalog() {
   const [communitiesById, setCommunitiesById] = useState<Record<string, Community>>({});
   const [memberCommunities, setMemberCommunities] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const cart = useCart();
 
   useEffect(() => {
     setSEO(
@@ -142,6 +144,24 @@ export default function Catalog() {
     }
   };
 
+  const addToCart = (p: Product) => {
+    const vendorMismatch = cart.vendor_id && cart.vendor_id !== p.vendor_id;
+    const currencyMismatch = cart.currency && cart.currency.toUpperCase() !== (p.currency || "usd").toUpperCase();
+    if (vendorMismatch || currencyMismatch) {
+      toast("Single vendor cart", { description: "Please checkout or clear your current cart before adding items from another vendor or currency." });
+      return;
+    }
+    cart.add({
+      product_id: p.id,
+      name: p.name,
+      price_cents: p.price_cents,
+      currency: p.currency,
+      vendor_id: p.vendor_id,
+      community_id: p.community_id,
+    }, 1);
+    toast.success("Added to cart");
+  };
+
   const handleJoinCTA = async (communityId: string) => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -223,7 +243,8 @@ export default function Catalog() {
                       </div>
                     )}
 
-                    <div>
+                    <div className="flex gap-2">
+                      <Button variant="secondary" onClick={() => addToCart(p)}>Add to cart</Button>
                       <Button variant="hero" onClick={() => buyNow(p)}>Buy now</Button>
                     </div>
                   </CardContent>

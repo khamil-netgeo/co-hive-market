@@ -4,10 +4,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import useAuthRoles from "@/hooks/useAuthRoles";
+import { ShoppingCart } from "lucide-react";
+import { useCart } from "@/hooks/useCart";
 
 export default function AppTopbar() {
   const { user, isAdmin, isSuperadmin, signOut } = useAuthRoles();
   const navigate = useNavigate();
+  const { count } = useCart();
   const initials = (user?.email?.[0] || "?").toUpperCase();
   const username = user?.email?.split('@')[0] || "";
 
@@ -18,6 +21,12 @@ export default function AppTopbar() {
           <SidebarTrigger className="ml-0" />
         </div>
         <div className="flex items-center gap-3">
+          <Button variant="ghost" asChild>
+            <Link to="/cart" aria-label={`Cart (${count} items)`}>
+              <ShoppingCart className="h-5 w-5" />
+              {count > 0 && <span className="ml-1 text-xs">{count}</span>}
+            </Link>
+          </Button>
           {!user ? (
             <>
               <Button variant="ghost" asChild><Link to="/auth">Sign in</Link></Button>
@@ -55,5 +64,4 @@ export default function AppTopbar() {
         </div>
       </div>
     </header>
-  );
 }

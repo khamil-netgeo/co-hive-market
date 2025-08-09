@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
+import { useCart } from "@/hooks/useCart";
 
 export default function PaymentSuccess() {
   const [verifying, setVerifying] = useState(true);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const { clear } = useCart();
 
   useEffect(() => {
     setSEO(
@@ -39,6 +41,7 @@ export default function PaymentSuccess() {
             .eq("id", bookingId);
         }
         toast("Payment verified", { description: "Your transaction has been confirmed." });
+        clear();
       } catch (e: any) {
         toast("Verification issue", { description: e.message || String(e) });
       } finally {

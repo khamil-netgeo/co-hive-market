@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CartProvider } from "@/hooks/useCart";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -27,65 +28,69 @@ import Communities from "./pages/Communities";
 import Services from "./pages/Services";
 import VendorServices from "./pages/vendor/Services";
 import ServiceForm from "./pages/vendor/ServiceForm";
+import Cart from "./pages/Cart";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Keep the landing page standalone to avoid double header/hero */}
-          <Route path="/" element={<Index />} />
+    <CartProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Keep the landing page standalone to avoid double header/hero */}
+            <Route path="/" element={<Index />} />
 
-          {/* Shared layout for all other routes */}
-          <Route element={<Layout />}>
-            <Route path="/getting-started" element={<GettingStarted />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/plans" element={<Plans />} />
-            <Route path="/catalog" element={<Catalog />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/communities" element={<Communities />} />
-            <Route path="/riders" element={<Riders />} />
-            <Route path="/vendor/plans" element={<VendorPlans />} />
-            <Route path="/vendor/services" element={<VendorServices />} />
-            <Route path="/vendor/services/new" element={<ServiceForm />} />
-            <Route path="/vendor/dashboard" element={<VendorDashboard />} />
-            <Route path="/vendor/products/new" element={<ProductForm />} />
-            <Route path="/vendor/products/:productId/edit" element={<ProductForm />} />
-            <Route path="/vendor/orders" element={<VendorOrders />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/payment-canceled" element={<PaymentCanceled />} />
-            <Route
-              path="/admin"
-              element={
-                <RequireAdmin>
-                  <AdminLayout>
-                    <Dashboard />
-                  </AdminLayout>
-                </RequireAdmin>
-              }
-            />
-            <Route
-              path="/admin/finance"
-              element={
-                <RequireAdmin>
-                  <AdminLayout>
-                    <Finance />
-                  </AdminLayout>
-                </RequireAdmin>
-              }
-            />
-            {/* Catch-all inside layout */}
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+            {/* Shared layout for all other routes */}
+            <Route element={<Layout />}>
+              <Route path="/getting-started" element={<GettingStarted />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/plans" element={<Plans />} />
+              <Route path="/catalog" element={<Catalog />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/communities" element={<Communities />} />
+              <Route path="/riders" element={<Riders />} />
+              <Route path="/vendor/plans" element={<VendorPlans />} />
+              <Route path="/vendor/services" element={<VendorServices />} />
+              <Route path="/vendor/services/new" element={<ServiceForm />} />
+              <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+              <Route path="/vendor/products/new" element={<ProductForm />} />
+              <Route path="/vendor/products/:productId/edit" element={<ProductForm />} />
+              <Route path="/vendor/orders" element={<VendorOrders />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-canceled" element={<PaymentCanceled />} />
+              <Route
+                path="/admin"
+                element={
+                  <RequireAdmin>
+                    <AdminLayout>
+                      <Dashboard />
+                    </AdminLayout>
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="/admin/finance"
+                element={
+                  <RequireAdmin>
+                    <AdminLayout>
+                      <Finance />
+                    </AdminLayout>
+                  </RequireAdmin>
+                }
+              />
+              {/* Catch-all inside layout */}
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </CartProvider>
   </QueryClientProvider>
 );
 
