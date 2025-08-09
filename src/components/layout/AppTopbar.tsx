@@ -4,11 +4,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import useAuthRoles from "@/hooks/useAuthRoles";
+import useIsVendor from "@/hooks/useIsVendor";
+import useIsRider from "@/hooks/useIsRider";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 
 export default function AppTopbar() {
   const { user, isAdmin, isSuperadmin, signOut } = useAuthRoles();
+  const { isVendor } = useIsVendor();
+  const { isRider } = useIsRider();
   const navigate = useNavigate();
   const { count } = useCart();
   const initials = (user?.email?.[0] || "?").toUpperCase();
@@ -45,20 +49,32 @@ export default function AppTopbar() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Signed in as<br />{user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                
+                {/* Core navigation - always available */}
                 <DropdownMenuItem onSelect={() => navigate("/")}>Home</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/profile")}>Profile</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/orders")}>My Orders</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/catalog")}>Catalog</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => navigate("/vendor/dashboard")}>Vendor Dashboard</DropdownMenuItem>
+                
+                {/* Role-based sections */}
+                {(isVendor || isRider || isAdmin || isSuperadmin) && <DropdownMenuSeparator />}
+                
+                {isVendor && (
+                  <DropdownMenuItem onSelect={() => navigate("/vendor/dashboard")}>Vendor Dashboard</DropdownMenuItem>
+                )}
+                
+                {isRider && (
+                  <DropdownMenuItem onSelect={() => navigate("/rider/dashboard")}>Rider Dashboard</DropdownMenuItem>
+                )}
+                
                 {(isAdmin || isSuperadmin) && (
                   <DropdownMenuItem onSelect={() => navigate("/admin")}>Admin</DropdownMenuItem>
                 )}
+                
                 {isSuperadmin && (
                   <DropdownMenuItem onSelect={() => navigate("/superadmin")}>Super Admin</DropdownMenuItem>
                 )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => navigate("/getting-started")}>Getting Started</DropdownMenuItem>
+                
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={async () => { await signOut(); navigate("/"); }}>Sign out</DropdownMenuItem>
               </DropdownMenuContent>

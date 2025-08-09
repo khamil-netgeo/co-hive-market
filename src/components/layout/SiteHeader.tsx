@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import useIsRider from "@/hooks/useIsRider";
+import useIsVendor from "@/hooks/useIsVendor";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const SiteHeader = () => {
   const { user, isAdmin, isSuperadmin, signOut } = useAuthRoles();
   const { isRider } = useIsRider();
+  const { isVendor } = useIsVendor();
   const navigate = useNavigate();
 
   const initials = (user?.email?.[0] || "?").toUpperCase();
@@ -33,7 +35,7 @@ const SiteHeader = () => {
             <Link to="/riders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Riders</Link>
           )}
           <Link to="/orders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Orders</Link>
-          {user && (
+          {isVendor && (
             <Link to="/vendor/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Vendor</Link>
           )}
           {(isAdmin || isSuperadmin) && (
@@ -61,12 +63,32 @@ const SiteHeader = () => {
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>Signed in as<br />{user.email}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    
+                    {/* Core navigation - always available */}
                     <DropdownMenuItem onSelect={() => navigate("/")}>Home</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => navigate("/profile")}>Profile</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => navigate("/orders")}>My Orders</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => navigate("/catalog")}>Catalog</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => navigate("/vendor/dashboard")}>Vendor Dashboard</DropdownMenuItem>
+                    
+                    {/* Role-based sections */}
+                    {(isVendor || isRider || isAdmin || isSuperadmin) && <DropdownMenuSeparator />}
+                    
+                    {isVendor && (
+                      <DropdownMenuItem onSelect={() => navigate("/vendor/dashboard")}>Vendor Dashboard</DropdownMenuItem>
+                    )}
+                    
+                    {isRider && (
+                      <DropdownMenuItem onSelect={() => navigate("/rider/dashboard")}>Rider Dashboard</DropdownMenuItem>
+                    )}
+                    
+                    {(isAdmin || isSuperadmin) && (
+                      <DropdownMenuItem onSelect={() => navigate("/admin")}>Admin</DropdownMenuItem>
+                    )}
+                    
+                    {isSuperadmin && (
+                      <DropdownMenuItem onSelect={() => navigate("/superadmin")}>Super Admin</DropdownMenuItem>
+                    )}
+                    
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => navigate("/getting-started")}>Getting Started</DropdownMenuItem>
                     <DropdownMenuSeparator />
