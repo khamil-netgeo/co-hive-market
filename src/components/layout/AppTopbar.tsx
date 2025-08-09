@@ -14,12 +14,8 @@ export default function AppTopbar() {
   return (
     <header className="sticky top-0 z-30 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center">
           <SidebarTrigger className="ml-0" />
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="h-7 w-7 rounded-md bg-gradient-primary" aria-hidden />
-            <span className="text-lg font-semibold text-gradient-brand">CoopMarket</span>
-          </Link>
         </div>
         <div className="flex items-center gap-3">
           {!user ? (
