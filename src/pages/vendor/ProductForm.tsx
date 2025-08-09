@@ -138,9 +138,35 @@ const ProductForm = () => {
         }
 
         // Populate form with existing data
+        const fullDesc = productData.description || "";
+        const descLines = fullDesc.split("\n");
+        let parsedDate: Date | undefined = undefined;
+        let parsedDiet: (typeof DIETARY_OPTIONS)[number][] = [];
+        const baseDesc = descLines
+          .filter((l) => {
+            if (/^Best before:/i.test(l)) {
+              const dateStr = l.split(":").slice(1).join(":").trim();
+              const d = new Date(dateStr);
+              if (!isNaN(d.getTime())) parsedDate = d;
+              return false;
+            }
+            if (/^Dietary:/i.test(l)) {
+              const tagsStr = l.split(":").slice(1).join(":").trim();
+              parsedDiet = tagsStr
+                .split(",")
+                .map((s) => s.trim().toLowerCase())
+                .filter(Boolean)
+                .filter((tag): tag is (typeof DIETARY_OPTIONS)[number] => (DIETARY_OPTIONS as readonly string[]).includes(tag));
+              return false;
+            }
+            return true;
+          })
+          .join("\n")
+          .trim();
+
         form.reset({
           name: productData.name,
-          description: productData.description || "",
+          description: baseDesc,
           price: (productData.price_cents / 100).toFixed(2),
           currency: productData.currency,
           status: productData.status as "active" | "inactive" | "archived",
@@ -152,6 +178,8 @@ const ProductForm = () => {
           prep_time_minutes: (productData as any).prep_time_minutes?.toString() || "",
           pickup_lat: (productData as any).pickup_lat?.toString() || "",
           pickup_lng: (productData as any).pickup_lng?.toString() || "",
+          best_before: parsedDate,
+          dietary_tags: parsedDiet,
         });
       }
 
