@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useAuthRoles from "@/hooks/useAuthRoles";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
 const SiteHeader = () => {
-  const { isAdmin, isSuperadmin } = useAuthRoles();
+  const { user, isAdmin, isSuperadmin, signOut } = useAuthRoles();
+  const navigate = useNavigate();
+
+  const initials = (user?.email?.[0] || "?").toUpperCase();
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -20,7 +26,34 @@ const SiteHeader = () => {
           )}
         </nav>
         <div className="flex items-center gap-3">
-          <Button variant="hero" asChild><Link to="/getting-started">Get Started</Link></Button>
+          {!user ? (
+            <>
+              <Button variant="ghost" asChild><Link to="/auth">Sign in</Link></Button>
+              <Button variant="hero" asChild><Link to="/getting-started">Get Started</Link></Button>
+            </>
+          ) : (
+            <>
+              <Button variant="secondary" asChild><Link to="/getting-started">Get Started</Link></Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-9 gap-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
+                    <span className="hidden sm:inline text-sm">{user.email}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Signed in as<br />{user.email}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => navigate("/")}>Home</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => navigate("/getting-started")}>Getting Started</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={async () => { await signOut(); navigate("/"); }}>Sign out</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
         </div>
       </div>
     </header>

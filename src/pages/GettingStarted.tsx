@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const GettingStarted = () => {
-  const { user, loading } = useAuthRoles();
+  const { user, loading, signOut } = useAuthRoles();
   const navigate = useNavigate();
   const [communities, setCommunities] = useState<any[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(true);
@@ -103,6 +103,21 @@ const GettingStarted = () => {
           </div>
 
           
+          {user && (
+            <div className="max-w-xl mx-auto mb-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">You’re signed in</CardTitle>
+                  <CardDescription>{user.email}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex gap-3">
+                  <Button asChild variant="default"><Link to="/">Go to Home</Link></Button>
+                  <Button variant="outline" onClick={async () => { await signOut(); }}>Sign out</Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {!user && (
             <div className="text-center mb-12">
               <Card className="max-w-md mx-auto">
