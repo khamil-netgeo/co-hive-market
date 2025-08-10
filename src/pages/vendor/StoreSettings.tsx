@@ -51,6 +51,8 @@ export default function StoreSettings() {
   const [pickupCountry, setPickupCountry] = useState("MY");
   const [pickupContactName, setPickupContactName] = useState("");
   const [pickupPhone, setPickupPhone] = useState("");
+  const [pickupAddressLine1, setPickupAddressLine1] = useState("");
+  const [pickupCity, setPickupCity] = useState("");
 
   useEffect(() => {
     if (!user?.id) return;
@@ -58,7 +60,7 @@ export default function StoreSettings() {
       try {
         const { data: vendor, error } = await supabase
           .from("vendors")
-          .select("id, display_name, description, logo_url, opening_hours, website_url, facebook_url, instagram_url, tiktok_url, delivery_radius_km, pickup_postcode, pickup_state, pickup_country, pickup_contact_name, pickup_phone")
+          .select("id, display_name, description, logo_url, opening_hours, website_url, facebook_url, instagram_url, tiktok_url, delivery_radius_km, pickup_postcode, pickup_state, pickup_country, pickup_contact_name, pickup_phone, pickup_address_line1, pickup_city")
           .eq("user_id", user.id)
           .maybeSingle();
         if (error) throw error;
@@ -80,6 +82,8 @@ export default function StoreSettings() {
         setPickupCountry((vendor as any).pickup_country ?? "MY");
         setPickupContactName((vendor as any).pickup_contact_name ?? "");
         setPickupPhone((vendor as any).pickup_phone ?? "");
+        setPickupAddressLine1((vendor as any).pickup_address_line1 ?? "");
+        setPickupCity((vendor as any).pickup_city ?? "");
         if (vendor.opening_hours) setHours(vendor.opening_hours as unknown as OpeningHours);
       } catch (e) {
         console.error(e);
@@ -143,6 +147,8 @@ export default function StoreSettings() {
         pickup_country: pickupCountry || 'MY',
         pickup_contact_name: pickupContactName || null,
         pickup_phone: pickupPhone || null,
+        pickup_address_line1: pickupAddressLine1 || null,
+        pickup_city: pickupCity || null,
       };
       if (finalLogo) payload.logo_url = finalLogo;
 
@@ -304,6 +310,26 @@ export default function StoreSettings() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="pickup_address_line1">Pickup Address Line 1</Label>
+                <Input
+                  id="pickup_address_line1"
+                  placeholder="e.g. 123, Jalan Example"
+                  value={pickupAddressLine1}
+                  onChange={(e) => setPickupAddressLine1(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pickup_city">Pickup City</Label>
+                <Input
+                  id="pickup_city"
+                  placeholder="e.g. Ipoh"
+                  value={pickupCity}
+                  onChange={(e) => setPickupCity(e.target.value)}
+                  className="h-11"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="pickup_contact_name">Pickup Contact Name</Label>
                 <Input

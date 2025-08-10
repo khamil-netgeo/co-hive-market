@@ -258,6 +258,102 @@ serve(async (req) => {
       }
     }
 
+    // Auto-book EasyParcel shipment for non-perishable items
+    if (deliveryMethod === 'easyparcel') {
+      try {
+        const EP_API = Deno.env.get("EASYPARCEL_API_KEY")?.trim();
+        if (!EP_API) {
+          console.warn("EASYPARCEL_API_KEY not set; skipping EasyParcel booking");
+        } else {
+          // Load vendor pickup details
+          const { data: vendor } = await service
+            .from("vendors")
+            .select(
+              "display_name, pickup_address_line1, pickup_city, pickup_postcode, pickup_state, pickup_country, pickup_contact_name, pickup_phone"
+            )
+            .eq("id", vendor_id as string)
+            .maybeSingle();
+
+          // Shipping (recipient) details are in order and profile
+          const send_address = order.ship_address_line1;
+          const send_city = order.ship_city as string | null;
+          const send_postcode = order.ship_postcode as string | null;
+
+          const pick_address = (vendor as any)?.pickup_address_line1 as string | undefined;
+          const pick_city = (vendor as any)?.pickup_city as string | undefined;
+          const pick_postcode = (vendor as any)?.pickup_postcode as string | undefined;
+
+          // Validate required fields
+          if (!pick_address || !pick_city || !pick_postcode || !send_address || !send_city || !send_postcode) {
+            console.warn("Missing pickup/delivery fields for EasyParcel; skipping booking", {
+              pick_address: !!pick_address,
+              pick_city: !!pick_city,
+              pick_postcode: !!pick_postcode,
+              send_address: !!send_address,
+              send_city: !!send_city,
+              send_postcode: !!send_postcode,
+            });
+          } else {
+            // Estimate weight (kg). If unknown, default to 1kg.
+            const weightKg = Math.max(1, Math.round(((md.total_weight_grams ? Number(md.total_weight_grams) : 1000) / 1000)));
+
+            const bulkItem: Record<string, unknown> = {
+              reference: order.id,
+              content: `Order ${order.id}`,
+              weight: weightKg,
+              pick_name: (vendor as any)?.display_name || (vendor as any)?.pickup_contact_name || "Pickup",
+              pick_contact: (vendor as any)?.pickup_phone || (vendor as any)?.pickup_contact_name || "",
+              pick_address: pick_address,
+              pick_city: pick_city,
+              pick_state: (vendor as any)?.pickup_state || "",
+              pick_postcode: pick_postcode,
+              pick_country: (vendor as any)?.pickup_country || "MY",
+              send_name: (session.customer_details as any)?.name || (order as any)?.recipient_name || user.email || "Customer",
+              send_contact: (order as any)?.recipient_phone || (prof as any)?.phone || "",
+              send_address: send_address,
+              send_city: send_city,
+              send_state: (order as any)?.ship_state || "",
+              send_postcode: send_postcode,
+              send_country: (order as any)?.ship_country || "MY",
+            };
+
+            const payload = { api: EP_API, bulk: [bulkItem] };
+            const res = await fetch("https://api.easyparcel.my/?ac=EPOrderCreateBulk", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const text = await res.text();
+            let json: any;
+            try { json = JSON.parse(text); } catch (_) { json = { raw: text }; }
+
+            // Parse result
+            const first = json?.result?.[0] || json?.data?.[0] || json?.[0] || null;
+            const orderNo = first?.order_no ?? first?.order_number ?? null;
+            const awbNo = first?.awb_no ?? first?.awb ?? null;
+
+            if (orderNo || awbNo) {
+              await service
+                .from("orders")
+                .update({ easyparcel_order_no: orderNo, easyparcel_awb_no: awbNo })
+                .eq("id", order.id);
+              await service.from("order_progress_events").insert({
+                order_id: order.id,
+                event: "shipment_booked",
+                description: `EasyParcel booking created${awbNo ? `, AWB ${awbNo}` : ''}`,
+                created_by: user.id,
+                metadata: { provider: "easyparcel", order_no: orderNo, awb_no: awbNo },
+              } as any);
+            } else {
+              console.warn("EasyParcel response did not include identifiers", json);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("EasyParcel booking failed:", e);
+      }
+    }
+
     return new Response(
       JSON.stringify({ order, splits: { vendor_payout_cents: vendorPayout, community_share_cents: communityShare, coop_share_cents: coopShare } }),
       {
