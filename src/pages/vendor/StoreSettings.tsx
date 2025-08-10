@@ -45,6 +45,12 @@ export default function StoreSettings() {
     return init;
   });
   const [deliveryRadius, setDeliveryRadius] = useState<number>(10);
+  // Vendor pickup/shipping info for EasyParcel
+  const [pickupPostcode, setPickupPostcode] = useState("");
+  const [pickupState, setPickupState] = useState("");
+  const [pickupCountry, setPickupCountry] = useState("MY");
+  const [pickupContactName, setPickupContactName] = useState("");
+  const [pickupPhone, setPickupPhone] = useState("");
 
   useEffect(() => {
     if (!user?.id) return;
@@ -52,7 +58,7 @@ export default function StoreSettings() {
       try {
         const { data: vendor, error } = await supabase
           .from("vendors")
-          .select("id, display_name, description, logo_url, opening_hours, website_url, facebook_url, instagram_url, tiktok_url, delivery_radius_km")
+          .select("id, display_name, description, logo_url, opening_hours, website_url, facebook_url, instagram_url, tiktok_url, delivery_radius_km, pickup_postcode, pickup_state, pickup_country, pickup_contact_name, pickup_phone")
           .eq("user_id", user.id)
           .maybeSingle();
         if (error) throw error;
@@ -68,6 +74,12 @@ export default function StoreSettings() {
         setFacebookUrl(vendor.facebook_url ?? "");
         setInstagramUrl(vendor.instagram_url ?? "");
         setTiktokUrl(vendor.tiktok_url ?? "");
+        // Pickup/shipping defaults for EasyParcel
+        setPickupPostcode((vendor as any).pickup_postcode ?? "");
+        setPickupState((vendor as any).pickup_state ?? "");
+        setPickupCountry((vendor as any).pickup_country ?? "MY");
+        setPickupContactName((vendor as any).pickup_contact_name ?? "");
+        setPickupPhone((vendor as any).pickup_phone ?? "");
         if (vendor.opening_hours) setHours(vendor.opening_hours as unknown as OpeningHours);
       } catch (e) {
         console.error(e);
@@ -126,6 +138,11 @@ export default function StoreSettings() {
         facebook_url: facebookUrl || null,
         instagram_url: instagramUrl || null,
         tiktok_url: tiktokUrl || null,
+        pickup_postcode: pickupPostcode || null,
+        pickup_state: pickupState || null,
+        pickup_country: pickupCountry || 'MY',
+        pickup_contact_name: pickupContactName || null,
+        pickup_phone: pickupPhone || null,
       };
       if (finalLogo) payload.logo_url = finalLogo;
 
@@ -278,6 +295,67 @@ export default function StoreSettings() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground mt-4">These links may be shown on your store profile and help with SEO.</p>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Pickup & Shipping</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="pickup_contact_name">Pickup Contact Name</Label>
+                <Input
+                  id="pickup_contact_name"
+                  placeholder="e.g. Ali from Your Store"
+                  value={pickupContactName}
+                  onChange={(e) => setPickupContactName(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pickup_phone">Pickup Phone</Label>
+                <Input
+                  id="pickup_phone"
+                  placeholder="e.g. 0123456789"
+                  value={pickupPhone}
+                  onChange={(e) => setPickupPhone(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pickup_postcode">Pickup Postcode</Label>
+                <Input
+                  id="pickup_postcode"
+                  placeholder="e.g. 30000"
+                  value={pickupPostcode}
+                  onChange={(e) => setPickupPostcode(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pickup_state">Pickup State</Label>
+                <Input
+                  id="pickup_state"
+                  placeholder="e.g. Perak"
+                  value={pickupState}
+                  onChange={(e) => setPickupState(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="pickup_country">Pickup Country</Label>
+                <Input
+                  id="pickup_country"
+                  placeholder="MY"
+                  value={pickupCountry}
+                  onChange={(e) => setPickupCountry(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mt-4">Used to create EasyParcel shipments for non-perishable items.</p>
           </CardContent>
         </Card>
       </div>

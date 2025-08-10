@@ -1651,6 +1651,11 @@ export type Database = {
           logo_url: string | null
           member_discount_override_percent: number | null
           opening_hours: Json | null
+          pickup_contact_name: string | null
+          pickup_country: string | null
+          pickup_phone: string | null
+          pickup_postcode: string | null
+          pickup_state: string | null
           tiktok_url: string | null
           updated_at: string
           user_id: string
@@ -1670,6 +1675,11 @@ export type Database = {
           logo_url?: string | null
           member_discount_override_percent?: number | null
           opening_hours?: Json | null
+          pickup_contact_name?: string | null
+          pickup_country?: string | null
+          pickup_phone?: string | null
+          pickup_postcode?: string | null
+          pickup_state?: string | null
           tiktok_url?: string | null
           updated_at?: string
           user_id: string
@@ -1689,6 +1699,11 @@ export type Database = {
           logo_url?: string | null
           member_discount_override_percent?: number | null
           opening_hours?: Json | null
+          pickup_contact_name?: string | null
+          pickup_country?: string | null
+          pickup_phone?: string | null
+          pickup_postcode?: string | null
+          pickup_state?: string | null
           tiktok_url?: string | null
           updated_at?: string
           user_id?: string

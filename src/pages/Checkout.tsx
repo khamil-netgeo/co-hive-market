@@ -52,6 +52,19 @@ const containerRef = useRef<HTMLDivElement | null>(null);
         const stripe = await loadStripe(pk);
         if (!stripe) throw new Error("Failed to load Stripe.js");
 
+        // Decide delivery method based on product rules
+        const firstId = cart.items[0]?.product_id as string | undefined;
+        let deliveryMethod: 'rider' | 'easyparcel' = 'rider';
+        if (firstId) {
+          const { data: prod } = await supabase
+            .from('products')
+            .select('product_kind, perishable, allow_easyparcel')
+            .eq('id', firstId)
+            .maybeSingle();
+          const deliveryOnly = prod?.product_kind === 'prepared_food' || (prod?.product_kind === 'grocery' && !!prod?.perishable) || (prod?.allow_easyparcel === false);
+          deliveryMethod = deliveryOnly ? 'rider' : 'easyparcel';
+        }
+
         const { data, error } = await supabase.functions.invoke("create-embedded-checkout", {
           body: {
             name: `Cart purchase (${cart.count} item${cart.count > 1 ? "s" : ""})`,
@@ -61,7 +74,7 @@ const containerRef = useRef<HTMLDivElement | null>(null);
             vendor_id: cart.vendor_id,
             community_id: cart.community_id,
             product_id: cart.items[0]?.product_id,
-            delivery_method: "rider",
+            delivery_method: deliveryMethod,
           },
         });
         if (error) throw error;
