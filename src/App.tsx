@@ -19,6 +19,7 @@ import OrderTracker from "./pages/OrderTracker";
 import VendorOrders from "./pages/vendor/VendorOrders";
 import VendorAnalytics from "./pages/vendor/VendorAnalytics";
 import VendorPayouts from "./pages/vendor/VendorPayouts";
+import OrderDetail from "./pages/vendor/OrderDetail";
 import Riders from "./pages/Riders";
 import Layout from "@/components/layout/Layout";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -125,6 +126,7 @@ const App = () => (
               <Route path="/vendor/products/new" element={<ProductForm />} />
               <Route path="/vendor/products/:productId/edit" element={<ProductForm />} />
               <Route path="/vendor/orders" element={<VendorOrders />} />
+              <Route path="/vendor/orders/:orderId" element={<OrderDetail />} />
               <Route path="/vendor/analytics" element={<VendorAnalytics />} />
               <Route path="/vendor/payouts" element={<VendorPayouts />} />
               <Route path="/vendor/store-settings" element={<StoreSettings />} />

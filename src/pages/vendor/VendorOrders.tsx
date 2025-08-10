@@ -413,7 +413,9 @@ const VendorOrders = () => {
                       {orders.map((order) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-mono text-xs">
-                            {order.id.slice(0, 8)}...
+                            <Link to={`/vendor/orders/${order.id}`} className="underline underline-offset-2">
+                              {order.id.slice(0, 8)}...
+                            </Link>
                           </TableCell>
                           <TableCell className="text-sm">
                             {formatDate(order.created_at)}
@@ -436,15 +438,23 @@ const VendorOrders = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => navigate(`/chat?vendorId=${vendor!.id}&buyerUserId=${order.buyer_user_id}`)}
-                              >
-                                <MessageSquare className="mr-2 h-4 w-4" />
-                                Message buyer
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={() => navigate(`/vendor/orders/${order.id}`)}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => navigate(`/chat?vendorId=${vendor!.id}&buyerUserId=${order.buyer_user_id}`)}
+                                >
+                                  <MessageSquare className="mr-2 h-4 w-4" />
+                                  Message buyer
+                                </Button>
                               <Select
                                 value={order.status}
                                 onValueChange={(newStatus) => updateOrderStatus(order.id, newStatus as any)}
