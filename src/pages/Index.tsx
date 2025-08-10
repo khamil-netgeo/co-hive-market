@@ -3,7 +3,7 @@ import SiteHeader from "@/components/layout/SiteHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
 import AppTopbar from "@/components/layout/AppTopbar";
 import AppSidebar from "@/components/layout/AppSidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import * as Sidebar from "@/components/ui/sidebar";
 import { toast } from "sonner";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
@@ -61,16 +61,16 @@ const Index = () => {
   if (user) {
     // Logged in: use sidebar layout
     return (
-      <SidebarProvider>
+      <Sidebar.SidebarProvider>
         <div className="min-h-screen flex w-full">
           <AppSidebar />
-          <SidebarInset>
+          <Sidebar.SidebarInset>
             <AppTopbar />
             {content}
             <SiteFooter />
-          </SidebarInset>
+          </Sidebar.SidebarInset>
         </div>
-      </SidebarProvider>
+      </Sidebar.SidebarProvider>
     );
   }
 
