@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { setSEOAdvanced } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
@@ -122,6 +123,24 @@ export default function Feed() {
             : normalized;
 
           setItems(filtered);
+          try {
+            const itemList = {
+              "@context": "https://schema.org",
+              "@type": "ItemList",
+              itemListElement: filtered.slice(0, 25).map((it: FeedItem, i: number) => ({
+                "@type": "ListItem",
+                position: i + 1,
+                url: window.location.origin + `/${it.kind === 'product' ? 'product' : 'service'}/${it.id}`,
+                name: it.name,
+              })),
+            } as const;
+            setSEOAdvanced({
+              title: selected?.name ? `${selected.name} — Feed` : "Shop Feed – TikTok-style shopping",
+              description: selected?.name ? `Watch and shop videos from ${selected.name} community.` : "Swipe through shoppable videos. Add to cart or buy in seconds.",
+              type: "website",
+              jsonLd: itemList as any,
+            });
+          } catch {}
           return;
         }
 
@@ -164,6 +183,24 @@ export default function Feed() {
           : normalized;
 
         setItems(filtered);
+        try {
+          const itemList = {
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            itemListElement: filtered.slice(0, 25).map((it: FeedItem, i: number) => ({
+              "@type": "ListItem",
+              position: i + 1,
+              url: window.location.origin + `/${it.kind === 'product' ? 'product' : 'service'}/${it.id}`,
+              name: it.name,
+            })),
+          } as const;
+          setSEOAdvanced({
+            title: selected?.name ? `${selected.name} — Feed` : "Shop Feed – TikTok-style shopping",
+            description: selected?.name ? `Watch and shop videos from ${selected.name} community.` : "Swipe through shoppable videos. Add to cart or buy in seconds.",
+            type: "website",
+            jsonLd: itemList as any,
+          });
+        } catch {}
       } catch (e: any) {
         toast('Failed to load feed', { description: e.message || String(e) });
       } finally {
@@ -184,6 +221,33 @@ export default function Feed() {
       }
     });
   }, [active, items.length]);
+
+  // Observe visibility to set active index (smooth autoplay)
+  useEffect(() => {
+    if (!videoRefs.current.size) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const el = entry.target as HTMLVideoElement;
+          const idxAttr = el.dataset.index;
+          const idx = typeof idxAttr === 'string' ? parseInt(idxAttr, 10) : NaN;
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.6 && !Number.isNaN(idx)) {
+            setActive(idx);
+          }
+        });
+      },
+      { threshold: [0.25, 0.6, 0.9] }
+    );
+
+    videoRefs.current.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [items.length]);
+
+  // Prefetch next video for smoother playback
+  useEffect(() => {
+    const next = videoRefs.current.get(active + 1);
+    try { next?.load(); } catch {}
+  }, [active]);
 
   const fmt = (cents: number, cur: string) =>
     new Intl.NumberFormat(undefined, { style: "currency", currency: (cur || "MYR").toUpperCase() }).format(
@@ -212,7 +276,11 @@ export default function Feed() {
   };
 
   const registerVideo = (index: number) => (el: HTMLVideoElement | null) => {
-    if (!el) return;
+    if (!el) {
+      videoRefs.current.delete(index);
+      return;
+    }
+    el.dataset.index = String(index);
     videoRefs.current.set(index, el);
   };
 
@@ -257,13 +325,13 @@ export default function Feed() {
           </div>
         </div>
         <div className="mt-4 flex gap-3 pointer-events-auto">
-          <Button size="lg" variant="tiktok" className="font-bold" onClick={() => onPrimary(it)}>
+          <Button size="lg" variant="tiktok" className="font-bold" onClick={() => onPrimary(it)} aria-label={`${it.kind === 'product' ? 'View product' : 'View service'} ${it.name}`}>
             {isProduct 
               ? (isDeliveryItem ? "Order Now" : "Buy Now") 
               : "Book Now"
             }
           </Button>
-          <Button size="lg" variant="hero" className="font-bold" onClick={() => onAddToCart(it)}>
+          <Button size="lg" variant="hero" className="font-bold" onClick={() => onAddToCart(it)} aria-label={`${isProduct ? 'Add product to cart' : 'View details'}: ${it.name}`}>
             {isProduct ? "Add to Cart" : "View Details"}
           </Button>
         </div>
@@ -274,8 +342,16 @@ export default function Feed() {
   const content = useMemo(() => {
     if (loading) {
       return (
-        <div className="h-[100svh] flex items-center justify-center">
-          <span className="text-sm text-muted-foreground">Loading feed…</span>
+        <div className="h-[100svh] relative">
+          <Skeleton className="absolute inset-0" />
+          <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
+            <Skeleton className="h-6 w-2/3" />
+            <Skeleton className="h-4 w-3/4" />
+            <div className="flex gap-3 pt-2">
+              <Skeleton className="h-10 w-28" />
+              <Skeleton className="h-10 w-28" />
+            </div>
+          </div>
         </div>
       );
     }
@@ -302,8 +378,10 @@ export default function Feed() {
                   className="h-full w-full object-cover"
                   playsInline
                   muted
-                  autoPlay={idx === 0}
                   loop
+                  preload={Math.abs(idx - active) <= 1 ? "auto" : "metadata"}
+                  aria-label={`${it.kind === 'product' ? 'Product' : 'Service'} video: ${it.name}`}
+                  autoPlay={idx === 0}
                   onPlay={() => setActive(idx)}
                   onClick={() => setActive(idx)}
                 />
