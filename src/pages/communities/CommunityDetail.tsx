@@ -12,11 +12,11 @@ import { logAudit } from "@/lib/audit";
 
 interface Community { id: string; name: string; description: string | null; member_discount_percent: number; coop_fee_percent: number; community_fee_percent: number }
 
-type MemberType = 'buyer' | 'vendor' | 'delivery';
+type MemberType = 'buyer' | 'vendor' | 'delivery' | 'manager';
 
 export default function CommunityDetail() {
   const { id } = useParams();
-  const { user } = useAuthRoles();
+  const { user, isAdmin, isSuperadmin } = useAuthRoles();
   const navigate = useNavigate();
   const { selected, setSelected } = useCommunity();
   const [community, setCommunity] = useState<Community | null>(null);
@@ -180,23 +180,28 @@ export default function CommunityDetail() {
               <Badge variant="outline">Coop fee: {community.coop_fee_percent}%</Badge>
               <Badge variant="outline">Community fee: {community.community_fee_percent}%</Badge>
             </div>
-            <div className="flex gap-2">
-              {!membership ? (
-                <>
-                  <Button size="sm" variant="outline" onClick={() => handleJoin('buyer')}>Join as Buyer</Button>
-                  <Button size="sm" onClick={() => handleJoin('vendor')}>Join as Vendor</Button>
-                  <Button size="sm" variant="outline" onClick={() => handleJoin('delivery')}>Join as Rider</Button>
-                </>
-              ) : (
-                <>
-                  <Badge variant="secondary">You are a {membership.member_type}</Badge>
-                  <Button size="sm" variant="outline" onClick={handleLeave}>Leave</Button>
-                </>
-              )}
-              <Button size="sm" variant={isActive ? "secondary" : "default"} onClick={handleSetActive}>
-                {isActive ? 'Active' : 'Set active'}
-              </Button>
-            </div>
+              <div className="flex gap-2">
+                {!membership ? (
+                  <>
+                    <Button size="sm" variant="outline" onClick={() => handleJoin('buyer')}>Join as Buyer</Button>
+                    <Button size="sm" onClick={() => handleJoin('vendor')}>Join as Vendor</Button>
+                    <Button size="sm" variant="outline" onClick={() => handleJoin('delivery')}>Join as Rider</Button>
+                  </>
+                ) : (
+                  <>
+                    <Badge variant="secondary">You are a {membership.member_type}</Badge>
+                    <Button size="sm" variant="outline" onClick={handleLeave}>Leave</Button>
+                  </>
+                )}
+                <Button size="sm" variant={isActive ? "secondary" : "default"} onClick={handleSetActive}>
+                  {isActive ? 'Active' : 'Set active'}
+                </Button>
+                {(isAdmin || isSuperadmin || membership?.member_type === 'manager') && (
+                  <Button size="sm" asChild>
+                    <Link to={`/communities/${id}/manage`}>Manage</Link>
+                  </Button>
+                )}
+              </div>
           </CardContent>
         </Card>
 

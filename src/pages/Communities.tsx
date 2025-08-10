@@ -14,7 +14,7 @@ import { logAudit } from "@/lib/audit";
 
 interface Community { id: string; name: string; description: string | null; member_discount_percent: number; coop_fee_percent: number; community_fee_percent: number }
 
-type MemberType = 'buyer' | 'vendor' | 'delivery';
+type MemberType = 'buyer' | 'vendor' | 'delivery' | 'manager';
 
 export default function Communities() {
   const { user, isAdmin, isSuperadmin } = useAuthRoles();
@@ -251,6 +251,7 @@ export default function Communities() {
                 {myMemberships.map((m) => {
                   const c = communities.find((x) => x.id === m.community_id);
                   const isActive = selected.id === m.community_id;
+                  const isManager = (m.member_type as any) === 'manager';
                   return (
                     <div key={m.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border rounded-md p-3">
                       <div className="flex items-center gap-2">
@@ -261,6 +262,11 @@ export default function Communities() {
                       <div className="flex gap-2">
                         {!isActive && (
                           <Button size="sm" variant="outline" onClick={() => handleSetActive(m.community_id)}>Set active</Button>
+                        )}
+                        {isManager && (
+                          <Button size="sm" asChild>
+                            <Link to={`/communities/${m.community_id}/manage`}>Manage</Link>
+                          </Button>
                         )}
                         <Button size="sm" variant="ghost" onClick={() => handleLeave(m.id, m.community_id)}>Leave</Button>
                       </div>
