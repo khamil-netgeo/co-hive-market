@@ -130,6 +130,7 @@ serve(async (req) => {
         ship_state: (prof as any)?.state ?? null,
         ship_postcode: (prof as any)?.postcode ?? null,
         ship_country: (prof as any)?.country ?? 'MY',
+        shipping_method: (md.delivery_method as any) ?? null,
       })
       .select("id, created_at, status, total_amount_cents, currency")
       .single();
