@@ -8,8 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
-import ProductImage from "@/components/product/ProductImage";
-import ServiceImage from "@/components/service/ServiceImage";
+import MediaGallery from "@/components/common/MediaGallery";
 import { Plus, Pencil, Eye, EyeOff } from "lucide-react";
 
 interface Product {
@@ -151,7 +150,7 @@ export default function VendorListings() {
                 {visibleProducts.slice(0,6).map((p) => (
                   <Card key={p.id} className="overflow-hidden">
                     <div className="aspect-video">
-                      <ProductImage imageUrls={p.image_urls} productName={p.name} className="w-full h-full object-cover" />
+                      <MediaGallery images={p.image_urls || []} videos={[]} alt={p.name} aspect="video" showThumbnails={false} />
                     </div>
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-2">
@@ -189,7 +188,7 @@ export default function VendorListings() {
                 {visibleServices.slice(0,6).map((s) => (
                   <Card key={s.id} className="overflow-hidden">
                     <div className="aspect-video">
-                      <ServiceImage imageUrls={s.image_urls} serviceName={s.name} className="w-full h-full object-cover" />
+                      <MediaGallery images={s.image_urls || []} videos={[]} alt={s.name} aspect="video" showThumbnails={false} />
                     </div>
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-2">
@@ -221,7 +220,7 @@ export default function VendorListings() {
               {visibleProducts.map((p) => (
                 <Card key={p.id} className="overflow-hidden">
                   <div className="aspect-video">
-                    <ProductImage imageUrls={p.image_urls} productName={p.name} className="w-full h-full object-cover" />
+                    <MediaGallery images={p.image_urls || []} videos={[]} alt={p.name} aspect="video" showThumbnails={false} />
                   </div>
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-2">
@@ -255,7 +254,7 @@ export default function VendorListings() {
               {visibleServices.map((s) => (
                 <Card key={s.id} className="overflow-hidden">
                   <div className="aspect-video">
-                    <ServiceImage imageUrls={s.image_urls} serviceName={s.name} className="w-full h-full object-cover" />
+                    <MediaGallery images={s.image_urls || []} videos={[]} alt={s.name} aspect="video" showThumbnails={false} />
                   </div>
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-2">

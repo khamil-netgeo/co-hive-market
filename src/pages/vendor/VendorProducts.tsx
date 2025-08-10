@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { Link } from "react-router-dom";
-import ProductImage from "@/components/product/ProductImage";
+import MediaGallery from "@/components/common/MediaGallery";
 
 interface Product {
   id: string;
@@ -160,11 +160,12 @@ export default function VendorProducts() {
           {products.map((product) => (
             <Card key={product.id} className="relative">
               <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                <ProductImage 
-                  imageUrls={product.image_urls} 
-                  productName={product.name}
-                  className="w-full h-full object-cover"
-                  fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
+                <MediaGallery 
+                  images={product.image_urls || []} 
+                  videos={product.video_url ? [product.video_url] : []}
+                  alt={product.name}
+                  aspect="video"
+                  showThumbnails={false}
                 />
               </div>
               <CardHeader className="pb-4">

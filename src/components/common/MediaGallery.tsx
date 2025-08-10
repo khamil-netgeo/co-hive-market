@@ -9,9 +9,10 @@ type MediaGalleryProps = {
   alt: string;
   aspect?: "video" | "square"; // 16:9 or 1:1
   className?: string;
+  showThumbnails?: boolean;
 };
 
-export default function MediaGallery({ images, videos, alt, aspect = "video", className }: MediaGalleryProps) {
+export default function MediaGallery({ images, videos, alt, aspect = "video", className, showThumbnails = true }: MediaGalleryProps) {
   const slides = useMemo(() => {
     const imgSlides = (images || []).filter(Boolean).map((src) => ({ type: "image" as const, src }));
     const vidSlides = (videos || []).filter(Boolean).map((src) => ({ type: "video" as const, src }));
@@ -70,7 +71,7 @@ export default function MediaGallery({ images, videos, alt, aspect = "video", cl
       </div>
 
       {/* Thumbnails */}
-      {slides.length > 1 && (
+      {showThumbnails && slides.length > 1 && (
         <div className="flex gap-2 overflow-x-auto no-scrollbar" aria-label="Media thumbnails">
           {slides.map((s, idx) => (
             <button

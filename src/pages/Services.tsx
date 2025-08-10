@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
-import ServiceImage from "@/components/service/ServiceImage";
+import MediaGallery from "@/components/common/MediaGallery";
 
 interface Service {
   id: string;
@@ -250,11 +250,13 @@ const [serviceCats, setServiceCats] = useState<Record<string, string[]>>({});
             {displayed.map((svc) => (
               <Card key={svc.id} className="hover:shadow-elegant transition-shadow">
                 <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                  <ServiceImage 
-                    imageUrls={svc.image_urls}
-                    serviceName={svc.name}
-                    className="w-full h-full object-cover"
-                  />
+                <MediaGallery
+                  images={svc.image_urls || []}
+                  videos={[]}
+                  alt={svc.name}
+                  aspect="video"
+                  showThumbnails={false}
+                />
                 </div>
                 <CardHeader>
                   <CardTitle>{svc.name}</CardTitle>

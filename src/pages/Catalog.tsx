@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
-import ProductImage from "@/components/product/ProductImage";
+import MediaGallery from "@/components/common/MediaGallery";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Clock } from "lucide-react";
@@ -455,12 +455,15 @@ export default function Catalog() {
               const discPercent = effectiveDiscountPercent(p);
               return (
                 <Card key={p.id} className="hover:shadow-elegant transition-shadow">
-                  <ProductImage 
-                    imageUrls={p.image_urls} 
-                    productName={p.name}
-                    className="w-full h-48 object-cover rounded-t-md"
-                    fallbackClassName="w-full h-48 bg-muted rounded-t-md flex items-center justify-center"
-                  />
+                  <div className="aspect-video w-full overflow-hidden rounded-t-md border-b">
+                    <MediaGallery
+                      images={p.image_urls || []}
+                      videos={p.video_url ? [p.video_url] : []}
+                      alt={p.name}
+                      aspect="video"
+                      showThumbnails={false}
+                    />
+                  </div>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between gap-2">
                       <span>{p.name}</span>
