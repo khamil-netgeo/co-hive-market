@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { setSEO } from "@/lib/seo";
@@ -44,6 +44,7 @@ const Orders = () => {
       const { data, error } = await supabase
         .from("orders")
         .select("id, created_at, status, total_amount_cents, currency")
+        .eq("buyer_user_id", userId as string)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as OrderRow[];
