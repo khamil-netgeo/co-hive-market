@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useCommunity } from "@/context/CommunityContext";
+import LikeButton from "@/components/feed/LikeButton";
 
 // TikTok-style vertical shopping feed (products + services)
 // Mobile-first, full-screen, swipeable interface
@@ -296,7 +297,7 @@ export default function Feed() {
     videoRefs.current.set(index, el);
   };
 
-  const overlay = (it: FeedItem) => {
+  const overlay = (it: FeedItem, idx: number, visible: boolean) => {
     const isProduct = it.kind === "product";
     const product = it as FeedProduct;
     const isDeliveryItem = isProduct && (product.product_kind === 'prepared_food' || product.product_kind === 'grocery');
@@ -347,6 +348,15 @@ export default function Feed() {
             {isProduct ? "Add to Cart" : "View Details"}
           </Button>
         </div>
+
+        {/* Right-side actions (Like) */}
+        <aside className="pointer-events-auto absolute right-4 bottom-28 flex flex-col items-center gap-3 animate-fade-in">
+          <LikeButton
+            targetType={isProduct ? 'product' : 'service'}
+            targetId={it.id}
+            visible={visible}
+          />
+        </aside>
       </div>
     );
   };
@@ -398,13 +408,13 @@ export default function Feed() {
                   onClick={() => setActive(idx)}
                 />
               </div>
-              {overlay(it)}
+              {overlay(it, idx, Math.abs(idx - active) <= 1)}
             </CarouselItem>
           ))}
         </CarouselContent>
       </Carousel>
     );
-  }, [items, loading]);
+  }, [items, loading, active]);
 
   return (
     <main role="main" className="relative">
