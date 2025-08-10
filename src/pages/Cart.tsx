@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchEasyParcelRates } from "@/lib/shipping";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Cart() {
   const cart = useCart();
@@ -25,10 +26,10 @@ export default function Cart() {
   const [sendPostcode, setSendPostcode] = useState("");
   const [sendState, setSendState] = useState("");
   const [sendCountry, setSendCountry] = useState("MY");
-  const [weight, setWeight] = useState<number>(1);
-  const [length, setLength] = useState<number | undefined>(undefined);
-  const [width, setWidth] = useState<number | undefined>(undefined);
-  const [height, setHeight] = useState<number | undefined>(undefined);
+  const [packageSize, setPackageSize] = useState<'S'|'M'|'L'>('M');
+  const [autoRatesTried, setAutoRatesTried] = useState(false);
+  const [deliveryMethod, setDeliveryMethod] = useState<'rider'|'easyparcel'>('rider');
+  const [computedWeightGrams, setComputedWeightGrams] = useState<number | null>(null);
   const [rates, setRates] = useState<RateOption[]>([]);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
   const [loadingRates, setLoadingRates] = useState(false);
@@ -54,6 +55,49 @@ export default function Cart() {
       }
     })();
   }, []);
+
+  // Auto-compute weight bucket and delivery method; prefill pickup postcode; auto-fetch rates
+  useEffect(() => {
+    (async () => {
+      if (cart.items.length === 0) return;
+      const ids = cart.items.map((i) => i.product_id);
+      const { data: prods } = await supabase
+        .from('products')
+        .select('id, weight_grams, product_kind, perishable, allow_easyparcel')
+        .in('id', ids);
+      if (prods && prods.length > 0) {
+        let grams = 0;
+        for (const p of prods) {
+          const qty = cart.items.find((i) => i.product_id === p.id)?.quantity || 1;
+          const w = (p as any).weight_grams ?? 500;
+          grams += w * qty;
+        }
+        setComputedWeightGrams(grams);
+        const kg = grams / 1000;
+        setPackageSize(kg <= 0.5 ? 'S' : kg <= 1 ? 'M' : 'L');
+
+        const first = prods.find((p) => p.id === ids[0]);
+        const deliveryOnly = (first as any)?.product_kind === 'prepared_food'
+          || ((first as any)?.product_kind === 'grocery' && !!(first as any)?.perishable)
+          || ((first as any)?.allow_easyparcel === false);
+        setDeliveryMethod(deliveryOnly ? 'rider' : 'easyparcel');
+      }
+
+      if (cart.vendor_id && !pickPostcode) {
+        const { data: vend } = await supabase.from('vendors').select('pickup_postcode').eq('id', cart.vendor_id).maybeSingle();
+        if ((vend as any)?.pickup_postcode) setPickPostcode((vend as any).pickup_postcode);
+      }
+    })();
+  }, [cart.items, cart.vendor_id, pickPostcode]);
+
+  useEffect(() => {
+    if (deliveryMethod !== 'easyparcel') return;
+    if (autoRatesTried) return;
+    if (pickPostcode && sendPostcode) {
+      setAutoRatesTried(true);
+      getRates();
+    }
+  }, [deliveryMethod, pickPostcode, sendPostcode, autoRatesTried]);
 
   const fmt = (cents: number) =>
     new Intl.NumberFormat((cart.currency || "USD").toUpperCase() === "MYR" ? "ms-MY" : "en-US", {
@@ -87,16 +131,17 @@ export default function Cart() {
   };
 
   const getRates = async () => {
-    if (!pickPostcode || !weight || !sendPostcode) {
+    if (!pickPostcode || !sendPostcode) {
       if (!sendPostcode) {
         toast("Add your address", { description: "Please set your shipping address in Profile first." });
       } else {
-        toast("Enter shipping details", { description: "Pickup postcode and weight are required." });
+        toast("Enter shipping details", { description: "Pickup postcode is required." });
       }
       return;
     }
     try {
       setLoadingRates(true);
+      const weightKg = packageSize === 'S' ? 0.5 : packageSize === 'M' ? 1 : 3;
       const res = await fetchEasyParcelRates({
         pick_postcode: pickPostcode,
         pick_state: pickState || undefined,
@@ -104,17 +149,16 @@ export default function Cart() {
         send_postcode: sendPostcode,
         send_state: sendState || undefined,
         send_country: sendCountry || "MY",
-        weight: Number(weight) || 1,
-        length: length || undefined,
-        width: width || undefined,
-        height: height || undefined,
+        weight: weightKg,
         domestic: (pickCountry || "MY") === (sendCountry || "MY"),
         cod: false,
       });
-      const opts = parseRates((res as any)?.data ?? (res as any));
+      let opts = parseRates((res as any)?.data ?? (res as any));
+      // Prefer cheapest first
+      opts = opts.sort((a, b) => a.price_cents - b.price_cents);
       setRates(opts);
       setSelectedRateId(opts[0]?.id ?? null);
-      if (!opts.length) toast("No rates found", { description: "Try adjusting weight or postcodes." });
+      if (!opts.length) toast("No rates found", { description: "Try adjusting postcodes." });
     } catch (e: any) {
       toast("Rate lookup failed", { description: e.message || String(e) });
     } finally {
@@ -136,7 +180,7 @@ export default function Cart() {
         return;
       }
       setCheckingOut(true);
-      if (!selectedRate) {
+      if (deliveryMethod === 'easyparcel' && !selectedRate) {
         toast("Select a shipping option", { description: "Fetch rates and choose a courier before checkout." });
         return;
       }
@@ -234,22 +278,22 @@ export default function Cart() {
                     </Button>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="weight" className="text-xs">Weight (kg)</Label>
-                    <Input id="weight" type="number" min={0.1} step={0.1} value={weight} onChange={(e) => setWeight(Number(e.target.value))} className="h-8 text-sm" />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="space-y-1 sm:col-span-1">
+                    <Label className="text-xs">Package size</Label>
+                    <Select value={packageSize} onValueChange={(v) => setPackageSize(v as any)}>
+                      <SelectTrigger className="h-8">
+                        <SelectValue placeholder="Size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="S">Small — up to 0.5 kg</SelectItem>
+                        <SelectItem value="M">Medium — up to 1 kg</SelectItem>
+                        <SelectItem value="L">Large — up to 3 kg</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="length" className="text-xs">L (cm)</Label>
-                    <Input id="length" type="number" min={0} value={length ?? ""} onChange={(e) => setLength(e.target.value === "" ? undefined : Number(e.target.value))} className="h-8 text-sm" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="width" className="text-xs">W (cm)</Label>
-                    <Input id="width" type="number" min={0} value={width ?? ""} onChange={(e) => setWidth(e.target.value === "" ? undefined : Number(e.target.value))} className="h-8 text-sm" />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="height" className="text-xs">H (cm)</Label>
-                    <Input id="height" type="number" min={0} value={height ?? ""} onChange={(e) => setHeight(e.target.value === "" ? undefined : Number(e.target.value))} className="h-8 text-sm" />
+                  <div className="text-xs text-muted-foreground sm:col-span-2 flex items-end">
+                    Auto-calculated from cart items{computedWeightGrams != null ? ` (~${(computedWeightGrams/1000).toFixed(2)} kg)` : ""}.
                   </div>
                 </div>
                 <div>
