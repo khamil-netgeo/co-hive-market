@@ -65,6 +65,31 @@ serve(async (req) => {
       .single();
     if (uErr) throw uErr;
 
+    // Log progress event for buyer/vendor visibility
+    try {
+      const eventMap: Record<string, { event: string; description: string }> = {
+        start_pickup: { event: "rider_en_route_pickup", description: "Rider is en route to pickup" },
+        picked_up: { event: "rider_picked_up", description: "Order picked up by rider" },
+        start_dropoff: { event: "rider_en_route_dropoff", description: "Rider is en route to dropoff" },
+        delivered: { event: "order_delivered_by_rider", description: "Order delivered by rider" },
+      };
+      const evt = eventMap[action];
+      if (evt) {
+        const { error: evtErr } = await supabaseAdmin
+          .from("order_progress_events")
+          .insert({
+            order_id: delivery.order_id,
+            event: evt.event,
+            description: evt.description,
+            metadata: { delivery_id, prev_status: delivery.status, new_status: newStatus },
+            created_by: userId,
+          });
+        if (evtErr) console.error("Failed to add progress event", evtErr);
+      }
+    } catch (e) {
+      console.error("Progress event error", e);
+    }
+
     // When delivered, record a rider earning once
     if (newStatus === "delivered") {
       // Check if an earning already exists for this order and rider

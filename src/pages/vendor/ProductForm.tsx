@@ -23,7 +23,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import MediaUploader from "@/components/media/MediaUploader";
 import { Separator } from "@/components/ui/separator";
-
+import MapPicker from "@/components/map/MapPicker";
 const DIETARY_OPTIONS = [
   "vegan",
   "vegetarian", 
@@ -1013,7 +1013,9 @@ const ProductForm = () => {
                       <Separator />
                       <div>
                         <FormLabel>Pickup Location (optional)</FormLabel>
-                        <FormDescription>Set specific pickup coordinates for this product</FormDescription>
+                        <FormDescription>
+                          Set specific pickup coordinates for this product. Recommended if you enable Rider Delivery.
+                        </FormDescription>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <FormField
@@ -1048,6 +1050,18 @@ const ProductForm = () => {
                           </Button>
                         </div>
                       </div>
+
+                      {/* Interactive map picker */}
+                      <MapPicker
+                        value={{
+                          latitude: form.watch("pickup_lat") ? parseFloat(form.watch("pickup_lat") as string) : undefined,
+                          longitude: form.watch("pickup_lng") ? parseFloat(form.watch("pickup_lng") as string) : undefined,
+                        }}
+                        onChange={(coords) => {
+                          form.setValue("pickup_lat", String(coords.latitude));
+                          form.setValue("pickup_lng", String(coords.longitude));
+                        }}
+                      />
                     </div>
                   </CardContent>
                 </Card>

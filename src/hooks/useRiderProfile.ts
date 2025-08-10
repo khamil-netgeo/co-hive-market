@@ -113,6 +113,7 @@ export function useRiderProfile() {
     await updateProfile({
       current_lat: lat,
       current_lng: lng,
+      last_location_update: new Date().toISOString(),
     });
   };
 
