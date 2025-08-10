@@ -67,9 +67,9 @@ export default function CreatorStudio() {
   if (!vendorId) return null;
 
   const CardRow = ({ title, items, type }: { title: string; items: (Product | Service)[]; type: "product" | "service" }) => (
-    <Card>
+    <Card className="tiktok-card">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle className="text-gradient-brand">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         {items.length === 0 ? (
@@ -77,8 +77,8 @@ export default function CreatorStudio() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {items.map((item) => (
-              <div key={item.id} className="border rounded-md overflow-hidden">
-                <div className="aspect-video bg-muted/40">
+              <div key={item.id} className="tiktok-card border-0 overflow-hidden hover-lift">
+                <div className="aspect-video bg-muted/40 relative overflow-hidden rounded-xl">
                   {/* Fallback to image if available */}
                   {item.video_url ? (
                     <video src={item.video_url} className="h-full w-full object-cover" muted playsInline />
@@ -86,14 +86,14 @@ export default function CreatorStudio() {
                     <img src={item.image_urls[0]} alt={`${item.name} preview`} className="h-full w-full object-cover" loading="lazy" />
                   ) : null}
                 </div>
-                <div className="p-3 space-y-1">
-                  <div className="text-sm font-medium line-clamp-1">{item.name}</div>
-                  <div className="text-xs text-muted-foreground">{(item.price_cents/100).toFixed(2)} {(item.currency || 'MYR').toUpperCase()}</div>
+                <div className="p-4 space-y-2">
+                  <div className="text-sm font-semibold line-clamp-1">{item.name}</div>
+                  <div className="text-xs text-brand-1 font-medium">{(item.price_cents/100).toFixed(2)} {(item.currency || 'MYR').toUpperCase()}</div>
                   <div className="pt-2 flex gap-2">
-                    <Button asChild size="sm" variant="secondary">
+                    <Button asChild size="sm" variant="tiktok" className="flex-1">
                       <Link to={type === 'product' ? `/vendor/products/${item.id}/edit` : `/vendor/services/${item.id}/edit`}>Edit</Link>
                     </Button>
-                    <Button asChild size="sm" variant="outline">
+                    <Button asChild size="sm" variant="outline" className="flex-1">
                       <Link to={type === 'product' ? `/product/${item.id}` : `/service/${item.id}`}>Preview</Link>
                     </Button>
                   </div>
@@ -112,12 +112,12 @@ export default function CreatorStudio() {
       <section className="container px-4 py-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold">Creator Studio</h1>
+            <h1 className="text-3xl font-bold text-gradient-brand">Creator Studio</h1>
             <p className="text-muted-foreground">Upload short videos to make your listings shoppable in the feed.</p>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline"><Link to="/vendor/products/new">Add Product</Link></Button>
-            <Button asChild variant="outline"><Link to="/vendor/services/new">Add Service</Link></Button>
+          <div className="flex gap-3">
+            <Button asChild variant="tiktok" size="lg"><Link to="/vendor/products/new">Add Product</Link></Button>
+            <Button asChild variant="hero" size="lg"><Link to="/vendor/services/new">Add Service</Link></Button>
           </div>
         </div>
 

@@ -161,23 +161,25 @@ export default function Feed() {
   };
 
   const overlay = (it: FeedItem) => (
-    <div className="pointer-events-none absolute inset-0 flex flex-col justify-end p-4 sm:p-6 bg-gradient-to-t from-background/70 via-background/10 to-transparent">
-      <div className="max-w-md space-y-2">
-        <h1 className="text-xl sm:text-2xl font-semibold leading-tight">
+    <div className="pointer-events-none absolute inset-0 flex flex-col justify-end p-4 sm:p-6 video-overlay">
+      <div className="max-w-md space-y-3">
+        <h1 className="text-xl sm:text-2xl font-bold leading-tight text-white drop-shadow-lg">
           {it.name}
         </h1>
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        <p className="text-sm text-white/90 line-clamp-2 drop-shadow-md">
           {(it as any).subtitle || it.description || ""}
         </p>
-        <div className="flex items-center gap-3 pt-2">
-          <span className="text-base sm:text-lg font-medium">{fmt(it.price_cents, it.currency)}</span>
+        <div className="flex items-center gap-3 pt-1">
+          <span className="text-lg sm:text-xl font-bold text-white drop-shadow-lg">
+            {fmt(it.price_cents, it.currency)}
+          </span>
         </div>
       </div>
-      <div className="mt-4 flex gap-2 pointer-events-auto">
-        <Button size="lg" variant="secondary" onClick={() => onPrimary(it)}>
+      <div className="mt-4 flex gap-3 pointer-events-auto">
+        <Button size="lg" variant="tiktok" className="font-bold" onClick={() => onPrimary(it)}>
           {it.kind === "product" ? "Buy now" : "Book now"}
         </Button>
-        <Button size="lg" variant="default" onClick={() => onAddToCart(it)}>
+        <Button size="lg" variant="hero" className="font-bold" onClick={() => onAddToCart(it)}>
           {it.kind === "product" ? "Add to cart" : "View details"}
         </Button>
       </div>

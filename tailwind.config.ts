@@ -65,15 +65,20 @@ export default {
 				brand: {
 					1: 'hsl(var(--brand-1))',
 					2: 'hsl(var(--brand-2))',
-					3: 'hsl(var(--brand-3))'
+					3: 'hsl(var(--brand-3))',
+					success: 'hsl(var(--brand-success))',
+					warning: 'hsl(var(--brand-warning))'
 				}
 			},
 			backgroundImage: {
-				'gradient-primary': 'var(--gradient-primary)'
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-secondary': 'var(--gradient-secondary)',
+				'gradient-rainbow': 'var(--gradient-rainbow)'
 			},
 			boxShadow: {
 				'elegant': 'var(--shadow-elegant)',
-				'glow': 'var(--shadow-glow)'
+				'glow': 'var(--shadow-glow)',
+				'neon': 'var(--shadow-neon)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
