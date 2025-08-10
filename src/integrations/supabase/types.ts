@@ -181,6 +181,33 @@ export type Database = {
           },
         ]
       }
+      cart_snapshots: {
+        Row: {
+          created_at: string
+          currency: string | null
+          id: string
+          items: Json
+          user_id: string
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          id?: string
+          items: Json
+          user_id: string
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          id?: string
+          items?: Json
+          user_id?: string
+          vendor_id?: string | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string

@@ -102,6 +102,26 @@ const containerRef = useRef<HTMLDivElement | null>(null);
         }
 
 
+        // Snapshot the cart to persist line items for order creation
+        let snapshotId: string | null = null;
+        try {
+          if (userData.user) {
+            const { data: snap } = await supabase
+              .from("cart_snapshots")
+              .insert({
+                user_id: userData.user.id,
+                vendor_id: cart.vendor_id,
+                currency: cart.currency,
+                items: cart.items,
+              })
+              .select("id")
+              .single();
+            snapshotId = (snap as any)?.id ?? null;
+          }
+        } catch (_) {
+          // Non-fatal; order will still be created without item details
+        }
+
         const { data, error } = await supabase.functions.invoke("create-embedded-checkout", {
           body: {
             name: `Cart purchase (${cart.count} item${cart.count > 1 ? "s" : ""})`,
@@ -113,6 +133,7 @@ const containerRef = useRef<HTMLDivElement | null>(null);
             product_id: cart.items[0]?.product_id,
             delivery_method: deliveryMethod,
             total_weight_grams: totalWeightGrams,
+            snapshot_id: snapshotId,
           },
         });
         if (error) {

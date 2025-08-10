@@ -181,6 +181,34 @@ serve(async (req) => {
     ]);
     if (ledgerErr) throw ledgerErr;
 
+    // Persist line items from cart snapshot, if available
+    try {
+      const snapshotId = (md as any)?.snapshot_id as string | undefined;
+      if (snapshotId) {
+        const { data: snap } = await service
+          .from("cart_snapshots")
+          .select("items")
+          .eq("id", snapshotId)
+          .maybeSingle();
+        const items = (snap as any)?.items as Array<any> | undefined;
+        if (Array.isArray(items) && items.length > 0) {
+          const rows = items.map((it) => ({
+            order_id: order.id,
+            product_id: String(it.product_id),
+            quantity: Math.max(1, Number(it.quantity || 1)),
+            unit_price_cents: Math.max(0, Math.round(Number(it.price_cents || 0))),
+          }));
+          await service.from("order_items").insert(rows as any);
+        }
+        // Best-effort cleanup (non-blocking)
+        (globalThis as any).EdgeRuntime?.waitUntil?.(
+          service.from("cart_snapshots").delete().eq("id", snapshotId)
+        );
+      }
+    } catch (e) {
+      console.error("Failed to persist order items from snapshot:", e);
+    }
+
     // Mark order as paid and record initial progress events
     try {
       await service.from("orders").update({ status: "paid" }).eq("id", order.id);
