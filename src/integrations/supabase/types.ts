@@ -1764,6 +1764,10 @@ export type Database = {
         Args: { _community_id: string; _user_id: string }
         Returns: boolean
       }
+      is_vendor_owner: {
+        Args: { _vendor_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "superadmin"
