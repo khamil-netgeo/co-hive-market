@@ -52,7 +52,9 @@ export default function ProductDetail() {
   const [community, setCommunity] = useState<Community | null>(null);
   const [isMember, setIsMember] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+const [deliveryOption, setDeliveryOption] = useState<'asap' | 'schedule'>('asap');
+const [scheduledAt, setScheduledAt] = useState<string>('');
 
   useEffect(() => {
     if (!id) {
@@ -229,8 +231,10 @@ export default function ProductDetail() {
 
   const buyNow = async () => {
     if (!product) return;
-    
     try {
+      const useRider = product.product_kind === 'prepared_food' || (!!product.perishable && product.allow_easyparcel === false);
+      const scheduled = deliveryOption === 'schedule' && scheduledAt ? new Date(scheduledAt).toISOString() : undefined;
+
       const { data, error } = await supabase.functions.invoke("create-payment", {
         body: {
           name: product.name,
@@ -241,9 +245,10 @@ export default function ProductDetail() {
           product_id: product.id,
           vendor_id: product.vendor_id,
           community_id: product.community_id,
+          delivery_method: useRider ? 'rider' : undefined,
+          scheduled_dropoff_at: scheduled,
         },
       });
-      
       if (error) throw error;
       window.open((data as any)?.url, "_blank");
     } catch (e: any) {
@@ -426,6 +431,28 @@ export default function ProductDetail() {
                     <Button size="sm" variant="secondary" onClick={joinCommunity}>
                       Join community to save
                     </Button>
+                  </div>
+                )}
+
+                {/* Delivery time (for hot food/perishables) */}
+                {(product.product_kind === 'prepared_food' || product.perishable) && (
+                  <div className="mb-4 space-y-2">
+                    <h4 className="text-sm font-medium">Delivery time</h4>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                      <div className="flex items-center gap-2">
+                        <button type="button" className={`px-3 py-1.5 rounded-md border text-sm ${deliveryOption === 'asap' ? 'bg-accent' : ''}`} onClick={() => setDeliveryOption('asap')}>ASAP</button>
+                        <button type="button" className={`px-3 py-1.5 rounded-md border text-sm ${deliveryOption === 'schedule' ? 'bg-accent' : ''}`} onClick={() => setDeliveryOption('schedule')}>Schedule</button>
+                      </div>
+                      {deliveryOption === 'schedule' && (
+                        <input
+                          type="datetime-local"
+                          value={scheduledAt}
+                          onChange={(e) => setScheduledAt(e.target.value)}
+                          className="border rounded-md px-3 py-1.5 text-sm"
+                        />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Rider delivery • {product.prep_time_minutes ? `${product.prep_time_minutes + 30}-${product.prep_time_minutes + 60} mins` : '30-60 mins'} ETA for ASAP.</p>
                   </div>
                 )}
 

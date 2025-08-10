@@ -165,6 +165,72 @@ serve(async (req) => {
     ]);
     if (ledgerErr) throw ledgerErr;
 
+    // Optional: Create delivery for rider method (food/groceries local delivery)
+    const deliveryMethod = md.delivery_method;
+    if (deliveryMethod === 'rider') {
+      try {
+        // Resolve pickup and dropoff coordinates
+        let pickup_lat: number | null = null;
+        let pickup_lng: number | null = null;
+        if (md.product_id) {
+          const { data: prod } = await service
+            .from("products")
+            .select("pickup_lat,pickup_lng")
+            .eq("id", md.product_id)
+            .maybeSingle();
+          pickup_lat = (prod as any)?.pickup_lat ?? null;
+          pickup_lng = (prod as any)?.pickup_lng ?? null;
+        }
+
+        const { data: prof } = await service
+          .from("profiles")
+          .select("latitude,longitude,address_line1,address_line2,city,state,postcode")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        const dropoff_lat = (prof as any)?.latitude ?? null;
+        const dropoff_lng = (prof as any)?.longitude ?? null;
+        const dropAddrParts = [
+          (prof as any)?.address_line1,
+          (prof as any)?.address_line2,
+          (prof as any)?.city,
+          (prof as any)?.state,
+          (prof as any)?.postcode,
+        ].filter(Boolean);
+        const dropoff_address = dropAddrParts.join(", ");
+
+        const scheduled_dropoff_at = md.scheduled_dropoff_at ? new Date(String(md.scheduled_dropoff_at)).toISOString() : null;
+
+        const { data: delivery, error: dErr } = await service
+          .from("deliveries")
+          .insert({
+            order_id: order.id,
+            pickup_lat,
+            pickup_lng,
+            dropoff_lat,
+            dropoff_lng,
+            dropoff_address: dropoff_address || null,
+            scheduled_dropoff_at: scheduled_dropoff_at as any,
+            status: 'assigned',
+          })
+          .select("id,pickup_lat,pickup_lng")
+          .single();
+        if (dErr) throw dErr;
+
+        if (delivery?.pickup_lat != null && delivery?.pickup_lng != null) {
+          // Fan-out to nearby riders
+          await service.rpc('assign_delivery_to_riders', {
+            delivery_id_param: delivery.id,
+            pickup_lat: delivery.pickup_lat as number,
+            pickup_lng: delivery.pickup_lng as number,
+          });
+        }
+      } catch (e) {
+        console.error('Delivery creation failed:', e);
+        // Continue without blocking order
+      }
+    }
+
     return new Response(
       JSON.stringify({ order, splits: { vendor_payout_cents: vendorPayout, community_share_cents: communityShare, coop_share_cents: coopShare } }),
       {

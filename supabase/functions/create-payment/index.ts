@@ -37,6 +37,9 @@ serve(async (req) => {
       product_id,
       vendor_id,
       community_id,
+      // Optional delivery metadata
+      delivery_method,
+      scheduled_dropoff_at,
     } = body ?? {};
 
     if (!amount_cents || typeof amount_cents !== "number" || amount_cents <= 0) {
@@ -81,6 +84,8 @@ serve(async (req) => {
         product_id: product_id ? String(product_id) : undefined,
         vendor_id: vendor_id ? String(vendor_id) : undefined,
         community_id: community_id ? String(community_id) : undefined,
+        delivery_method: delivery_method ? String(delivery_method) : undefined,
+        scheduled_dropoff_at: scheduled_dropoff_at ? String(scheduled_dropoff_at) : undefined,
       },
     });
 
