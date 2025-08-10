@@ -12,7 +12,7 @@ interface Product { id: string; name: string; price_cents: number; currency: str
 interface Service { id: string; name: string; price_cents: number; currency: string; status: string; video_url?: string | null; image_urls?: string[] | null }
 
 export default function CreatorStudio() {
-  const { user } = useAuthRoles();
+  const { user, loading: authLoading } = useAuthRoles();
   const navigate = useNavigate();
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -25,6 +25,7 @@ export default function CreatorStudio() {
 
   useEffect(() => {
     const load = async () => {
+      if (authLoading) return; // Wait for auth to resolve
       if (!user) { navigate("/auth"); return; }
       try {
         const { data: vend, error: vErr } = await supabase
@@ -51,7 +52,7 @@ export default function CreatorStudio() {
       }
     };
     load();
-  }, [user]);
+  }, [user, authLoading, navigate]);
 
   const withVideo = useMemo(() => ({
     products: products.filter(p => !!p.video_url),
@@ -63,7 +64,7 @@ export default function CreatorStudio() {
     services: services.filter(s => !s.video_url),
   }), [products, services]);
 
-  if (loading) return <div className="container px-4 py-8">Loading…</div>;
+  if (authLoading || loading) return <div className="container px-4 py-8">Loading…</div>;
   if (!vendorId) return null;
 
   const CardRow = ({ title, items, type }: { title: string; items: (Product | Service)[]; type: "product" | "service" }) => (
