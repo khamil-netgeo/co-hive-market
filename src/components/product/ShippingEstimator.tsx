@@ -3,18 +3,25 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchEasyParcelRates } from "@/lib/shipping";
-import { Truck, Loader2 } from "lucide-react";
+import { Truck, Loader2, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ShippingEstimatorProps {
   defaultPickPostcode?: string;
   defaultSendPostcode?: string;
   defaultWeightKg?: number; // kilograms
+  productKind?: string;
+  perishable?: boolean;
+  allowEasyparcel?: boolean;
 }
 
 export default function ShippingEstimator({
   defaultPickPostcode = "",
   defaultSendPostcode = "",
   defaultWeightKg = 1,
+  productKind,
+  perishable,
+  allowEasyparcel = true,
 }: ShippingEstimatorProps) {
   const [pick, setPick] = useState(defaultPickPostcode);
   const [send, setSend] = useState(defaultSendPostcode);
@@ -47,15 +54,28 @@ export default function ShippingEstimator({
     }
   };
 
+  const isDeliveryOnly = productKind === 'prepared_food' || (productKind === 'grocery' && perishable) || !allowEasyparcel;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Truck className="h-5 w-5 text-primary" />
-          Shipping estimator
+          {isDeliveryOnly ? 'Local Delivery Only' : 'Shipping Options'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {isDeliveryOnly && (
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {productKind === 'prepared_food' 
+                ? 'Fresh prepared food is delivered by local riders within your community for optimal quality and temperature.'
+                : 'Fresh perishable items require local delivery to maintain quality and safety.'
+              }
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Input placeholder="Pickup postcode" value={pick} onChange={(e) => setPick(e.target.value)} />
           <Input placeholder="Delivery postcode" value={send} onChange={(e) => setSend(e.target.value)} />
@@ -68,21 +88,23 @@ export default function ShippingEstimator({
             onChange={(e) => setWeight(parseFloat(e.target.value))}
           />
         </div>
-        <Button onClick={onCheck} disabled={loading || !pick || !send}>
-          {loading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Checking...
-            </>
-          ) : (
-            "Check rates"
-          )}
-        </Button>
+        {!isDeliveryOnly && (
+          <Button onClick={onCheck} disabled={loading || !pick || !send}>
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Checking...
+              </>
+            ) : (
+              "Check rates"
+            )}
+          </Button>
+        )}
 
-        {error && (
+        {error && !isDeliveryOnly && (
           <div className="text-sm text-destructive">{error}</div>
         )}
 
-        {Array.isArray(results) && results.length > 0 && (
+        {!isDeliveryOnly && Array.isArray(results) && results.length > 0 && (
           <div className="space-y-2">
             {results.slice(0, 5).map((r, idx) => (
               <div key={idx} className="rounded border p-3 text-sm flex items-center justify-between">
@@ -95,6 +117,21 @@ export default function ShippingEstimator({
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {isDeliveryOnly && (
+          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Truck className="h-4 w-4 text-primary" />
+              <span className="font-medium text-sm">Local Rider Delivery</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p>• Delivered within 30-60 minutes</p>
+              <p>• Service radius: 10km from pickup location</p>
+              <p>• {productKind === 'prepared_food' ? 'Temperature controlled for hot food' : 'Refrigerated transport available'}</p>
+              <p>• Real-time tracking via your community riders</p>
+            </div>
           </div>
         )}
       </CardContent>

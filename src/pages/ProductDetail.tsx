@@ -12,6 +12,8 @@ import Breadcrumbs from "@/components/common/Breadcrumbs";
 import ShareButtons from "@/components/common/ShareButtons";
 import ProductTrustBadges from "@/components/product/ProductTrustBadges";
 import ShippingEstimator from "@/components/product/ShippingEstimator";
+import DeliveryBanner from "@/components/delivery/DeliveryBanner";
+import DeliveryInfoCard from "@/components/delivery/DeliveryInfoCard";
 import ReviewSummary from "@/components/reviews/ReviewSummary";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
@@ -30,6 +32,11 @@ interface Product {
   pickup_lng?: number | null;
   stock_qty?: number;
   weight_grams?: number | null;
+  product_kind?: string;
+  perishable?: boolean;
+  refrigeration_required?: boolean;
+  allow_easyparcel?: boolean;
+  prep_time_minutes?: number;
 }
 
 interface Vendor { id: string; member_discount_override_percent: number | null }
@@ -443,10 +450,26 @@ export default function ProductDetail() {
               </CardContent>
             </Card>
 
-            {/* Trust & shipping */}
+            {/* Delivery & shipping */}
             <div className="space-y-4">
+              <DeliveryBanner 
+                productKind={product.product_kind}
+                perishable={product.perishable}
+                estimatedDeliveryTime={product.prep_time_minutes ? `${product.prep_time_minutes + 30}-${product.prep_time_minutes + 60} mins` : "30-60 mins"}
+              />
+              <DeliveryInfoCard 
+                productKind={product.product_kind}
+                perishable={product.perishable}
+                refrigerationRequired={product.refrigeration_required}
+                prepTimeMinutes={product.prep_time_minutes}
+              />
               <ProductTrustBadges />
-              <ShippingEstimator defaultWeightKg={product.weight_grams ? Math.max(0.1, product.weight_grams / 1000) : 1} />
+              <ShippingEstimator 
+                defaultWeightKg={product.weight_grams ? Math.max(0.1, product.weight_grams / 1000) : 1}
+                productKind={product.product_kind}
+                perishable={product.perishable}
+                allowEasyparcel={product.allow_easyparcel}
+              />
             </div>
           </div>
         </div>

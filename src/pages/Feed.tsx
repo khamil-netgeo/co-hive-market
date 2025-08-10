@@ -21,6 +21,9 @@ type FeedProduct = {
   community_id?: string | null;
   video_url: string;
   created_at: string;
+  product_kind?: string;
+  perishable?: boolean;
+  prep_time_minutes?: number;
 };
 
 type FeedService = {
@@ -66,7 +69,7 @@ export default function Feed() {
         const [{ data: products, error: pErr }, { data: services, error: sErr }] = await Promise.all([
           supabase
             .from("products")
-            .select("id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status")
+            .select("id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes")
             .not("video_url", "is", null)
             .eq("status", "active")
             .order("created_at", { ascending: false })
@@ -93,6 +96,9 @@ export default function Feed() {
             community_id: p.community_id,
             video_url: p.video_url,
             created_at: p.created_at,
+            product_kind: p.product_kind,
+            perishable: p.perishable,
+            prep_time_minutes: p.prep_time_minutes,
           } as FeedProduct)),
           ...((services as any[]) || []).map((s) => ({
             kind: "service",
@@ -160,31 +166,60 @@ export default function Feed() {
     videoRefs.current.set(index, el);
   };
 
-  const overlay = (it: FeedItem) => (
-    <div className="pointer-events-none absolute inset-0 flex flex-col justify-end p-4 sm:p-6 video-overlay">
-      <div className="max-w-md space-y-3">
-        <h1 className="text-xl sm:text-2xl font-bold leading-tight text-white drop-shadow-lg">
-          {it.name}
-        </h1>
-        <p className="text-sm text-white/90 line-clamp-2 drop-shadow-md">
-          {(it as any).subtitle || it.description || ""}
-        </p>
-        <div className="flex items-center gap-3 pt-1">
-          <span className="text-lg sm:text-xl font-bold text-white drop-shadow-lg">
-            {fmt(it.price_cents, it.currency)}
-          </span>
+  const overlay = (it: FeedItem) => {
+    const isProduct = it.kind === "product";
+    const product = it as FeedProduct;
+    const isDeliveryItem = isProduct && (product.product_kind === 'prepared_food' || product.product_kind === 'grocery');
+    
+    return (
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-end p-4 sm:p-6 video-overlay">
+        <div className="max-w-md space-y-3">
+          {/* Delivery indicator for food/grocery */}
+          {isDeliveryItem && (
+            <div className="flex items-center gap-2 mb-2 pointer-events-none">
+              <div className="bg-green-500/90 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2">
+                <span className="text-sm">🚚</span>
+                <span className="text-sm text-white font-medium">
+                  {product.product_kind === 'prepared_food' ? 'Hot Food Delivery' : 'Fresh Grocery Delivery'}
+                </span>
+              </div>
+              <div className="bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full">
+                <span className="text-xs text-white">
+                  {product.prep_time_minutes ? `${product.prep_time_minutes + 30}-${product.prep_time_minutes + 60} mins` : '30-60 mins'}
+                </span>
+              </div>
+            </div>
+          )}
+          
+          <h1 className="text-xl sm:text-2xl font-bold leading-tight text-white drop-shadow-lg">
+            {it.name}
+          </h1>
+          <p className="text-sm text-white/90 line-clamp-2 drop-shadow-md">
+            {(it as any).subtitle || it.description || ""}
+          </p>
+          <div className="flex items-center gap-3 pt-1">
+            <span className="text-lg sm:text-xl font-bold text-white drop-shadow-lg">
+              {fmt(it.price_cents, it.currency)}
+            </span>
+            {isDeliveryItem && (
+              <span className="text-xs text-white/80 drop-shadow-md">+ delivery</span>
+            )}
+          </div>
+        </div>
+        <div className="mt-4 flex gap-3 pointer-events-auto">
+          <Button size="lg" variant="tiktok" className="font-bold" onClick={() => onPrimary(it)}>
+            {isProduct 
+              ? (isDeliveryItem ? "Order Now" : "Buy Now") 
+              : "Book Now"
+            }
+          </Button>
+          <Button size="lg" variant="hero" className="font-bold" onClick={() => onAddToCart(it)}>
+            {isProduct ? "Add to Cart" : "View Details"}
+          </Button>
         </div>
       </div>
-      <div className="mt-4 flex gap-3 pointer-events-auto">
-        <Button size="lg" variant="tiktok" className="font-bold" onClick={() => onPrimary(it)}>
-          {it.kind === "product" ? "Buy now" : "Book now"}
-        </Button>
-        <Button size="lg" variant="hero" className="font-bold" onClick={() => onAddToCart(it)}>
-          {it.kind === "product" ? "Add to cart" : "View details"}
-        </Button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const content = useMemo(() => {
     if (loading) {
