@@ -16,11 +16,13 @@ interface OrderRow {
   currency: string;
 }
 
+
 const cents = (n: number, currency: string) =>
   new Intl.NumberFormat(undefined, { style: "currency", currency: currency.toUpperCase() || "USD" }).format((n || 0) / 100);
 
 const Orders = () => {
   const [userId, setUserId] = useState<string | null>(null);
+  const [orderThumbs, setOrderThumbs] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setSEO("My Orders — CoopMarket", "View your recent marketplace orders");
@@ -66,6 +68,43 @@ const Orders = () => {
       supabase.removeChannel(channel);
     };
   }, [userId, refetch]);
+  // Load a thumbnail per order (first product image)
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!orders || orders.length === 0) {
+          setOrderThumbs({});
+          return;
+        }
+        const orderIds = orders.map((o) => o.id);
+        const { data: items } = await supabase
+          .from("order_items")
+          .select("order_id,product_id")
+          .in("order_id", orderIds);
+        const productIds = Array.from(new Set((items || []).map((r: any) => r.product_id))).filter(Boolean);
+        if (productIds.length === 0) return;
+        const { data: prods } = await supabase
+          .from("products")
+          .select("id,image_urls")
+          .in("id", productIds);
+        const imgByProduct = new Map<string, string>();
+        (prods || []).forEach((p: any) => {
+          const u = p?.image_urls?.[0];
+          if (u) imgByProduct.set(p.id, u);
+        });
+        const map: Record<string, string> = {};
+        (items || []).forEach((r: any) => {
+          if (!map[r.order_id]) {
+            const img = imgByProduct.get(r.product_id);
+            if (img) map[r.order_id] = img;
+          }
+        });
+        setOrderThumbs(map);
+      } catch (_) {
+        // non-fatal; ignore
+      }
+    })();
+  }, [orders]);
 
   return (
     <main className="container py-8">

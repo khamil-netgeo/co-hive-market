@@ -33,6 +33,7 @@ export default function Cart() {
   const [rates, setRates] = useState<RateOption[]>([]);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
   const [loadingRates, setLoadingRates] = useState(false);
+  const [productImages, setProductImages] = useState<Record<string, string>>({});
 
   // Load buyer registered address from profiles
   const [profile, setProfile] = useState<{ address_line1?: string | null; address_line2?: string | null; city?: string | null; state?: string | null; postcode?: string | null; country?: string | null } | null>(null);
@@ -63,7 +64,7 @@ export default function Cart() {
       const ids = cart.items.map((i) => i.product_id);
       const { data: prods } = await supabase
         .from('products')
-        .select('id, weight_grams, product_kind, perishable, allow_easyparcel')
+        .select('id, weight_grams, product_kind, perishable, allow_easyparcel, image_urls')
         .in('id', ids);
       if (prods && prods.length > 0) {
         let grams = 0;
@@ -81,6 +82,14 @@ export default function Cart() {
           || ((first as any)?.product_kind === 'grocery' && !!(first as any)?.perishable)
           || ((first as any)?.allow_easyparcel === false);
         setDeliveryMethod(deliveryOnly ? 'rider' : 'easyparcel');
+
+        // Build image map for thumbnails
+        const imgMap: Record<string, string> = {};
+        for (const p of prods) {
+          const u = (p as any)?.image_urls?.[0];
+          if (u) imgMap[p.id] = u;
+        }
+        setProductImages(imgMap);
       }
 
       if (cart.vendor_id && (!pickPostcode || !pickState || !pickCountry)) {
@@ -239,9 +248,19 @@ export default function Cart() {
                 {cart.items.map((it) => (
                   <div key={it.product_id} className="border rounded-lg p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-sm md:text-base leading-tight">{it.name}</h3>
-                        <p className="text-xs md:text-sm text-muted-foreground mt-1">{fmt(it.price_cents)} each</p>
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded border bg-muted">
+                          <img
+                            src={productImages[it.product_id] || "/placeholder.svg"}
+                            alt={`${it.name} image`}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-medium text-sm md:text-base leading-tight line-clamp-2">{it.name}</h3>
+                          <p className="text-xs md:text-sm text-muted-foreground mt-1">{fmt(it.price_cents)} each</p>
+                        </div>
                       </div>
                       <Button 
                         variant="outline" 

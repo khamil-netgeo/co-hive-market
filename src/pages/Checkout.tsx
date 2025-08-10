@@ -20,11 +20,29 @@ export default function Checkout() {
   // Keep a single Embedded Checkout instance per page
   const checkoutRef = useRef<any>(null);
   const initOnceRef = useRef(false);
+  const [productImages, setProductImages] = useState<Record<string, string>>({});
 
   useMemo(() => setSEO("Checkout | CoopMarket", "Secure, embedded checkout without leaving the app."), []);
 
   const shippingCents = (location.state as any)?.shippingCents ?? 0;
   const totalCents = cart.subtotal_cents + shippingCents;
+
+  useEffect(() => {
+    (async () => {
+      const ids = cart.items.map((i) => i.product_id);
+      if (!ids.length) return;
+      const { data: prods } = await supabase
+        .from('products')
+        .select('id,image_urls')
+        .in('id', ids);
+      const map: Record<string, string> = {};
+      (prods || []).forEach((p: any) => {
+        const u = p?.image_urls?.[0];
+        if (u) map[p.id] = u;
+      });
+      setProductImages(map);
+    })();
+  }, [cart.items.map((i) => i.product_id).join(',')]);
 
   useEffect(() => {
     (async () => {
@@ -228,7 +246,23 @@ export default function Checkout() {
             <CardHeader>
               <CardTitle>Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
+              <div className="space-y-2">
+                {cart.items.map((it) => (
+                  <div key={it.product_id} className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded border overflow-hidden bg-muted">
+                      <img
+                        src={productImages[it.product_id] || "/placeholder.svg"}
+                        alt={`${it.name} image`}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="text-sm line-clamp-1">{it.name}</div>
+                    <div className="ml-auto text-xs text-muted-foreground">x{it.quantity}</div>
+                  </div>
+                ))}
+              </div>
               <div className="flex items-center justify-between text-sm"><span className="text-muted-foreground">Items</span><span className="font-medium">{cart.count}</span></div>
               <div className="flex items-center justify-between text-sm"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">{fmt(cart.subtotal_cents)}</span></div>
               <div className="flex items-center justify-between text-sm"><span className="text-muted-foreground">Shipping</span><span className="font-semibold">{shippingCents ? fmt(shippingCents) : "—"}</span></div>
