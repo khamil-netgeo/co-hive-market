@@ -327,21 +327,21 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
 
 
   return (
-    <main className="container px-4 py-6 pb-24 md:pb-12">
-      <div className="space-y-6">
+    <main className="container px-3 sm:px-4 py-4 pb-24 md:pb-12">
+      <div className="space-y-4 sm:space-y-6">
         <Breadcrumbs
           items={[
             { label: "Home", href: "/" },
             { label: "Catalog", href: "/catalog" },
             { label: product.name },
           ]}
-          className="mb-4"
+          className="mb-3 sm:mb-4 text-xs sm:text-sm"
         />
 
         {/* Mobile-First Hero Section */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Product Header - Mobile Stack, Desktop Side-by-side */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
             {/* Product Image Gallery */}
             <div className="order-1">
               <MediaGallery
@@ -349,39 +349,37 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                 videos={product.video_url ? [product.video_url] : []}
                 alt={product.name}
                 aspect="video"
-                className="rounded-xl overflow-hidden"
+                className="rounded-lg sm:rounded-xl overflow-hidden"
               />
             </div>
 
             {/* Product Title & Key Info */}
-            <div className="order-2 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="order-2 space-y-3 sm:space-y-4">
+              <div className="flex flex-col gap-3 sm:gap-4">
                 <div className="flex-1">
-                  <h1 className="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2">
-                    <Package className="h-6 w-6 text-primary flex-shrink-0" />
-                    <span className="leading-tight">{product.name}</span>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight flex items-start gap-2 mb-2">
+                    <Package className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0 mt-0.5" />
+                    <span className="break-words">{product.name}</span>
                   </h1>
                   {memberPrice && discountPercent > 0 && (
-                    <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-sm text-primary font-medium mb-3">
+                    <span className="inline-block rounded-full bg-primary/10 px-3 py-1.5 text-xs sm:text-sm text-primary font-medium mb-3">
                       Members save {discountPercent}%
                     </span>
                   )}
                 </div>
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 self-start">
                   <ShareButtons title={product.name} />
                 </div>
               </div>
 
-
-
-              {/* Pricing - Prominent on mobile */}
+              {/* Mobile Pricing - Prominent and Easy to Read */}
               <Card className="lg:hidden">
-                <CardContent className="p-4">
-                  <div className="text-2xl md:text-3xl font-bold mb-3">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold mb-3">
                     {memberPrice ? (
-                      <div className="flex items-baseline gap-3 flex-wrap">
+                      <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
                         <span className="text-primary">{fmtPrice(memberPrice, product.currency)}</span>
-                        <span className="text-lg text-muted-foreground line-through">
+                        <span className="text-base sm:text-lg text-muted-foreground line-through">
                           {fmtPrice(product.price_cents, product.currency)}
                         </span>
                       </div>
@@ -393,11 +391,11 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                   {/* Community join CTA */}
                   {!memberPrice && discountPercent > 0 && community && (
                     <div className="rounded-lg border bg-card p-3 mb-4">
-                      <div className="text-sm mb-2">
+                      <div className="text-sm mb-3">
                         <Star className="h-4 w-4 inline mr-1 text-primary" />
                         Join {community.name} to save {discountPercent}% and pay {fmtPrice(Math.round(product.price_cents * (1 - discountPercent / 100)), product.currency)}.
                       </div>
-                      <Button size="sm" variant="secondary" onClick={joinCommunity} className="w-full">
+                      <Button size="sm" variant="secondary" onClick={joinCommunity} className="w-full h-10">
                         Join community to save
                       </Button>
                     </div>
@@ -444,7 +442,7 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                 <Button 
                   variant="secondary" 
                   onClick={addToCart} 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-11"
                 >
                   <ShoppingCart className="h-4 w-4" />
                   Add to cart
@@ -452,7 +450,7 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                 <Button 
                   variant="hero" 
                   onClick={buyNow}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 h-11"
                 >
                   Buy now
                 </Button>
@@ -460,7 +458,7 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                   <Button
                     variant="outline"
                     onClick={() => navigate(`/chat?vendorId=${product.vendor_id}`)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 h-11"
                   >
                     <MessageSquare className="h-4 w-4" />
                     Message seller
@@ -472,46 +470,46 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
         </div>
 
         {/* Content Sections - Mobile Stack, Desktop Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {/* Description, Details & Vendor Info */}
           <Card className="order-1">
-            <CardHeader>
-              <CardTitle>Product Information</CardTitle>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-base sm:text-lg">Product Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6 pt-0">
               {/* Description */}
               {product.description && (
                 <div>
-                  <h4 className="font-medium mb-2">Description</h4>
-                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{product.description}</p>
+                  <h4 className="font-medium mb-2 text-sm sm:text-base">Description</h4>
+                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-sm sm:text-base">{product.description}</p>
                 </div>
               )}
 
               {/* Product Details */}
               <div>
-                <h4 className="font-medium mb-3">Product Details</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <h4 className="font-medium mb-3 text-sm sm:text-base">Product Details</h4>
+                <div className="grid grid-cols-1 gap-3">
                   {product.stock_qty != null && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2 text-sm p-2 bg-muted/20 rounded-lg">
+                      <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span>Stock: {product.stock_qty} available</span>
                     </div>
                   )}
                   {product.pickup_lat && product.pickup_lng && userLocation && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2 text-sm p-2 bg-muted/20 rounded-lg">
+                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span>Distance: {haversineKm(userLocation.lat, userLocation.lng, product.pickup_lat, product.pickup_lng).toFixed(1)} km away</span>
                     </div>
                   )}
                   {product.weight_grams && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2 text-sm p-2 bg-muted/20 rounded-lg">
+                      <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span>Weight: {(product.weight_grams / 1000).toFixed(2)} kg</span>
                     </div>
                   )}
                   {product.product_kind && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2 text-sm p-2 bg-muted/20 rounded-lg">
+                      <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span>Category: {product.product_kind.replace('_', ' ')}</span>
                     </div>
                   )}
@@ -520,35 +518,35 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
 
               {/* Product Features */}
               <div>
-                <h4 className="font-medium mb-3">Product Features</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <h4 className="font-medium mb-3 text-sm sm:text-base">Product Features</h4>
+                <div className="grid grid-cols-1 gap-3">
                   {product.perishable && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package className="h-4 w-4 text-orange-500" />
-                      <span>Perishable item</span>
+                    <div className="flex items-center gap-2 text-sm p-2 bg-orange-50 border border-orange-200 rounded-lg">
+                      <Package className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                      <span className="text-orange-700">Perishable item</span>
                     </div>
                   )}
                   {product.refrigeration_required && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package className="h-4 w-4 text-blue-500" />
-                      <span>Requires refrigeration</span>
+                    <div className="flex items-center gap-2 text-sm p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                      <Package className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                      <span className="text-blue-700">Requires refrigeration</span>
                     </div>
                   )}
                   {product.allow_easyparcel && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package className="h-4 w-4 text-green-500" />
-                      <span>Courier delivery available</span>
+                    <div className="flex items-center gap-2 text-sm p-2 bg-green-50 border border-green-200 rounded-lg">
+                      <Package className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      <span className="text-green-700">Courier delivery available</span>
                     </div>
                   )}
                   {product.allow_rider_delivery && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package className="h-4 w-4 text-purple-500" />
-                      <span>Rider delivery available</span>
+                    <div className="flex items-center gap-2 text-sm p-2 bg-purple-50 border border-purple-200 rounded-lg">
+                      <Package className="h-4 w-4 text-purple-500 flex-shrink-0" />
+                      <span className="text-purple-700">Rider delivery available</span>
                     </div>
                   )}
                   {product.prep_time_minutes && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2 text-sm p-2 bg-muted/20 rounded-lg">
+                      <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <span>Prep time: {product.prep_time_minutes} mins</span>
                     </div>
                   )}
@@ -558,20 +556,20 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
               {/* Vendor Information */}
               {product.vendor_id && (
                 <div>
-                  <h4 className="font-medium mb-3">Vendor Information</h4>
-                  <div className="bg-muted/30 rounded-lg p-4 space-y-2">
-                    <div className="flex items-center justify-between">
+                  <h4 className="font-medium mb-3 text-sm sm:text-base">Vendor Information</h4>
+                  <div className="bg-muted/30 rounded-lg p-3 sm:p-4 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <span className="text-sm text-muted-foreground">Sold by</span>
                       <Link 
                         to={`/catalog?vendor=${product.vendor_id}`} 
-                        className="text-primary hover:underline underline-offset-2 font-medium"
+                        className="text-primary hover:underline underline-offset-2 font-medium text-sm min-h-[44px] flex items-center"
                       >
                         View store profile
                       </Link>
                     </div>
                     {vendor?.member_discount_override_percent != null && vendor.member_discount_override_percent > 0 && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Star className="h-4 w-4 text-primary" />
+                      <div className="flex items-center gap-2 text-sm p-2 bg-primary/10 rounded-lg">
+                        <Star className="h-4 w-4 text-primary flex-shrink-0" />
                         <span>This vendor offers {vendor.member_discount_override_percent}% member discount</span>
                       </div>
                     )}
@@ -582,28 +580,28 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
           </Card>
 
           {/* Delivery Options */}
-          <div className="order-2 space-y-4">
+          <div className="order-2 space-y-3 sm:space-y-4">
             {/* Delivery time (for hot food/perishables) */}
             {(product.product_kind === 'prepared_food' || product.perishable) && (
               <Card>
-                <CardHeader>
-                  <CardTitle>Delivery Options</CardTitle>
+                <CardHeader className="pb-3 sm:pb-6">
+                  <CardTitle className="text-base sm:text-lg">Delivery Options</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3 sm:p-6 pt-0">
                   <div className="space-y-4">
                     <h4 className="text-sm font-medium">Delivery time</h4>
                     <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <button 
                           type="button" 
-                          className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${deliveryOption === 'asap' ? 'bg-primary text-primary-foreground border-primary' : 'border-input hover:bg-accent'}`} 
+                          className={`px-4 py-3 rounded-lg border text-sm font-medium transition-colors min-h-[44px] ${deliveryOption === 'asap' ? 'bg-primary text-primary-foreground border-primary' : 'border-input hover:bg-accent'}`} 
                           onClick={() => setDeliveryOption('asap')}
                         >
                           ASAP
                         </button>
                         <button 
                           type="button" 
-                          className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${deliveryOption === 'schedule' ? 'bg-primary text-primary-foreground border-primary' : 'border-input hover:bg-accent'}`} 
+                          className={`px-4 py-3 rounded-lg border text-sm font-medium transition-colors min-h-[44px] ${deliveryOption === 'schedule' ? 'bg-primary text-primary-foreground border-primary' : 'border-input hover:bg-accent'}`} 
                           onClick={() => setDeliveryOption('schedule')}
                         >
                           Schedule
@@ -614,7 +612,7 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                           type="datetime-local"
                           value={scheduledAt}
                           onChange={(e) => setScheduledAt(e.target.value)}
-                          className="w-full border rounded-lg px-3 py-2 text-sm"
+                          className="w-full border rounded-lg px-3 py-3 text-sm min-h-[44px]"
                         />
                       )}
                     </div>
@@ -641,7 +639,7 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
         </div>
 
         {/* Trust Badges and Shipping - Single Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           <div>
             {deliveryMethod === 'easyparcel' && product.allow_easyparcel && (
               <ShippingEstimator 
@@ -660,10 +658,10 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
         {/* Reviews Section - Full Width */}
         <section id="reviews" className="w-full">
           <Card>
-            <CardHeader>
-              <CardTitle>Customer Reviews</CardTitle>
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-base sm:text-lg">Customer Reviews</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6 pt-0">
               <div className="flex items-center justify-between">
                 <ReviewSummary targetType="product" targetId={product.id} />
               </div>
@@ -674,18 +672,35 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
         </section>
       </div>
 
-      {/* Sticky Mobile CTA */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
-        <div className="container px-4 py-3 flex items-center justify-between gap-3">
-          <div className="text-lg font-bold">
-            {fmtPrice(memberPrice || product.price_cents, product.currency)}
+      {/* Enhanced Sticky Mobile CTA */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50 shadow-lg">
+        <div className="container px-3 sm:px-4 py-3 flex items-center justify-between gap-3">
+          <div className="text-base sm:text-lg font-bold min-w-0 flex-shrink">
+            <div className="truncate">
+              {fmtPrice(memberPrice || product.price_cents, product.currency)}
+            </div>
+            {memberPrice && (
+              <div className="text-xs text-muted-foreground line-through">
+                {fmtPrice(product.price_cents, product.currency)}
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={addToCart} size="sm">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button 
+              variant="secondary" 
+              onClick={addToCart} 
+              size="sm" 
+              className="h-10 px-3 text-xs"
+            >
               <ShoppingCart className="h-4 w-4 mr-1" />
               Add
             </Button>
-            <Button variant="hero" onClick={buyNow} size="sm">
+            <Button 
+              variant="hero" 
+              onClick={buyNow} 
+              size="sm"
+              className="h-10 px-4 text-xs font-medium"
+            >
               Buy now
             </Button>
           </div>
