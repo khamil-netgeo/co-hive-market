@@ -15,6 +15,9 @@ export default function Checkout() {
   const navigate = useNavigate();
 const containerRef = useRef<HTMLDivElement | null>(null);
   const [mounting, setMounting] = useState(true);
+  // Keep a single Embedded Checkout instance per page
+  const checkoutRef = useRef<any>(null);
+  const initOnceRef = useRef(false);
 
   useMemo(() => setSEO("Checkout | CoopMarket", "Secure, embedded checkout without leaving the app."), []);
 
@@ -27,6 +30,12 @@ const containerRef = useRef<HTMLDivElement | null>(null);
         navigate("/cart");
         return;
       }
+      // Prevent multiple Embedded Checkout instances (React StrictMode or re-renders)
+      if (checkoutRef.current || initOnceRef.current) {
+        setMounting(false);
+        return;
+      }
+      initOnceRef.current = true;
       try {
         // Ensure we have drop-off coordinates before creating the payment session
         const { data: userData } = await supabase.auth.getUser();
@@ -119,7 +128,10 @@ const containerRef = useRef<HTMLDivElement | null>(null);
         const clientSecret = (data as any)?.client_secret;
         if (!clientSecret) throw new Error("No client_secret returned");
 
+        // Ensure any previous instance is cleared before creating a new one
+        try { checkoutRef.current?.destroy?.(); } catch {}
         const checkout = await stripe.initEmbeddedCheckout({ clientSecret });
+        checkoutRef.current = checkout;
         if (containerRef.current) checkout.mount(containerRef.current);
         setMounting(false);
       } catch (e: any) {
@@ -128,6 +140,15 @@ const containerRef = useRef<HTMLDivElement | null>(null);
       }
     })();
   }, [cart.items.length]);
+
+  // Cleanup on unmount: destroy embedded checkout instance
+  useEffect(() => {
+    return () => {
+      try { checkoutRef.current?.destroy?.(); } catch {}
+      checkoutRef.current = null;
+      initOnceRef.current = false;
+    };
+  }, []);
 
   const fmt = (cents: number) =>
     new Intl.NumberFormat((cart.currency || "USD").toUpperCase() === "MYR" ? "ms-MY" : "en-US", {
