@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import useChatMessages from "@/hooks/useChatMessages";
+import useChatReadState from "@/hooks/useChatReadState";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { Paperclip } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 interface Props {
   threadId: string | null;
@@ -11,12 +14,16 @@ interface Props {
 
 export default function ChatWindow({ threadId }: Props) {
   const { messages, loading, send } = useChatMessages(threadId);
+  const { markReadNow, seenByOther } = useChatReadState(threadId);
   const [text, setText] = useState("");
   const [me, setMe] = useState<string | null>(null);
   const [othersTyping, setOthersTyping] = useState(false);
+  const [othersOnline, setOthersOnline] = useState(false);
+  const [fileUrls, setFileUrls] = useState<Record<string, string>>({});
   const scrollerRef = useRef<HTMLDivElement>(null);
   const presenceRef = useRef<any>(null);
   const typingTimerRef = useRef<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setMe(data.session?.user.id ?? null));
@@ -25,7 +32,9 @@ export default function ChatWindow({ threadId }: Props) {
   useEffect(() => {
     // Auto-scroll to bottom on new messages
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length, threadId]);
+    // Mark as read when new messages arrive
+    markReadNow();
+  }, [messages.length, threadId, markReadNow]);
 
   // Presence: typing indicator for this thread
   useEffect(() => {
@@ -35,10 +44,11 @@ export default function ChatWindow({ threadId }: Props) {
     channel
       .on('presence', { event: 'sync' }, () => {
         const state: any = channel.presenceState();
-        const typing = Object.entries(state).some(([key, arr]: any) =>
-          key !== me && Array.isArray(arr) && arr.some((p: any) => p?.typing)
-        );
+        const entries = Object.entries(state) as any[];
+        const typing = entries.some(([key, arr]: any) => key !== me && Array.isArray(arr) && arr.some((p: any) => p?.typing));
+        const online = entries.some(([key]: any) => key !== me);
         setOthersTyping(typing);
+        setOthersOnline(online);
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
@@ -55,6 +65,21 @@ export default function ChatWindow({ threadId }: Props) {
     };
   }, [threadId, me]);
 
+  // Prefetch signed URLs for attachments
+  useEffect(() => {
+    const run = async () => {
+      const attachments = messages.filter((m) => m.file_url).map((m) => m.file_url!) as string[];
+      for (const path of attachments) {
+        if (fileUrls[path]) continue;
+        const { data, error } = await supabase.storage.from('chat-files').createSignedUrl(path, 60);
+        if (!error && data?.signedUrl) {
+          setFileUrls((prev) => ({ ...prev, [path]: data.signedUrl }));
+        }
+      }
+    };
+    run();
+  }, [messages, fileUrls]);
+
   if (!threadId) {
     return (
       <section className="flex flex-1 items-center justify-center text-muted-foreground">
@@ -65,6 +90,9 @@ export default function ChatWindow({ threadId }: Props) {
 
   return (
     <section className="flex flex-1 flex-col h-full">
+      <div className="px-4 py-2 border-b text-xs text-muted-foreground">
+        {othersOnline ? "Online" : "Offline"}
+      </div>
       <div ref={scrollerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
         {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
         {messages.map((m) => {
@@ -76,6 +104,15 @@ export default function ChatWindow({ threadId }: Props) {
                 mine ? "bg-primary/10" : "bg-muted"
               )}>
                 {m.body && <p className="whitespace-pre-wrap break-words">{m.body}</p>}
+                {m.file_url && (
+                  m.message_type === 'image' ? (
+                    <img src={fileUrls[m.file_url] || ''} alt="Attachment image" loading="lazy" className="mt-2 rounded-md max-w-full" />
+                  ) : (
+                    <a href={fileUrls[m.file_url] || '#'} target="_blank" rel="noopener" className="mt-2 underline text-primary block">
+                      Open file
+                    </a>
+                  )
+                )}
                 <time className="block mt-1 text-[10px] text-muted-foreground">{new Date(m.created_at).toLocaleTimeString()}</time>
               </div>
             </div>

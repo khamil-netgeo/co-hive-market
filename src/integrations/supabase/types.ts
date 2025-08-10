@@ -272,6 +272,30 @@ export type Database = {
           },
         ]
       }
+      chat_read_states: {
+        Row: {
+          created_at: string
+          last_read_at: string
+          thread_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          last_read_at?: string
+          thread_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          last_read_at?: string
+          thread_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_threads: {
         Row: {
           buyer_user_id: string | null
