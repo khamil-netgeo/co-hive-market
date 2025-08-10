@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useOrderProgress } from "@/hooks/useOrderProgress";
 import { toast } from "sonner";
 import { trackEasyParcel } from "@/lib/shipping";
+import OrderDeliveryMap from "@/components/order/OrderDeliveryMap";
 
 interface OrderMeta {
   id: string;
