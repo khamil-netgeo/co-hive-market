@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import ProductImage from "@/components/product/ProductImage";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -54,11 +55,13 @@ export default function Catalog() {
   const [productCats, setProductCats] = useState<Record<string, string[]>>({});
   // Type filter (Food vs Groceries)
   const location = useLocation();
-const initialType = location.pathname.includes('/food') ? 'food' : location.pathname.includes('/groceries') ? 'grocery' : 'all';
-const [typeFilter, setTypeFilter] = useState<'all' | 'food' | 'grocery'>(initialType);
-const [deliveryFilter, setDeliveryFilter] = useState<'any' | 'rider' | 'parcel'>('any');
-const [perishableOnly, setPerishableOnly] = useState(false);
-const [openNow, setOpenNow] = useState(false);
+  const initialType = location.pathname.includes('/food') ? 'food' : location.pathname.includes('/groceries') ? 'grocery' : 'all';
+  const [typeFilter, setTypeFilter] = useState<'all' | 'food' | 'grocery'>(initialType);
+  const [deliveryFilter, setDeliveryFilter] = useState<'any' | 'rider' | 'parcel'>('any');
+  const [perishableOnly, setPerishableOnly] = useState(false);
+  const [openNow, setOpenNow] = useState(false);
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<'newest' | 'price_asc' | 'price_desc' | 'distance'>('newest');
 
   useEffect(() => {
     setSEO(
@@ -191,7 +194,7 @@ const [openNow, setOpenNow] = useState(false);
     initLoc();
   }, []);
 
-  // Filters: type, category, delivery method, perishable, open now
+  // Filters: type, category, delivery method, perishable, open now, search
   const productsFiltered = useMemo(() => {
     const now = new Date();
     const dayKeys = ["sun","mon","tue","wed","thu","fri","sat"] as const;
@@ -221,8 +224,15 @@ const [openNow, setOpenNow] = useState(false);
 
     if (openNow) base = base.filter((p) => isVendorOpen(p.vendor_id));
 
+    const q = query.trim().toLowerCase();
+    if (q) {
+      base = base.filter((p) =>
+        p.name.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q)
+      );
+    }
+
     return base;
-  }, [products, productCats, categoryFilter, typeFilter, deliveryFilter, perishableOnly, openNow, vendorsById]);
+  }, [products, productCats, categoryFilter, typeFilter, deliveryFilter, perishableOnly, openNow, vendorsById, query]);
  
  
    const fmtPrice = (cents: number, currency: string) => {
@@ -274,6 +284,15 @@ const [openNow, setOpenNow] = useState(false);
     }
     return withDist;
   }, [productsFiltered, loc, useNearMe, radiusKm]);
+
+  const productsSorted = useMemo(() => {
+    const list = [...productsNear];
+    if (sort === 'price_asc') list.sort((a: any, b: any) => (a.price_cents || 0) - (b.price_cents || 0));
+    else if (sort === 'price_desc') list.sort((a: any, b: any) => (b.price_cents || 0) - (a.price_cents || 0));
+    else if (sort === 'distance') list.sort((a: any, b: any) => (a._distanceKm ?? Infinity) - (b._distanceKm ?? Infinity));
+    // 'newest' keeps API order (created_at desc)
+    return list;
+  }, [productsNear, sort]);
   const buyNow = async (p: Product) => {
     const vendorMismatch = cart.vendor_id && cart.vendor_id !== p.vendor_id;
     const currencyMismatch = cart.currency && cart.currency.toUpperCase() !== (p.currency || "usd").toUpperCase();
@@ -349,8 +368,17 @@ const [openNow, setOpenNow] = useState(false);
           </Tabs>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-4">
+          <div className="flex-1 min-w-[200px] sm:min-w-[280px]">
+            <Label htmlFor="search" className="sr-only">Search</Label>
+            <Input
+              id="search"
+              placeholder="Search products"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
           <div className="flex items-center gap-2">
-            <Label htmlFor="near">Near me</Label>
+            <Label className="whitespace-nowrap text-sm">Near me</Label>
             <Switch id="near" checked={useNearMe} onCheckedChange={setUseNearMe} />
           </div>
           <div className="flex items-center gap-3 w-full sm:w-80 min-w-0">
@@ -400,6 +428,20 @@ const [openNow, setOpenNow] = useState(false);
             <Label htmlFor="open-now" className="whitespace-nowrap text-sm">Open now</Label>
             <Switch id="open-now" checked={openNow} onCheckedChange={setOpenNow} />
           </div>
+          <div className="flex items-center gap-2">
+            <Label className="whitespace-nowrap text-sm">Sort</Label>
+            <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Newest" />
+              </SelectTrigger>
+              <SelectContent className="z-50 bg-popover">
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                <SelectItem value="distance">Distance</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {loading ? (
@@ -408,7 +450,7 @@ const [openNow, setOpenNow] = useState(false);
           <div className="mt-8 rounded-md border bg-card p-6 text-muted-foreground">No products yet.</div>
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {productsNear.map((p: any) => {
+            {productsSorted.map((p: any) => {
               const discounted = memberPrice(p);
               const discPercent = effectiveDiscountPercent(p);
               return (

@@ -75,6 +75,28 @@ export default function Feed() {
     const load = async () => {
       setLoading(true);
       try {
+        const rankFeedItems = async (arr: FeedItem[]) => {
+          const sortParam = searchParams.get('sort');
+          if (sortParam === 'latest') return arr;
+          const productIds = arr.filter(i => i.kind === 'product').map(i => i.id);
+          const serviceIds = arr.filter(i => i.kind === 'service').map(i => i.id);
+          const [{ data: prodLikes }, { data: svcLikes }] = await Promise.all([
+            productIds.length ? supabase.from('feed_like_summary').select('target_id,like_count').eq('target_type','product').in('target_id', productIds) : Promise.resolve({ data: [] as any[] } as any),
+            serviceIds.length ? supabase.from('feed_like_summary').select('target_id,like_count').eq('target_type','service').in('target_id', serviceIds) : Promise.resolve({ data: [] as any[] } as any),
+          ]);
+          const likeMap = new Map<string, number>();
+          (prodLikes as any[]).forEach((r) => likeMap.set(`product:${r.target_id}`, Number(r.like_count || 0)));
+          (svcLikes as any[]).forEach((r) => likeMap.set(`service:${r.target_id}`, Number(r.like_count || 0)));
+          const now = Date.now();
+          const score = (it: FeedItem) => {
+            const ageHrs = Math.max(1, (now - new Date(it.created_at).getTime()) / 36e5);
+            const recency = Math.exp(-ageHrs / 72); // ~3-day half-life
+            const likes = likeMap.get(`${it.kind}:${it.id}`) || 0;
+            const likeScore = Math.log2(1 + likes);
+            return recency * 0.6 + likeScore * 0.4;
+          };
+          return [...arr].sort((a, b) => score(b) - score(a));
+        };
         if (selected?.id) {
           const { data: vendorRows, error: vErr } = await supabase
             .from('vendors')
@@ -132,12 +154,13 @@ export default function Feed() {
             ? normalized.filter((item) => item.kind === 'product' && (item as FeedProduct).product_kind === filterParam)
             : normalized;
 
-          setItems(filtered);
+          const ranked = await rankFeedItems(filtered);
+          setItems(ranked);
           try {
             const itemList = {
               "@context": "https://schema.org",
               "@type": "ItemList",
-              itemListElement: filtered.slice(0, 25).map((it: FeedItem, i: number) => ({
+              itemListElement: ranked.slice(0, 25).map((it: FeedItem, i: number) => ({
                 "@type": "ListItem",
                 position: i + 1,
                 url: window.location.origin + `/${it.kind === 'product' ? 'product' : 'service'}/${it.id}`,
@@ -198,12 +221,13 @@ export default function Feed() {
           ? normalized.filter((item) => item.kind === 'product' && (item as FeedProduct).product_kind === filterParam)
           : normalized;
 
-        setItems(filtered);
+        const ranked = await rankFeedItems(filtered);
+        setItems(ranked);
         try {
           const itemList = {
             "@context": "https://schema.org",
             "@type": "ItemList",
-            itemListElement: filtered.slice(0, 25).map((it: FeedItem, i: number) => ({
+            itemListElement: ranked.slice(0, 25).map((it: FeedItem, i: number) => ({
               "@type": "ListItem",
               position: i + 1,
               url: window.location.origin + `/${it.kind === 'product' ? 'product' : 'service'}/${it.id}`,
