@@ -46,6 +46,7 @@ import VendorDashboard from "./pages/vendor/VendorDashboard";
 import ProductForm from "./pages/vendor/ProductForm";
 import Profile from "./pages/Profile";
 import Communities from "./pages/Communities";
+import CommunityDetail from "./pages/communities/CommunityDetail";
 import Services from "./pages/Services";
 import VendorServices from "./pages/vendor/Services";
 import VendorProducts from "./pages/vendor/VendorProducts";
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="/orders/:id" element={<OrderTracker />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/communities" element={<Communities />} />
+              <Route path="/communities/:id" element={<CommunityDetail />} />
               <Route path="/riders" element={<Riders />} />
               <Route path="/rider" element={<RiderDashboard />} />
               <Route path="/rider/assignments" element={<RiderAssignments />} />

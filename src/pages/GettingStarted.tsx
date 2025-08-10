@@ -8,6 +8,7 @@ import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logAudit } from "@/lib/audit";
 
 const GettingStarted = () => {
   const { user, loading, signOut } = useAuthRoles();
@@ -93,6 +94,7 @@ const GettingStarted = () => {
           }
         }
 
+        logAudit('community.join', 'community', communityId, { memberType });
         toast.success(`Updated your role to ${memberType}`);
         navigate(memberType === 'delivery' ? '/rider' : '/');
         return;
@@ -120,6 +122,7 @@ const GettingStarted = () => {
         if (vendorError) throw vendorError;
       }
 
+      logAudit('community.join', 'community', communityId, { memberType });
       toast.success(`Successfully joined as ${memberType}!`);
       navigate(memberType === 'delivery' ? '/rider' : '/');
     } catch (error: any) {

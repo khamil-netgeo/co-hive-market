@@ -9,6 +9,8 @@ import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCommunity } from "@/context/CommunityContext";
+import { logAudit } from "@/lib/audit";
 
 interface Community { id: string; name: string; description: string | null; member_discount_percent: number; coop_fee_percent: number; community_fee_percent: number }
 
@@ -27,11 +29,28 @@ export default function Communities() {
   const [coopFee, setCoopFee] = useState<number>(2);
   const [communityFee, setCommunityFee] = useState<number>(3);
   const canManage = isAdmin || isSuperadmin;
+  const [myMemberships, setMyMemberships] = useState<{ id: string; community_id: string; member_type: MemberType; }[]>([]);
+  const [loadingMemberships, setLoadingMemberships] = useState(true);
+  const { selected, setSelected } = useCommunity();
 
   useEffect(() => {
     setSEO("Communities — CoopMarket", "Discover communities to join and save, or create one if you are an admin.");
     load();
   }, []);
+
+  useEffect(() => {
+    const loadMemberships = async () => {
+      if (!user) { setMyMemberships([]); setLoadingMemberships(false); return; }
+      setLoadingMemberships(true);
+      const { data, error } = await supabase
+        .from("community_members")
+        .select("id, community_id, member_type")
+        .eq("user_id", user.id);
+      if (!error) setMyMemberships((data as any[]) || []);
+      setLoadingMemberships(false);
+    };
+    loadMemberships();
+  }, [user]);
 
   const load = async () => {
     try {
@@ -54,19 +73,64 @@ export default function Communities() {
       return;
     }
     try {
-      const { error: memberError } = await supabase
+      // Check existing membership
+      const { data: existing, error: existingErr } = await supabase
         .from("community_members")
-        .insert({ community_id: communityId, user_id: user.id, member_type: memberType });
-      if (memberError) throw memberError;
+        .select("id, member_type")
+        .eq("community_id", communityId)
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (existingErr) throw existingErr;
 
-      if (memberType === 'vendor') {
-        const { error: vendorError } = await supabase
-          .from("vendors")
-          .insert({ user_id: user.id, community_id: communityId, display_name: user.email?.split('@')[0] || 'Vendor' });
-        if (vendorError) throw vendorError;
+      if (existing) {
+        if (existing.member_type === memberType) {
+          toast.info(`Already a member as ${memberType}`);
+        } else {
+          const { error: updateErr } = await supabase
+            .from("community_members")
+            .update({ member_type: memberType })
+            .eq("id", existing.id);
+          if (updateErr) throw updateErr;
+          toast.success(`Updated your role to ${memberType}`);
+        }
+      } else {
+        // Insert new membership
+        const { error: memberError } = await supabase
+          .from("community_members")
+          .insert({ community_id: communityId, user_id: user.id, member_type: memberType });
+        if (memberError) throw memberError;
+        toast.success(`Joined as ${memberType}`);
       }
 
-      toast.success(`Joined as ${memberType}`);
+      // Ensure vendor profile exists when joining as vendor
+      if (memberType === 'vendor') {
+        const { data: vendor, error: vSelErr } = await supabase
+          .from("vendors")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("community_id", communityId)
+          .limit(1)
+          .maybeSingle();
+        if (vSelErr) throw vSelErr;
+        if (!vendor) {
+          const { error: vendorError } = await supabase
+            .from("vendors")
+            .insert({ user_id: user.id, community_id: communityId, display_name: user.email?.split('@')[0] || 'Vendor' });
+          if (vendorError) throw vendorError;
+        }
+      }
+
+      // Audit log
+      logAudit('community.join', 'community', communityId, { memberType });
+
+      // Refresh memberships
+      const { data: refreshed } = await supabase
+        .from("community_members")
+        .select("id, community_id, member_type")
+        .eq("user_id", user.id);
+      setMyMemberships((refreshed as any[]) || []);
+
       navigate("/profile");
     } catch (e: any) {
       const msg = e?.message || String(e);
@@ -78,6 +142,24 @@ export default function Communities() {
         toast("Unable to join", { description: msg });
       }
     }
+  };
+
+  const handleLeave = async (membershipId: string, communityId: string) => {
+    try {
+      const { error } = await supabase.from("community_members").delete().eq("id", membershipId);
+      if (error) throw error;
+      setMyMemberships((prev) => prev.filter((m) => m.id !== membershipId));
+      toast.success("Left community");
+      logAudit('community.leave', 'community', communityId);
+    } catch (e: any) {
+      toast("Unable to leave", { description: e?.message || String(e) });
+    }
+  };
+
+  const handleSetActive = (communityId: string) => {
+    const community = communities.find((c) => c.id === communityId);
+    setSelected({ id: communityId, name: community?.name ?? null });
+    toast.success(`Active community set to ${community?.name || 'Selected'}`);
   };
 
   const handleCreate = async () => {
@@ -97,6 +179,8 @@ export default function Communities() {
       if (error) throw error;
       toast.success("Community created");
       setName(""); setDescription(""); setMemberDiscount(10); setCoopFee(2); setCommunityFee(3);
+      // Audit log
+      logAudit('community.create', 'community', null, { name });
       load();
     } catch (e: any) {
       toast("Failed to create community", { description: e.message || String(e) });
@@ -151,6 +235,44 @@ export default function Communities() {
         </Card>
       )}
 
+      {(user && (loadingMemberships || myMemberships.length > 0)) && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Your memberships</CardTitle>
+            <CardDescription>Communities you have joined</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingMemberships ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : myMemberships.length === 0 ? (
+              <p className="text-sm text-muted-foreground">You haven’t joined any communities yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {myMemberships.map((m) => {
+                  const c = communities.find((x) => x.id === m.community_id);
+                  const isActive = selected.id === m.community_id;
+                  return (
+                    <div key={m.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border rounded-md p-3">
+                      <div className="flex items-center gap-2">
+                        <Link to={`/communities/${m.community_id}`} className="font-medium hover:underline">{c?.name ?? 'Community'}</Link>
+                        {isActive && <Badge variant="secondary">Active</Badge>}
+                        <Badge variant="outline">{m.member_type}</Badge>
+                      </div>
+                      <div className="flex gap-2">
+                        {!isActive && (
+                          <Button size="sm" variant="outline" onClick={() => handleSetActive(m.community_id)}>Set active</Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => handleLeave(m.id, m.community_id)}>Leave</Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Available Communities</CardTitle>
@@ -174,7 +296,7 @@ export default function Communities() {
                 <Card key={c.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <span>{c.name}</span>
+                      <Link to={`/communities/${c.id}`} className="hover:underline">{c.name}</Link>
                       <Badge variant="outline" className="self-start sm:self-auto">{c.member_discount_percent}% discount</Badge>
                     </CardTitle>
                     <CardDescription>{c.description}</CardDescription>
@@ -184,6 +306,9 @@ export default function Communities() {
                       <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'buyer')} disabled={!user} className="w-full sm:w-auto">Join as Buyer</Button>
                       <Button size="sm" onClick={() => handleJoin(c.id, 'vendor')} disabled={!user} className="w-full sm:w-auto">Join as Vendor</Button>
                       <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'delivery')} disabled={!user} className="w-full sm:w-auto">Join as Rider</Button>
+                      <Button size="sm" variant="ghost" asChild className="w-full sm:w-auto">
+                        <Link to={`/communities/${c.id}`}>View details</Link>
+                      </Button>
                       {!user && (
                         <Button size="sm" variant="ghost" asChild>
                           <Link to="/auth">Sign in</Link>
