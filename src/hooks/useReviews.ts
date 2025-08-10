@@ -23,6 +23,14 @@ export type RatingSummary = {
   review_count: number | null;
 };
 
+export type ReviewImage = {
+  id: string;
+  review_id: string;
+  user_id: string;
+  url: string;
+  created_at: string;
+};
+
 function getSummaryView(targetType: TargetType) {
   return targetType === "product" ? "product_rating_summary" : "service_rating_summary";
 }
@@ -170,11 +178,78 @@ export function useCanSubmitReview(targetType: TargetType, targetId: string) {
   const userId = useCurrentUserId();
   const { data: ownReview } = useOwnReview(targetType, targetId);
 
+  const { data: eligible, isLoading: checkingEligibility } = useQuery({
+    queryKey: ["can-submit-review", targetType, targetId, userId] as const,
+    enabled: !!userId,
+    queryFn: async (): Promise<boolean> => {
+      const { data, error } = await (supabase as any).rpc("can_submit_review", {
+        _target_type: targetType,
+        _target_id: targetId,
+      });
+      if (error) throw error as Error;
+      return Boolean(data);
+    },
+  }) as UseQueryResult<boolean, Error> as any;
+
   const canSubmit = useMemo(() => {
     if (!userId) return false;
     if (ownReview?.status === "approved") return false;
-    return true;
-  }, [userId, ownReview]);
+    if (checkingEligibility) return false;
+    return !!eligible;
+  }, [userId, ownReview, eligible, checkingEligibility]);
 
-  return { canSubmit, userId, ownReview };
+  return { canSubmit, userId, ownReview, eligible: !!eligible, checkingEligibility };
+}
+
+export function useReviewImages(reviewId?: string): UseQueryResult<ReviewImage[], Error> {
+  return useQuery({
+    queryKey: ["review-images", reviewId] as const,
+    enabled: !!reviewId,
+    queryFn: async (): Promise<ReviewImage[]> => {
+      if (!reviewId) return [];
+      const { data, error } = await (supabase as any)
+        .from("review_images")
+        .select("*")
+        .eq("review_id", reviewId)
+        .order("created_at", { ascending: false });
+      if (error) throw error as Error;
+      return (data ?? []) as ReviewImage[];
+    },
+  }) as UseQueryResult<ReviewImage[], Error>;
+}
+
+export function useAddReviewImage(reviewId?: string) {
+  const qc = useQueryClient();
+  const userId = useCurrentUserId();
+  return useMutation({
+    mutationFn: async ({ url }: { url: string }) => {
+      if (!reviewId) throw new Error("Missing review ID");
+      if (!userId) throw new Error("Please sign in.");
+      const { error } = await (supabase as any)
+        .from("review_images")
+        .insert({ review_id: reviewId, user_id: userId, url });
+      if (error) throw error as Error;
+      return true;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["review-images", reviewId] });
+    },
+  });
+}
+
+export function useRemoveReviewImage(reviewId?: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await (supabase as any)
+        .from("review_images")
+        .delete()
+        .eq("id", id);
+      if (error) throw error as Error;
+      return true;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["review-images", reviewId] });
+    },
+  });
 }

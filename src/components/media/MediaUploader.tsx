@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 interface MediaUploaderProps {
-  bucket: "product-images" | "service-images";
+  bucket: "product-images" | "service-images" | "review-images";
   folder: string; // e.g. `${user.id}` or `${vendor.id}`
   max?: number;
   value?: string[];

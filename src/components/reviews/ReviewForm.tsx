@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import RatingStars from "./RatingStars";
-import { useCanSubmitReview, useDeleteOwnDraftReview, useOwnReview, useSubmitReview } from "@/hooks/useReviews";
+import { useCanSubmitReview, useDeleteOwnDraftReview, useOwnReview, useSubmitReview, useReviewImages, useAddReviewImage, useRemoveReviewImage } from "@/hooks/useReviews";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import MediaUploader from "@/components/media/MediaUploader";
 
 type Props = {
   targetType: "product" | "service";
@@ -17,7 +18,7 @@ type Props = {
 export default function ReviewForm({ targetType, targetId, className }: Props) {
   const { toast } = useToast();
   const { data: ownReview } = useOwnReview(targetType, targetId);
-  const { canSubmit, userId } = useCanSubmitReview(targetType, targetId);
+  const { canSubmit, userId, ownReview: ownReviewData, eligible } = useCanSubmitReview(targetType, targetId) as any;
   const submit = useSubmitReview();
   const removeDraft = useDeleteOwnDraftReview(targetType, targetId);
 
@@ -32,6 +33,22 @@ export default function ReviewForm({ targetType, targetId, className }: Props) {
       setBody(ownReview.body ?? "");
     }
   }, [ownReview?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Review images management (only once we have a review id)
+  const { data: reviewImages = [] } = useReviewImages(ownReview?.id);
+  const addImage = useAddReviewImage(ownReview?.id);
+  const removeImage = useRemoveReviewImage(ownReview?.id);
+  const currentUrls = reviewImages.map((i: any) => i.url);
+
+  const onImagesChange = (urls: string[]) => {
+    const toAdd = urls.filter((u) => !currentUrls.includes(u));
+    const toRemove = currentUrls.filter((u) => !urls.includes(u));
+    toAdd.forEach((url) => addImage.mutate({ url } as any));
+    toRemove.forEach((url) => {
+      const img = (reviewImages as any[]).find((i) => i.url === url);
+      if (img) removeImage.mutate({ id: img.id } as any);
+    });
+  };
 
   if (!userId) {
     return (
@@ -74,7 +91,11 @@ export default function ReviewForm({ targetType, targetId, className }: Props) {
           toast({ title: "Review submitted", description: "Your review will be visible after approval." });
         },
         onError: (err: any) => {
-          toast({ title: "Unable to submit review", description: err?.message ?? "Please try again." });
+          const msg = String(err?.message || "Please try again.");
+          const friendly = msg.includes("row-level security") || msg.includes("violates")
+            ? "You can only review items you've purchased or completed."
+            : msg;
+          toast({ title: "Unable to submit review", description: friendly });
         },
       } as any
     );
@@ -97,6 +118,11 @@ export default function ReviewForm({ targetType, targetId, className }: Props) {
         <label className="text-sm text-muted-foreground">Your rating</label>
         <RatingStars value={rating} onChange={setRating} size="lg" />
       </div>
+      {eligible === false && (
+        <div className="mt-3 text-sm text-muted-foreground">
+          You can only review items you've purchased or completed.
+        </div>
+      )}
 
       <div className="mt-3 grid gap-3">
         <Input
@@ -113,6 +139,21 @@ export default function ReviewForm({ targetType, targetId, className }: Props) {
           rows={5}
         />
       </div>
+
+      {/* Optional images uploader */}
+      {ownReview?.id ? (
+        <div className="mt-3">
+          <MediaUploader
+            bucket="review-images"
+            folder={`${userId}/${ownReview.id}`}
+            max={4}
+            value={currentUrls}
+            onChange={onImagesChange}
+          />
+        </div>
+      ) : (
+        <p className="mt-3 text-xs text-muted-foreground">Tip: Save your rating to add photos to your review.</p>
+      )}
 
       <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
         <Button type="submit" className="flex-1 sm:flex-none" disabled={!canSubmit || submit.isPending}>
