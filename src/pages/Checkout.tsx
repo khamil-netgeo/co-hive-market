@@ -7,9 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 
 export default function Checkout() {
   const cart = useCart();
@@ -17,8 +14,6 @@ export default function Checkout() {
   const navigate = useNavigate();
 const containerRef = useRef<HTMLDivElement | null>(null);
   const [mounting, setMounting] = useState(true);
-  const [useRider, setUseRider] = useState(false);
-  const [scheduledAt, setScheduledAt] = useState<string>("");
 
   useMemo(() => setSEO("Checkout | CoopMarket", "Secure, embedded checkout without leaving the app."), []);
 
@@ -48,8 +43,7 @@ const { data, error } = await supabase.functions.invoke("create-embedded-checkou
             success_path: "/payment-success",
             vendor_id: cart.vendor_id,
             community_id: cart.community_id,
-            delivery_method: useRider ? "rider" : undefined,
-            scheduled_dropoff_at: useRider && scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
+            delivery_method: "rider",
           },
         });
         if (error) throw error;
@@ -80,25 +74,6 @@ const { data, error } = await supabase.functions.invoke("create-embedded-checkou
           <p className="mt-2 text-muted-foreground text-sm md:text-base">Complete your payment without leaving CoopMarket.</p>
 
 <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>Delivery</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="useRider">Request rider delivery</Label>
-                <Switch id="useRider" checked={useRider} onCheckedChange={setUseRider} />
-              </div>
-              {useRider && (
-                <div className="grid gap-2">
-                  <Label htmlFor="schedule">Schedule drop-off (optional)</Label>
-                  <Input id="schedule" type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
-                  <p className="text-xs text-muted-foreground">We’ll assign a nearby rider automatically after payment.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="mt-6">
             <CardHeader>
               <CardTitle>Payment</CardTitle>
             </CardHeader>
