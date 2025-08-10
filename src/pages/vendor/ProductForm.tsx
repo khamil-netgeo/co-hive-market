@@ -531,7 +531,7 @@ const ProductForm = () => {
                             </FormControl>
                             <SelectContent>
                               {availableCategories.length === 0 ? (
-                                <SelectItem value="" disabled>No categories available</SelectItem>
+                                <div className="p-2 text-sm text-muted-foreground">No categories available</div>
                               ) : (
                                 availableCategories.map((c) => (
                                   <SelectItem key={c.id} value={c.slug}>
