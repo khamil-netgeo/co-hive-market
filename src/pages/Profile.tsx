@@ -14,6 +14,7 @@ import MapPicker from "@/components/map/MapPicker";
 import AvatarUploader from "@/components/common/AvatarUploader";
 import KycUploader from "@/components/kyc/KycUploader";
 import KycRequirements from "@/components/kyc/KycRequirements";
+import DeliveryPreferenceSelector from "@/components/delivery/DeliveryPreferenceSelector";
 
 interface Membership { community_id: string; member_type: string }
 interface Community { id: string; name: string }
@@ -340,6 +341,11 @@ export default function Profile() {
             )}
           </CardContent>
         </Card>
+      </section>
+
+      {/* Delivery Preferences */}
+      <section className="mt-6">
+        <DeliveryPreferenceSelector />
       </section>
     </main>
   );

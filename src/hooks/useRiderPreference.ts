@@ -27,12 +27,12 @@ export function useRiderPreference(): RiderPreferenceState {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('delivery_preference')
+        .select('*')
         .eq('id', user.id)
         .maybeSingle();
 
-      if (profile?.delivery_preference) {
-        setPreferenceState(profile.delivery_preference as DeliveryPreference);
+      if (profile && (profile as any).delivery_preference) {
+        setPreferenceState((profile as any).delivery_preference as DeliveryPreference);
       }
     } catch (error) {
       console.error('Failed to load delivery preference:', error);
@@ -48,7 +48,7 @@ export function useRiderPreference(): RiderPreferenceState {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ delivery_preference: pref })
+        .update({ delivery_preference: pref } as any)
         .eq('id', user.id);
 
       if (error) throw error;

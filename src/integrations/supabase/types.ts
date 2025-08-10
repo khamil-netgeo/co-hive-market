@@ -1294,6 +1294,7 @@ export type Database = {
           city: string | null
           country: string
           created_at: string
+          delivery_preference: string | null
           id: string
           latitude: number | null
           longitude: number | null
@@ -1309,6 +1310,7 @@ export type Database = {
           city?: string | null
           country?: string
           created_at?: string
+          delivery_preference?: string | null
           id: string
           latitude?: number | null
           longitude?: number | null
@@ -1324,6 +1326,7 @@ export type Database = {
           city?: string | null
           country?: string
           created_at?: string
+          delivery_preference?: string | null
           id?: string
           latitude?: number | null
           longitude?: number | null

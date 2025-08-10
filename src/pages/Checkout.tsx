@@ -8,12 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useRiderPreference, determineDeliveryMethod } from "@/hooks/useRiderPreference";
 
 export default function Checkout() {
   const cart = useCart();
   const location = useLocation();
   const navigate = useNavigate();
-const containerRef = useRef<HTMLDivElement | null>(null);
+  const { preference } = useRiderPreference();
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [mounting, setMounting] = useState(true);
   // Keep a single Embedded Checkout instance per page
   const checkoutRef = useRef<any>(null);
@@ -72,17 +74,36 @@ const containerRef = useRef<HTMLDivElement | null>(null);
         const stripe = await loadStripe(pk);
         if (!stripe) throw new Error("Failed to load Stripe.js");
 
-        // Decide delivery method based on product rules
+        // Determine delivery method using user preference and product constraints
         const firstId = cart.items[0]?.product_id as string | undefined;
         let deliveryMethod: 'rider' | 'easyparcel' = 'rider';
+        
         if (firstId) {
           const { data: prod } = await supabase
             .from('products')
-            .select('product_kind, perishable, allow_easyparcel')
+            .select('product_kind, perishable, allow_easyparcel, allow_rider_delivery, pickup_lat, pickup_lng')
             .eq('id', firstId)
             .maybeSingle();
-          const deliveryOnly = prod?.product_kind === 'prepared_food' || (prod?.product_kind === 'grocery' && !!prod?.perishable) || (prod?.allow_easyparcel === false);
-          deliveryMethod = deliveryOnly ? 'rider' : 'easyparcel';
+
+          // Check if riders are available nearby (simplified check)
+          let nearbyRiders = false;
+          if (prod?.pickup_lat && prod?.pickup_lng) {
+            const { data: riders } = await supabase.rpc('find_nearby_riders', {
+              pickup_lat: prod.pickup_lat,
+              pickup_lng: prod.pickup_lng,
+              max_distance_km: 10
+            });
+            nearbyRiders = (riders?.length || 0) > 0;
+          }
+
+          deliveryMethod = determineDeliveryMethod(
+            preference,
+            prod?.product_kind,
+            prod?.perishable,
+            prod?.allow_easyparcel,
+            prod?.allow_rider_delivery,
+            nearbyRiders
+          );
         }
 
         // Compute total weight in grams from products; default 500g each if unknown
