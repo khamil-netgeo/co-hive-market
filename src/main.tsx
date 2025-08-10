@@ -4,8 +4,7 @@ import './index.css'
 import { registerSW } from 'virtual:pwa-register'
 import { CartProvider } from '@/hooks/useCart'
 
-// Enable dark mode by default for TikTok-like experience
-document.documentElement.classList.add('dark');
+// Remove forced dark mode - now handled by ThemeProvider
 
 // Register PWA service worker (auto updates)
 registerSW({ immediate: true })

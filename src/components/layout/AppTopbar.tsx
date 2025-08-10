@@ -8,6 +8,7 @@ import useIsVendor from "@/hooks/useIsVendor";
 import useIsRider from "@/hooks/useIsRider";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function AppTopbar() {
   const { user, isAdmin, isSuperadmin, signOut } = useAuthRoles();
@@ -25,6 +26,7 @@ export default function AppTopbar() {
           <SidebarTrigger className="ml-0" />
         </div>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Button variant="ghost" asChild>
             <Link to="/cart" aria-label={`Cart (${count} items)`}>
               <ShoppingCart className="h-5 w-5" />
