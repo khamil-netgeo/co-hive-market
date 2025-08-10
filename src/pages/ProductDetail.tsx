@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { setSEOAdvanced } from "@/lib/seo";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
-import ProductImage from "@/components/product/ProductImage";
+import MediaGallery from "@/components/common/MediaGallery";
 import { Package, MapPin, Star, ShoppingCart, MessageSquare } from "lucide-react";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
 import ShareButtons from "@/components/common/ShareButtons";
@@ -341,29 +341,12 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
         <div className="grid md:grid-cols-2 gap-8">
           {/* Image Section */}
           <div className="space-y-4">
-            <div className="aspect-video w-full overflow-hidden rounded-lg border">
-              <ProductImage 
-                imageUrls={product.image_urls} 
-                productName={product.name}
-                className="w-full h-full object-cover"
-                fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
-              />
-            </div>
-            
-            {/* Additional Images */}
-            {product.image_urls && product.image_urls.length > 1 && (
-              <div className="grid grid-cols-3 gap-2">
-                {product.image_urls.slice(1, 4).map((url, idx) => (
-                  <div key={idx} className="aspect-square overflow-hidden rounded border">
-                    <img 
-                      src={url} 
-                      alt={`${product.name} image ${idx + 2}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <MediaGallery
+              images={product.image_urls || []}
+              videos={product.video_url ? [product.video_url] : []}
+              alt={product.name}
+              aspect="video"
+            />
           </div>
 
           {/* Details Section */}

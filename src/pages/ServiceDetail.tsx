@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { setSEO } from "@/lib/seo";
+import { setSEOAdvanced } from "@/lib/seo";
 import { toast } from "sonner";
-import ServiceImage from "@/components/service/ServiceImage";
+import MediaGallery from "@/components/common/MediaGallery";
 import { Briefcase, MapPin, Clock, Calendar, Star, ArrowLeft } from "lucide-react";
 import BookingDatePicker from "@/components/service/BookingDatePicker";
 import ServiceDetailsCard from "@/components/service/ServiceDetailsCard";
@@ -85,7 +85,25 @@ export default function ServiceDetail() {
       }
 
       setService(serviceData);
-      setSEO(`${serviceData.name} | CoopMarket`, serviceData.description || `Book ${serviceData.name} service.`);
+      setSEOAdvanced({
+        title: `${serviceData.name} | CoopMarket`,
+        description: serviceData.description || `Book ${serviceData.name} service.`,
+        type: "service",
+        image: serviceData.image_urls?.[0] || undefined,
+        jsonLd: {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          name: serviceData.name,
+          description: serviceData.description || undefined,
+          areaServed: serviceData.service_area || undefined,
+          offers: {
+            "@type": "Offer",
+            priceCurrency: (serviceData.currency || "MYR").toUpperCase(),
+            price: (serviceData.price_cents / 100).toFixed(2),
+            availability: "https://schema.org/InStock",
+          },
+        },
+      });
 
       // Load vendor info and community
       if (serviceData.vendor_id) {
@@ -290,28 +308,12 @@ export default function ServiceDetail() {
         <div className="grid md:grid-cols-2 gap-8">
           {/* Image Section */}
           <div className="space-y-4">
-            <div className="aspect-video w-full overflow-hidden rounded-lg border">
-              <ServiceImage 
-                imageUrls={service.image_urls}
-                serviceName={service.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            {/* Additional Images */}
-            {service.image_urls && service.image_urls.length > 1 && (
-              <div className="grid grid-cols-3 gap-2">
-                {service.image_urls.slice(1, 4).map((url, idx) => (
-                  <div key={idx} className="aspect-square overflow-hidden rounded border">
-                    <img 
-                      src={url} 
-                      alt={`${service.name} image ${idx + 2}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <MediaGallery
+              images={service.image_urls || []}
+              videos={[]}
+              alt={service.name}
+              aspect="video"
+            />
           </div>
 
           {/* Details Section */}
