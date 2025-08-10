@@ -231,29 +231,21 @@ const [scheduledAt, setScheduledAt] = useState<string>('');
 
   const buyNow = async () => {
     if (!product) return;
-    try {
-      const useRider = product.product_kind === 'prepared_food' || (!!product.perishable && product.allow_easyparcel === false);
-      const scheduled = deliveryOption === 'schedule' && scheduledAt ? new Date(scheduledAt).toISOString() : undefined;
-
-      const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: {
-          name: product.name,
-          amount_cents: product.price_cents,
-          currency: product.currency || "myr",
-          success_path: "/payment-success",
-          cancel_path: "/payment-canceled",
-          product_id: product.id,
-          vendor_id: product.vendor_id,
-          community_id: product.community_id,
-          delivery_method: useRider ? 'rider' : undefined,
-          scheduled_dropoff_at: scheduled,
-        },
-      });
-      if (error) throw error;
-      window.open((data as any)?.url, "_blank");
-    } catch (e: any) {
-      toast("Checkout error", { description: e.message || String(e) });
+    const vendorMismatch = cart.vendor_id && cart.vendor_id !== product.vendor_id;
+    const currencyMismatch = cart.currency && cart.currency.toUpperCase() !== (product.currency || "usd").toUpperCase();
+    if (vendorMismatch || currencyMismatch) {
+      toast("Single vendor cart", { description: "Please checkout or clear your current cart first." });
+      return;
     }
+    cart.add({
+      product_id: product.id,
+      name: product.name,
+      price_cents: product.price_cents,
+      currency: product.currency,
+      vendor_id: product.vendor_id,
+      community_id: product.community_id || "",
+    }, 1);
+    navigate("/checkout");
   };
 
   const joinCommunity = async () => {

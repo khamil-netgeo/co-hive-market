@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import ProductImage from "@/components/product/ProductImage";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Clock } from "lucide-react";
 
 interface Product {
@@ -44,6 +44,7 @@ export default function Catalog() {
   const [memberCommunities, setMemberCommunities] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const cart = useCart();
+  const navigate = useNavigate();
   const [useNearMe, setUseNearMe] = useState(true);
   const [radiusKm, setRadiusKm] = useState(10);
   const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
@@ -274,24 +275,21 @@ const [openNow, setOpenNow] = useState(false);
     return withDist;
   }, [productsFiltered, loc, useNearMe, radiusKm]);
   const buyNow = async (p: Product) => {
-    try {
-      const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: {
-          name: p.name,
-          amount_cents: p.price_cents,
-          currency: p.currency || "myr",
-          success_path: "/payment-success",
-          cancel_path: "/payment-canceled",
-          product_id: p.id,
-          vendor_id: p.vendor_id,
-          community_id: p.community_id,
-        },
-      });
-      if (error) throw error;
-      window.open((data as any)?.url, "_blank");
-    } catch (e: any) {
-      toast("Checkout error", { description: e.message || String(e) });
+    const vendorMismatch = cart.vendor_id && cart.vendor_id !== p.vendor_id;
+    const currencyMismatch = cart.currency && cart.currency.toUpperCase() !== (p.currency || "usd").toUpperCase();
+    if (vendorMismatch || currencyMismatch) {
+      toast("Single vendor cart", { description: "Please checkout or clear your current cart before buying from another vendor or currency." });
+      return;
     }
+    cart.add({
+      product_id: p.id,
+      name: p.name,
+      price_cents: p.price_cents,
+      currency: p.currency,
+      vendor_id: p.vendor_id,
+      community_id: p.community_id,
+    }, 1);
+    navigate("/checkout");
   };
 
   const addToCart = (p: Product) => {

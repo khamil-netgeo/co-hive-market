@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductImage from "@/components/product/ProductImage";
 import ServiceImage from "@/components/service/ServiceImage";
 import { Package, Briefcase, MapPin, Clock, Star, ShoppingCart, Calendar } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // Unified item interface
 interface CatalogItem {
@@ -53,6 +53,7 @@ export default function UnifiedCatalog() {
   const [memberCommunities, setMemberCommunities] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const cart = useCart();
+  const navigate = useNavigate();
   
   // Filters
   const [activeTab, setActiveTab] = useState<"all" | "products" | "services">("all");
