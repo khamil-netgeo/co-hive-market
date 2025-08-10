@@ -492,6 +492,48 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_like_summary: {
+        Row: {
+          like_count: number
+          target_id: string
+          target_type: Database["public"]["Enums"]["review_target"]
+        }
+        Insert: {
+          like_count?: number
+          target_id: string
+          target_type: Database["public"]["Enums"]["review_target"]
+        }
+        Update: {
+          like_count?: number
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["review_target"]
+        }
+        Relationships: []
+      }
+      feed_likes: {
+        Row: {
+          created_at: string
+          id: string
+          target_id: string
+          target_type: Database["public"]["Enums"]["review_target"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          target_id: string
+          target_type: Database["public"]["Enums"]["review_target"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["review_target"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       kyc_profiles: {
         Row: {
           back_id_path: string | null
