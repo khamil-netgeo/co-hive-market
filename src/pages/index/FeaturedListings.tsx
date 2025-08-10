@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Heart, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import ProductImage from "@/components/product/ProductImage";
 
 interface ProductRow {
   id: string;
@@ -13,6 +14,7 @@ interface ProductRow {
   price_cents: number;
   currency: string;
   status: string;
+  image_urls?: string[] | null;
 }
 
 interface ServiceRow {
@@ -35,7 +37,7 @@ const FeaturedListings = () => {
         const [{ data: prodData }, { data: svcData }] = await Promise.all([
           supabase
             .from("products")
-            .select("id,name,description,price_cents,currency,status")
+            .select("id,name,description,price_cents,currency,status,image_urls")
             .eq("status", "active")
             .order("created_at", { ascending: false })
             .limit(8),
@@ -78,10 +80,11 @@ const FeaturedListings = () => {
           {(loading ? Array.from({ length: 4 }) : products).map((p: any, index: number) => (
             <Card key={p?.id ?? index} className="group overflow-hidden border-0 shadow-md hover:shadow-elegant transition-all animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
               <div className="relative overflow-hidden">
-                <img
-                  src={"/placeholder.svg"}
-                  alt={(p?.name ? `${p.name} product image` : "Product placeholder")}
+                <ProductImage
+                  imageUrls={p?.image_urls}
+                  productName={p?.name ?? "Product image"}
                   className="h-48 w-full object-cover transition-transform group-hover:scale-105"
+                  fallbackClassName="h-48 w-full bg-muted flex items-center justify-center"
                 />
                 {!loading && <Badge className="absolute left-3 top-3 text-xs">New</Badge>}
                 <Button variant="ghost" size="icon" className="absolute right-3 top-3 h-8 w-8 bg-white/90 hover:bg-white">

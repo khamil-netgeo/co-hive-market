@@ -17,18 +17,23 @@ export default function ProductImage({
 
   if (firstImage) {
     return (
-      <img
-        src={firstImage}
-        alt={productName}
-        className={className}
-        loading="lazy"
-        onError={(e) => {
-          // If image fails to load, hide it and show fallback
-          e.currentTarget.style.display = 'none';
-          const fallback = e.currentTarget.nextElementSibling as HTMLElement;
-          if (fallback) fallback.style.display = 'flex';
-        }}
-      />
+      <>
+        <img
+          src={firstImage}
+          alt={productName}
+          className={className}
+          loading="lazy"
+          onError={(e) => {
+            // If image fails to load, hide it and show fallback sibling
+            e.currentTarget.style.display = 'none';
+            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+            if (fallback) fallback.style.display = 'flex';
+          }}
+        />
+        <div className={fallbackClassName} style={{ display: 'none' }}>
+          <Package className="h-12 w-12 text-muted-foreground" />
+        </div>
+      </>
     );
   }
 
