@@ -123,31 +123,32 @@ const VendorOrders = () => {
     },
   });
 
-  // Fetch service bookings
+  // Fetch service bookings (without relying on FK join to avoid 400s)
   const { data: serviceBookings = [], refetch: refetchBookings, isLoading: bookingsLoading } = useQuery<ServiceBooking[]>({
     queryKey: ["vendor-service-bookings", vendor?.id],
     enabled: !!vendor?.id,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 1) Fetch vendor services for this vendor
+      const { data: services, error: svcErr } = await supabase
+        .from("vendor_services")
+        .select("id,name")
+        .eq("vendor_id", vendor!.id);
+      if (svcErr) throw svcErr;
+      const ids = (services || []).map((s: any) => s.id);
+      if (ids.length === 0) return [];
+
+      // 2) Fetch bookings tied to those services
+      const { data: bookings, error: bkErr } = await supabase
         .from("service_bookings")
-        .select(`
-          id,
-          created_at,
-          status,
-          total_amount_cents,
-          currency,
-          scheduled_at,
-          buyer_user_id,
-          notes,
-          vendor_services!inner (name)
-        `)
-        .eq("vendor_services.vendor_id", vendor!.id)
+        .select("id,created_at,status,total_amount_cents,currency,scheduled_at,buyer_user_id,notes,service_id")
+        .in("service_id", ids)
         .order("created_at", { ascending: false });
-      
-      if (error) throw error;
-      return data.map(booking => ({
-        ...booking,
-        service: { name: (booking as any).vendor_services.name }
+      if (bkErr) throw bkErr;
+
+      const nameMap = new Map<string, string>((services || []).map((s: any) => [s.id, s.name]));
+      return (bookings || []).map((b: any) => ({
+        ...b,
+        service: { name: nameMap.get(b.service_id) || "Service" },
       })) as ServiceBooking[];
     },
   });

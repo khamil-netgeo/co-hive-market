@@ -13,7 +13,10 @@ export default function ChatWindow({ threadId }: Props) {
   const { messages, loading, send } = useChatMessages(threadId);
   const [text, setText] = useState("");
   const [me, setMe] = useState<string | null>(null);
+  const [othersTyping, setOthersTyping] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const presenceRef = useRef<any>(null);
+  const typingTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setMe(data.session?.user.id ?? null));
@@ -23,6 +26,34 @@ export default function ChatWindow({ threadId }: Props) {
     // Auto-scroll to bottom on new messages
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, threadId]);
+
+  // Presence: typing indicator for this thread
+  useEffect(() => {
+    if (!threadId || !me) return;
+    const channel = supabase.channel(`chat-presence-${threadId}`);
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state: any = channel.presenceState();
+        const typing = Object.entries(state).some(([key, arr]: any) =>
+          key !== me && Array.isArray(arr) && arr.some((p: any) => p?.typing)
+        );
+        setOthersTyping(typing);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ user_id: me, typing: false, online_at: new Date().toISOString() });
+        }
+      });
+
+    presenceRef.current = channel;
+    return () => {
+      if (presenceRef.current) {
+        supabase.removeChannel(presenceRef.current);
+        presenceRef.current = null;
+      }
+    };
+  }, [threadId, me]);
 
   if (!threadId) {
     return (
@@ -51,6 +82,7 @@ export default function ChatWindow({ threadId }: Props) {
           );
         })}
       </div>
+      {othersTyping && (<div className="px-4 pb-2 text-xs text-muted-foreground">Typing…</div>)}
 
       {/* Composer - mobile friendly sticky footer */}
       <form
@@ -65,7 +97,16 @@ export default function ChatWindow({ threadId }: Props) {
       >
         <Input
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (presenceRef.current && me) {
+              presenceRef.current.track({ user_id: me, typing: true, online_at: new Date().toISOString() });
+              if (typingTimerRef.current) window.clearTimeout(typingTimerRef.current);
+              typingTimerRef.current = window.setTimeout(() => {
+                presenceRef.current?.track({ user_id: me, typing: false, online_at: new Date().toISOString() });
+              }, 1500) as unknown as number;
+            }
+          }}
           placeholder="Type a message…"
           aria-label="Message"
         />
