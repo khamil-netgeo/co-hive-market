@@ -67,17 +67,19 @@ export default function OrderTracker() {
       if (!error) setOrder(o as any);
 
       // Load order items with products
-      const { data: items } = await supabase
+      const { data: items, error: itemsError } = await supabase
         .from("order_items")
         .select(`
           id, quantity, unit_price_cents,
           product_id,
-          products!inner (
+          products (
             id, name, image_urls
           )
         `)
         .eq("order_id", orderId);
-      setOrderItems(items || []);
+      if (!itemsError) {
+        setOrderItems(items || []);
+      }
     };
     init();
   }, [orderId, navigate]);
