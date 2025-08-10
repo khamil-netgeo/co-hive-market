@@ -9,6 +9,9 @@ import { useCart } from "@/hooks/useCart";
 export default function PaymentSuccess() {
   const [verifying, setVerifying] = useState(true);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [deliveryId, setDeliveryId] = useState<string | null>(null);
+  const [deliveryStatus, setDeliveryStatus] = useState<string | null>(null);
+  const [riderUserId, setRiderUserId] = useState<string | null>(null);
   const { clear } = useCart();
 
   useEffect(() => {
@@ -52,6 +55,84 @@ export default function PaymentSuccess() {
     run();
   }, []);
 
+  // Watch for the created order and subscribe to delivery updates
+  useEffect(() => {
+    if (!orderId) return;
+
+    let deliveryChannel: ReturnType<typeof supabase.channel> | null = null;
+    let assignmentChannel: ReturnType<typeof supabase.channel> | null = null;
+
+    const fetchDelivery = async () => {
+      const { data: del } = await supabase
+        .from("deliveries")
+        .select("id,status,rider_user_id")
+        .eq("order_id", orderId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (del) {
+        setDeliveryId(del.id);
+        setDeliveryStatus(del.status);
+        setRiderUserId(del.rider_user_id);
+        if (del.rider_user_id) {
+          toast("Rider assigned", { description: "Your rider is on the way." });
+        }
+      }
+    };
+
+    fetchDelivery();
+
+    // Subscribe to delivery row creation/updates
+    deliveryChannel = supabase
+      .channel("delivery-updates")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "deliveries", filter: `order_id=eq.${orderId}` },
+        (payload: any) => {
+          const del = payload.new;
+          setDeliveryId(del.id);
+          setDeliveryStatus(del.status);
+          setRiderUserId(del.rider_user_id);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "deliveries", filter: `order_id=eq.${orderId}` },
+        (payload: any) => {
+          const del = payload.new;
+          setDeliveryId(del.id);
+          setDeliveryStatus(del.status);
+          setRiderUserId(del.rider_user_id);
+          if (del.rider_user_id) {
+            toast("Rider assigned", { description: "Your rider is on the way." });
+          }
+        }
+      )
+      .subscribe();
+
+    const setupAssignmentChannel = (did: string) => {
+      assignmentChannel = supabase
+        .channel("assignment-updates")
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "delivery_assignments", filter: `delivery_id=eq.${did}` },
+          () => toast("Delivery broadcasted", { description: "Nearby riders are being notified." })
+        )
+        .on(
+          "postgres_changes",
+          { event: "UPDATE", schema: "public", table: "delivery_assignments", filter: `delivery_id=eq.${did}` },
+          () => toast("Rider responded", { description: "A rider responded to your delivery." })
+        )
+        .subscribe();
+    };
+
+    if (deliveryId) setupAssignmentChannel(deliveryId);
+
+    return () => {
+      if (deliveryChannel) supabase.removeChannel(deliveryChannel);
+      if (assignmentChannel) supabase.removeChannel(assignmentChannel);
+    };
+  }, [orderId, deliveryId]);
   return (
     <main className="container py-16">
       <h1 className="text-3xl font-semibold">Payment successful</h1>
@@ -63,9 +144,18 @@ export default function PaymentSuccess() {
           {verifying ? (
             <div>Finalizing your order…</div>
           ) : (
-            <div>
-              Your transaction completed successfully{orderId ? ` (Order #${orderId})` : "."} You can return to the
-              homepage or continue browsing.
+            <div className="space-y-2">
+              <div>
+                Your transaction completed successfully{orderId ? ` (Order #${orderId})` : "."}
+              </div>
+              {deliveryStatus ? (
+                <div>
+                  Delivery status: <span className="font-medium">{deliveryStatus}</span>
+                  {riderUserId ? " — rider assigned" : " — searching for nearby riders"}
+                </div>
+              ) : (
+                <div>Setting up your delivery and notifying nearby riders…</div>
+              )}
             </div>
           )}
           <div className="mt-6 flex flex-wrap gap-3">

@@ -43,6 +43,7 @@ const { data, error } = await supabase.functions.invoke("create-embedded-checkou
             success_path: "/payment-success",
             vendor_id: cart.vendor_id,
             community_id: cart.community_id,
+            product_id: cart.items[0]?.product_id,
             delivery_method: "rider",
           },
         });
