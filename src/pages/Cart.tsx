@@ -9,11 +9,12 @@ import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchEasyParcelRates } from "@/lib/shipping";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Cart() {
   const cart = useCart();
   const [checkingOut, setCheckingOut] = useState(false);
+  const navigate = useNavigate();
   useMemo(() => setSEO("Cart | CoopMarket", "Review your items and checkout securely."), []);
 
   // Shipping state
@@ -139,21 +140,7 @@ export default function Cart() {
         toast("Select a shipping option", { description: "Fetch rates and choose a courier before checkout." });
         return;
       }
-      const { data, error } = await supabase.functions.invoke("create-payment", {
-        body: {
-          name: `Cart purchase (${cart.count} item${cart.count > 1 ? "s" : ""})`,
-          amount_cents: totalCents,
-          currency: cart.currency,
-          success_path: "/payment-success",
-          cancel_path: "/payment-canceled",
-          vendor_id: cart.vendor_id,
-          community_id: cart.community_id,
-        },
-      });
-      if (error) throw error;
-      const url = (data as any)?.url;
-      if (!url) throw new Error("No checkout URL returned");
-      window.open(url, "_blank");
+      navigate("/checkout", { state: { shippingCents } });
     } catch (e: any) {
       toast("Unable to checkout", { description: e.message || String(e) });
     } finally {

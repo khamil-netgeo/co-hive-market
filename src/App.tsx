@@ -51,6 +51,7 @@ import VendorProducts from "./pages/vendor/VendorProducts";
 import ServiceForm from "./pages/vendor/ServiceForm";
 import Cart from "./pages/Cart";
 import StoreSettings from "./pages/vendor/StoreSettings";
+import Checkout from "./pages/Checkout";
 import RiderDashboard from "./pages/rider/Dashboard";
 import RiderAssignments from "./pages/rider/Assignments";
 import RiderDeliveries from "./pages/rider/Deliveries";
@@ -87,6 +88,7 @@ const App = () => (
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/service/:id" element={<ServiceDetail />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/communities" element={<Communities />} />
