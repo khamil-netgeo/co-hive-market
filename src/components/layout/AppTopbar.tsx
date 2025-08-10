@@ -58,6 +58,8 @@ export default function AppTopbar() {
                 <DropdownMenuItem onSelect={() => navigate("/")}>Home</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/profile")}>Profile</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/orders")}>My Orders</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => navigate("/chat")}>Messages</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => navigate("/support")}>Support</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/catalog")}>Catalog</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/feed")}>Shop Feed</DropdownMenuItem>
                 

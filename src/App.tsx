@@ -65,6 +65,8 @@ import RiderPayouts from "./pages/rider/Payouts";
 import VendorListings from "./pages/vendor/Listings";
 import CreatorStudio from "./pages/vendor/CreatorStudio";
 import { CartProvider } from "@/hooks/useCart";
+import ChatPage from "./pages/Chat";
+import SupportPage from "./pages/Support";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +110,10 @@ const App = () => (
               <Route path="/rider/deliveries" element={<RiderDeliveries />} />
               <Route path="/rider/profile" element={<RiderProfile />} />
               <Route path="/rider/payouts" element={<RiderPayouts />} />
+
+              {/* Messaging & Support */}
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/support" element={<SupportPage />} />
               
               <Route path="/vendor/services" element={<Navigate to="/vendor/listings?type=services" replace />} />
               <Route path="/vendor/services/new" element={<ServiceForm />} />

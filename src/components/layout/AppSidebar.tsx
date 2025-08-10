@@ -1,6 +1,6 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
 import { useState } from "react";
-import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings, Truck, DollarSign, User, Globe, UserCog, Flag, Megaphone, AlertTriangle, ScrollText, Coffee, ShoppingCart } from "lucide-react";
+import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings, Truck, DollarSign, User, Globe, UserCog, Flag, Megaphone, AlertTriangle, ScrollText, Coffee, ShoppingCart, MessageSquare, LifeBuoy } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +21,8 @@ import useIsVendor from "@/hooks/useIsVendor";
 const items = [
   { title: "Communities", url: "/communities", icon: Users },
   { title: "Orders", url: "/orders", icon: ListOrdered },
+  { title: "Messages", url: "/chat", icon: MessageSquare },
+  { title: "Support", url: "/support", icon: LifeBuoy },
 ];
 
 const shopItems = [
