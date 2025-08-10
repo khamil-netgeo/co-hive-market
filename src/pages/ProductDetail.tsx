@@ -14,6 +14,8 @@ import ProductTrustBadges from "@/components/product/ProductTrustBadges";
 import ShippingEstimator from "@/components/product/ShippingEstimator";
 import DeliveryBanner from "@/components/delivery/DeliveryBanner";
 import DeliveryInfoCard from "@/components/delivery/DeliveryInfoCard";
+import DeliveryMethodsCard from "@/components/delivery/DeliveryMethodsCard";
+import ProductSpecificationsCard from "@/components/product/ProductSpecificationsCard";
 import ReviewSummary from "@/components/reviews/ReviewSummary";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
@@ -36,6 +38,7 @@ interface Product {
   perishable?: boolean;
   refrigeration_required?: boolean;
   allow_easyparcel?: boolean;
+  allow_rider_delivery?: boolean;
   prep_time_minutes?: number;
 }
 
@@ -55,6 +58,7 @@ export default function ProductDetail() {
 const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 const [deliveryOption, setDeliveryOption] = useState<'asap' | 'schedule'>('asap');
 const [scheduledAt, setScheduledAt] = useState<string>('');
+const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'pickup'>('rider');
 
   useEffect(() => {
     if (!id) {
@@ -483,26 +487,40 @@ const [scheduledAt, setScheduledAt] = useState<string>('');
               </CardContent>
             </Card>
 
-            {/* Delivery & shipping */}
+            {/* Enhanced Delivery & Product Information */}
             <div className="space-y-4">
-              <DeliveryBanner 
-                productKind={product.product_kind}
-                perishable={product.perishable}
-                estimatedDeliveryTime={product.prep_time_minutes ? `${product.prep_time_minutes + 30}-${product.prep_time_minutes + 60} mins` : "30-60 mins"}
-              />
-              <DeliveryInfoCard 
+              <DeliveryMethodsCard
                 productKind={product.product_kind}
                 perishable={product.perishable}
                 refrigerationRequired={product.refrigeration_required}
-                prepTimeMinutes={product.prep_time_minutes}
-              />
-              <ProductTrustBadges />
-              <ShippingEstimator 
-                defaultWeightKg={product.weight_grams ? Math.max(0.1, product.weight_grams / 1000) : 1}
-                productKind={product.product_kind}
-                perishable={product.perishable}
                 allowEasyparcel={product.allow_easyparcel}
+                allowRiderDelivery={product.allow_rider_delivery}
+                prepTimeMinutes={product.prep_time_minutes}
+                pickupLat={product.pickup_lat}
+                pickupLng={product.pickup_lng}
+                userLocation={userLocation}
+                selectedMethod={deliveryMethod}
+                onSelectDelivery={setDeliveryMethod}
               />
+              
+              <ProductSpecificationsCard
+                product={product}
+                vendor={vendor ? { id: vendor.id } : undefined}
+                userLocation={userLocation}
+                onAddToCart={addToCart}
+                onBuyNow={buyNow}
+              />
+
+              {deliveryMethod === 'easyparcel' && product.allow_easyparcel && (
+                <ShippingEstimator 
+                  defaultWeightKg={product.weight_grams ? Math.max(0.1, product.weight_grams / 1000) : 1}
+                  productKind={product.product_kind}
+                  perishable={product.perishable}
+                  allowEasyparcel={product.allow_easyparcel}
+                />
+              )}
+
+              <ProductTrustBadges />
             </div>
           </div>
         </div>

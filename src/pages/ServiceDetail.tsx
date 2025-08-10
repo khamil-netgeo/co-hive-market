@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import ServiceImage from "@/components/service/ServiceImage";
 import { Briefcase, MapPin, Clock, Calendar, Star, ArrowLeft } from "lucide-react";
 import BookingDatePicker from "@/components/service/BookingDatePicker";
+import ServiceDetailsCard from "@/components/service/ServiceDetailsCard";
 import ReviewSummary from "@/components/reviews/ReviewSummary";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
@@ -332,45 +333,15 @@ export default function ServiceDetail() {
 
             {service.description && (
               <div>
-                <h3 className="font-semibold mb-2">Description</h3>
+                <h3 className="font-semibold mb-2">Service Overview</h3>
                 <p className="text-muted-foreground whitespace-pre-wrap">{service.description}</p>
               </div>
             )}
 
-            {/* Service Details */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Service Details</h3>
-              <div className="grid gap-3">
-                {typeof service.duration_minutes === "number" && service.duration_minutes > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>Duration: {service.duration_minutes} minutes</span>
-                  </div>
-                )}
-                {service.service_area && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>Service area: {service.service_area}</span>
-                  </div>
-                )}
-                {service.location_type && (
-                  <div className="flex items-center gap-2">
-                    <span>Location type: {service.location_type}</span>
-                  </div>
-                )}
-                {service.availability_preset && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>Availability: {service.availability_preset}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Pricing */}
             <Card>
               <CardHeader>
-                <CardTitle>Pricing</CardTitle>
+                <CardTitle>Pricing & Booking</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold mb-4">
@@ -398,52 +369,57 @@ export default function ServiceDetail() {
                     </Button>
                   </div>
                 )}
-              </CardContent>
-            </Card>
 
-            {/* Booking Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Book This Service</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="datetime" className="text-sm font-medium">
-                    Preferred date & time (optional)
-                  </Label>
-                  <div className="mt-1">
-                    <BookingDatePicker
-                      value={scheduledDate}
-                      onChange={(d) => setScheduledDateTime(d ? d.toISOString() : "")}
+                {/* Quick Booking */}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="datetime" className="text-sm font-medium">
+                      Preferred date & time (optional)
+                    </Label>
+                    <div className="mt-1">
+                      <BookingDatePicker
+                        value={scheduledDate}
+                        onChange={(d) => setScheduledDateTime(d ? d.toISOString() : "")}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="notes" className="text-sm font-medium">
+                      Notes (optional)
+                    </Label>
+                    <Textarea
+                      id="notes"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Add special instructions or requirements..."
+                      rows={3}
+                      className="mt-1"
                     />
                   </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="notes" className="text-sm font-medium">
-                    Notes (optional)
-                  </Label>
-                  <Textarea
-                    id="notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Add special instructions or requirements..."
-                    rows={3}
-                    className="mt-1"
-                  />
-                </div>
 
-                <Button 
-                  variant="hero" 
-                  onClick={bookService}
-                  className="w-full flex items-center gap-2"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Book & Pay {fmtPrice(memberPrice || service.price_cents, service.currency)}
-                </Button>
+                  <Button 
+                    variant="hero" 
+                    onClick={bookService}
+                    className="w-full flex items-center gap-2"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    Book & Pay {fmtPrice(memberPrice || service.price_cents, service.currency)}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-          </div>
+
+            {/* Enhanced Service Information */}
+            <ServiceDetailsCard
+              service={service}
+              vendor={vendor ? { 
+                id: vendor.id, 
+                name: 'Service Provider'
+              } : undefined}
+              onBookNow={bookService}
+              onContactVendor={() => toast.info('Contact feature coming soon')}
+            />
           </div>
         </div>
 
@@ -473,6 +449,7 @@ export default function ServiceDetail() {
             </Button>
           </div>
         </div>
-      </main>
-    );
-  }
+      </div>
+    </main>
+  );
+}
