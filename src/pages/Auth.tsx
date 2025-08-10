@@ -28,7 +28,7 @@ export default function Auth() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     setSEO(
@@ -40,7 +40,7 @@ export default function Auth() {
 
     // Keep session reactive (no heavy logic here)
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) window.location.replace("/");
+      if (event === "SIGNED_IN" && session) { setRedirecting(true); window.location.replace("/"); }
     });
     return () => {
       sub.subscription.unsubscribe();
@@ -75,7 +75,18 @@ export default function Auth() {
   };
 
   return (
-    <main className="mx-auto max-w-md px-6 py-16">
+    <main className="relative mx-auto max-w-md px-6 py-16">
+      {(loading || redirecting) && (
+        <div className="absolute inset-0 z-10 grid place-items-center bg-background/80 backdrop-blur-sm" aria-live="polite" role="status">
+          <div className="w-full max-w-sm rounded-lg border bg-card p-6 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
+              <span className="font-medium">{mode === "signin" ? "Signing you in…" : "Creating your account…"}</span>
+            </div>
+            <p className="mt-3 text-sm text-muted-foreground">This only takes a moment.</p>
+          </div>
+        </div>
+      )}
       <h1 className="mb-6 text-2xl font-semibold">{mode === "signin" ? "Sign in" : "Create your account"}</h1>
       <form onSubmit={onSubmit} className="grid gap-4">
         <label className="grid gap-2">
