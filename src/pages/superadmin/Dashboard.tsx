@@ -21,7 +21,7 @@ import {
   UserCog,
   Megaphone
 } from "lucide-react";
-
+import WatchAnalyticsCard from "./components/WatchAnalyticsCard";
 interface DashboardStats {
   totalUsers: number;
   totalVendors: number;
@@ -266,6 +266,9 @@ const SuperAdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Watch Analytics */}
+      <WatchAnalyticsCard />
 
       {/* Quick Actions & Recent Activity */}
       <div className="grid gap-6 md:grid-cols-2">
