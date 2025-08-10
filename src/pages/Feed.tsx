@@ -128,14 +128,17 @@ export default function Feed() {
         }
 
         // Community filter (products by product.community_id; services by vendor.community_id)
-        if (selected.id) {
+        if (selected?.id) {
           const vendorIds = Array.from(new Set(filteredItems.map((i) => i.vendor_id)));
-          const { data: vendorRows, error: vErr } = await supabase
-            .from('vendors')
-            .select('id,community_id')
-            .in('id', vendorIds);
-          if (vErr) throw vErr;
-          const vMap = new Map<string, string | null>((vendorRows as any[] || []).map((v) => [v.id, v.community_id]));
+          let vMap = new Map<string, string | null>();
+          if (vendorIds.length) {
+            const { data: vendorRows, error: vErr } = await supabase
+              .from('vendors')
+              .select('id,community_id')
+              .in('id', vendorIds);
+            if (vErr) throw vErr;
+            vMap = new Map<string, string | null>(((vendorRows as any[]) || []).map((v) => [v.id, v.community_id]));
+          }
           filteredItems = filteredItems.filter((it) => {
             if (it.kind === 'product') return (it as FeedProduct).community_id === selected.id;
             return (vMap.get(it.vendor_id) ?? null) === selected.id;

@@ -23,25 +23,13 @@ export default function useIsRider(): UseIsRiderResult {
         setIsRider(false);
         return;
       }
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from("community_members")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
         .eq("member_type", "delivery");
       if (error) throw error;
-      // If count is available, it means at least one membership exists
-      setIsRider((data as any) !== null); // head:true returns null data; rely on status via count, but not exposed here
-      // Fallback: run a non-head query if needed
-      if ((data as any) === null) {
-        const { data: rows, error: err2 } = await supabase
-          .from("community_members")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("member_type", "delivery")
-          .limit(1);
-        if (err2) throw err2;
-        setIsRider(!!rows && rows.length > 0);
-      }
+      setIsRider((count ?? 0) > 0);
     } finally {
       setLoading(false);
     }

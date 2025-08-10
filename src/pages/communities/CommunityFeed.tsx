@@ -4,6 +4,7 @@ import { useCommunity } from "@/context/CommunityContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Feed from "@/pages/Feed";
+import { setSEOAdvanced } from "@/lib/seo";
 
 // Community-scoped feed wrapper
 // - Reads :id from route
@@ -35,6 +36,23 @@ export default function CommunityFeed() {
     setContext();
     return () => { isMounted = false; };
   }, [id, selected.id, setSelected]);
+
+  useEffect(() => {
+    const name = selected.name ?? "Community";
+    if (id) {
+      setSEOAdvanced({
+        title: `${name} — Feed`,
+        description: `Watch and shop videos from ${name} community.`,
+        type: "website",
+        jsonLd: {
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: `${name} Feed`,
+          description: `Shoppable videos from ${name}`,
+        },
+      });
+    }
+  }, [id, selected.name]);
 
   return (
     <main role="main" className="relative">

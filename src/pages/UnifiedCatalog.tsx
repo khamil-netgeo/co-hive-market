@@ -249,7 +249,7 @@ export default function UnifiedCatalog() {
     let result = [...items];
 
     // Community filter
-    if (selected.id) {
+    if (selected?.id) {
       result = result.filter((item) => {
         if (item.type === 'product') return item.community_id === selected.id;
         const v = vendorsById[item.vendor_id];
