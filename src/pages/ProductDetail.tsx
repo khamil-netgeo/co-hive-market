@@ -518,6 +518,43 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                 </div>
               </div>
 
+              {/* Product Features */}
+              <div>
+                <h4 className="font-medium mb-3">Product Features</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {product.perishable && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Package className="h-4 w-4 text-orange-500" />
+                      <span>Perishable item</span>
+                    </div>
+                  )}
+                  {product.refrigeration_required && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Package className="h-4 w-4 text-blue-500" />
+                      <span>Requires refrigeration</span>
+                    </div>
+                  )}
+                  {product.allow_easyparcel && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Package className="h-4 w-4 text-green-500" />
+                      <span>Courier delivery available</span>
+                    </div>
+                  )}
+                  {product.allow_rider_delivery && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Package className="h-4 w-4 text-purple-500" />
+                      <span>Rider delivery available</span>
+                    </div>
+                  )}
+                  {product.prep_time_minutes && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <span>Prep time: {product.prep_time_minutes} mins</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Vendor Information */}
               {product.vendor_id && (
                 <div>
@@ -603,17 +640,9 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
           </div>
         </div>
 
-        {/* Additional Information - Mobile Stack, Desktop Grid */}
+        {/* Trust Badges and Shipping - Single Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          <ProductSpecificationsCard
-            product={product}
-            vendor={vendor ? { id: vendor.id } : undefined}
-            userLocation={userLocation}
-            onAddToCart={addToCart}
-            onBuyNow={buyNow}
-          />
-
-          <div className="space-y-4">
+          <div>
             {deliveryMethod === 'easyparcel' && product.allow_easyparcel && (
               <ShippingEstimator 
                 defaultWeightKg={product.weight_grams ? Math.max(0.1, product.weight_grams / 1000) : 1}
@@ -622,7 +651,8 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                 allowEasyparcel={product.allow_easyparcel}
               />
             )}
-
+          </div>
+          <div>
             <ProductTrustBadges />
           </div>
         </div>
