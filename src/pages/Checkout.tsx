@@ -44,6 +44,17 @@ const containerRef = useRef<HTMLDivElement | null>(null);
           }
         }
 
+        // Enforce Stripe currency minimum before creating session
+        const cur = String(cart.currency || "usd").toLowerCase();
+        const minByCurrency: Record<string, number> = { myr: 200, usd: 50, eur: 50, gbp: 30 };
+        const minCents = minByCurrency[cur] ?? 50;
+        if (totalCents < minCents) {
+          const human = cur.toUpperCase();
+          toast("Minimum order", { description: `Minimum charge is ${human} ${(minCents/100).toFixed(2)}. Please add more items.` });
+          setMounting(false);
+          return;
+        }
+
         const { data: cfg, error: cfgErr } = await supabase.functions.invoke("stripe-config");
         if (cfgErr) throw cfgErr;
         const pk = (cfg as any)?.publishableKey;
