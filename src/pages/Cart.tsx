@@ -121,21 +121,41 @@ export default function Cart() {
   };
   const flatten = (x: any): any[] => Array.isArray(x) ? x.flatMap(flatten) : (typeof x === "object" && x ? Object.values(x).flatMap(flatten) : []);
   const parseRates = (payload: any): RateOption[] => {
-    const arr = flatten(payload).filter((it: any) => typeof it === "object");
+    if (!payload) return [];
+    const items: any[] = [];
+
+    const root = payload as any;
+    if (Array.isArray(root)) {
+      for (const r of root) {
+        if (r?.rates && Array.isArray(r.rates)) items.push(...r.rates);
+        if (r?.status === 'Fail' && r?.remarks) throw new Error(r.remarks);
+      }
+    } else if (root.result && Array.isArray(root.result)) {
+      for (const r of root.result) {
+        if (r?.rates && Array.isArray(r.rates)) items.push(...r.rates);
+        if (r?.status === 'Fail' && r?.remarks) throw new Error(r.remarks);
+      }
+    } else if (root.rates && Array.isArray(root.rates)) {
+      items.push(...root.rates);
+    }
+
+    if (root.api_status === 'Error' && root.error_remark) {
+      throw new Error(root.error_remark);
+    }
+
     const options: RateOption[] = [];
     let i = 0;
-    for (const it of arr) {
-      const price_cents = toCents((it.price ?? it.rate ?? it.total ?? it.fee));
-      const courier = String(it.courier || it.courier_name || it.provider || it.company || it.name || it.service_id || "Courier");
-      const service = String(it.service || it.desc || it.service_name || it.plan || "");
-      const etd = (it.etd || it.delivery || it.estimated_delivery_time) as string | undefined;
+    for (const it of items) {
+      const price_cents = toCents(it.price ?? it.shipment_price ?? it.rate ?? it.total ?? it.fee);
+      const courier = String(it.courier_name || it.courier || it.provider || it.company || it.name || it.service_id || "Courier");
+      const service = String(it.service_name || it.service || it.desc || it.service_id || "");
+      const etd = (it.delivery || it.estimated_delivery_time) as string | undefined;
       if (price_cents > 0) {
         options.push({ id: `${courier}-${service}-${i++}`.replace(/\s+/g, "-"), courier, service, price_cents, etd, raw: it });
       }
     }
     return options;
   };
-
   const getRates = async () => {
     if (!pickPostcode || !sendPostcode) {
       if (!sendPostcode) {
