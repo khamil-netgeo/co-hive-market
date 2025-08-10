@@ -49,6 +49,9 @@ export default function Feed() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(0);
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
+  const sessionIdRef = useRef<string>(crypto.randomUUID());
+  const activeStartRef = useRef<number | null>(null);
+  const activeItemRef = useRef<FeedItem | null>(null);
   const navigate = useNavigate();
   const { add } = useCart();
   const [searchParams] = useSearchParams();
@@ -266,6 +269,66 @@ export default function Feed() {
     new Intl.NumberFormat(undefined, { style: "currency", currency: (cur || "MYR").toUpperCase() }).format(
       Math.max(0, cents) / 100
     );
+
+  // Watch analytics: log on slide change and unload
+  const logWatch = async (it: FeedItem | null, watchedMs: number, startedAt: number | null) => {
+    if (!it || startedAt == null) return;
+    // Ignore very short views
+    if (watchedMs < 800) return;
+    try {
+      const { data: { user } = { user: null } } = await supabase.auth.getUser();
+      const payload: any = {
+        user_id: user?.id ?? null,
+        target_type: it.kind === 'product' ? 'product' : 'service',
+        target_id: it.id,
+        session_id: sessionIdRef.current,
+        watched_ms: Math.round(watchedMs),
+        vendor_id: it.vendor_id,
+        community_id: (it as any).community_id ?? selected?.id ?? null,
+        source: 'feed',
+      };
+      await supabase.from('feed_watch_events').insert(payload);
+    } catch {}
+  };
+
+  // When active item changes, flush previous and start new
+  useEffect(() => {
+    const now = performance.now();
+    const prevItem = activeItemRef.current;
+    const prevStart = activeStartRef.current;
+    if (prevItem && prevStart != null) {
+      const watched = now - prevStart;
+      // Fire and forget
+      void logWatch(prevItem, watched, prevStart);
+    }
+    // Start timing new
+    const current = items[active] ?? null;
+    activeItemRef.current = current;
+    activeStartRef.current = now;
+  }, [active, items]);
+
+  // Flush on unload/visibility hidden
+  useEffect(() => {
+    const handleFlush = () => {
+      const now = performance.now();
+      const prevItem = activeItemRef.current;
+      const prevStart = activeStartRef.current;
+      if (prevItem && prevStart != null) {
+        const watched = now - prevStart;
+        void logWatch(prevItem, watched, prevStart);
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') handleFlush();
+    };
+    window.addEventListener('beforeunload', handleFlush);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      handleFlush();
+      window.removeEventListener('beforeunload', handleFlush);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   const onAddToCart = (it: FeedItem) => {
     if (it.kind === "product") {

@@ -534,6 +534,45 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_watch_events: {
+        Row: {
+          community_id: string | null
+          created_at: string
+          id: string
+          session_id: string
+          source: string
+          target_id: string
+          target_type: Database["public"]["Enums"]["review_target"]
+          user_id: string | null
+          vendor_id: string | null
+          watched_ms: number
+        }
+        Insert: {
+          community_id?: string | null
+          created_at?: string
+          id?: string
+          session_id: string
+          source?: string
+          target_id: string
+          target_type: Database["public"]["Enums"]["review_target"]
+          user_id?: string | null
+          vendor_id?: string | null
+          watched_ms: number
+        }
+        Update: {
+          community_id?: string | null
+          created_at?: string
+          id?: string
+          session_id?: string
+          source?: string
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["review_target"]
+          user_id?: string | null
+          vendor_id?: string | null
+          watched_ms?: number
+        }
+        Relationships: []
+      }
       kyc_profiles: {
         Row: {
           back_id_path: string | null
