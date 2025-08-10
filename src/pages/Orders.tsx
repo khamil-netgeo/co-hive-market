@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface OrderRow {
   id: string;
@@ -101,6 +102,7 @@ const Orders = () => {
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -116,6 +118,39 @@ const Orders = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">{cents(o.total_amount_cents, o.currency)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="secondary" asChild>
+                            <a href={`/orders/${o.id}`}>Track</a>
+                          </Button>
+                          {o.status !== 'fulfilled' && o.status !== 'canceled' && (
+                            <Button
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  const { error: updErr } = await supabase
+                                    .from('orders')
+                                    .update({ status: 'fulfilled', buyer_confirmed_at: new Date().toISOString() } as any)
+                                    .eq('id', o.id);
+                                  if (updErr) throw updErr;
+                                  await supabase.from('order_progress_events').insert({
+                                    order_id: o.id,
+                                    event: 'buyer_confirmed_received',
+                                    description: 'Buyer confirmed receiving the goods',
+                                    metadata: {},
+                                  });
+                                  toast.success('Thanks for confirming!');
+                                  refetch();
+                                } catch (e: any) {
+                                  toast('Confirmation failed', { description: e.message || String(e) });
+                                }
+                              }}
+                            >
+                              Confirm Received
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

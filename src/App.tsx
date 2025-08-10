@@ -82,8 +82,8 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               
               <Route path="/catalog" element={<UnifiedCatalog />} />
-              <Route path="/food" element={<Catalog />} />
-              <Route path="/groceries" element={<Catalog />} />
+              <Route path="/food" element={<Navigate to="/products" replace />} />
+              <Route path="/groceries" element={<Navigate to="/products" replace />} />
               <Route path="/feed" element={<Feed />} />
               <Route path="/services" element={<UnifiedCatalog />} />
               <Route path="/products" element={<UnifiedCatalog />} />

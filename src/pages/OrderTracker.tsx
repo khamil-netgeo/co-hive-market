@@ -84,6 +84,32 @@ export default function OrderTracker() {
           <Button variant="secondary" asChild>
             <a href="/orders">Back to Orders</a>
           </Button>
+          {order && order.status !== 'fulfilled' && order.status !== 'canceled' && (
+            <Button
+              onClick={async () => {
+                try {
+                  if (!orderId) return;
+                  const { error: updErr } = await supabase
+                    .from('orders')
+                    .update({ status: 'fulfilled', buyer_confirmed_at: new Date().toISOString() } as any)
+                    .eq('id', orderId);
+                  if (updErr) throw updErr;
+                  await supabase.from('order_progress_events').insert({
+                    order_id: orderId,
+                    event: 'buyer_confirmed_received',
+                    description: 'Buyer confirmed receiving the goods',
+                    metadata: {},
+                  });
+                  toast.success('Thanks for confirming!');
+                  setOrder({ ...(order as any), status: 'fulfilled' });
+                } catch (e: any) {
+                  toast('Confirmation failed', { description: e.message || String(e) });
+                }
+              }}
+            >
+              Confirm Received
+            </Button>
+          )}
         </div>
       </header>
 

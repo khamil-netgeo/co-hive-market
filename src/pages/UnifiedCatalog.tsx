@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductImage from "@/components/product/ProductImage";
 import ServiceImage from "@/components/service/ServiceImage";
 import { Package, Briefcase, MapPin, Clock, Star, ShoppingCart, Calendar } from "lucide-react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 
 // Unified item interface
 interface CatalogItem {
@@ -55,6 +55,7 @@ export default function UnifiedCatalog() {
   const cart = useCart();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   
   // Filters
   const [activeTab, setActiveTab] = useState<"all" | "products" | "services">("all");
@@ -80,6 +81,14 @@ export default function UnifiedCatalog() {
       "Browse products and services with member discounts. Shop or book everything in one place."
     );
   }, []);
+
+  // Set default tab based on route path
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.includes('/products')) setActiveTab('products');
+    else if (path.includes('/services')) setActiveTab('services');
+    else setActiveTab('all');
+  }, [location.pathname]);
 
   const load = async () => {
     setLoading(true);

@@ -780,6 +780,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          buyer_confirmed_at: string | null
           buyer_user_id: string
           community_id: string
           created_at: string
@@ -804,6 +805,7 @@ export type Database = {
           vendor_id: string
         }
         Insert: {
+          buyer_confirmed_at?: string | null
           buyer_user_id: string
           community_id: string
           created_at?: string
@@ -830,6 +832,7 @@ export type Database = {
           vendor_id: string
         }
         Update: {
+          buyer_confirmed_at?: string | null
           buyer_user_id?: string
           community_id?: string
           created_at?: string
