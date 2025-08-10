@@ -52,6 +52,7 @@ import ServiceForm from "./pages/vendor/ServiceForm";
 import Cart from "./pages/Cart";
 import StoreSettings from "./pages/vendor/StoreSettings";
 import Checkout from "./pages/Checkout";
+import DeliveryDetails from "./pages/DeliveryDetails";
 import RiderDashboard from "./pages/rider/Dashboard";
 import RiderAssignments from "./pages/rider/Assignments";
 import RiderDeliveries from "./pages/rider/Deliveries";
@@ -87,7 +88,8 @@ const App = () => (
               <Route path="/products" element={<UnifiedCatalog />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/service/:id" element={<ServiceDetail />} />
-              <Route path="/cart" element={<Cart />} />
+<Route path="/cart" element={<Cart />} />
+              <Route path="/delivery-details" element={<DeliveryDetails />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/profile" element={<Profile />} />

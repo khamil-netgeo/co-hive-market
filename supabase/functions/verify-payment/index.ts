@@ -105,6 +105,13 @@ serve(async (req) => {
       );
     }
 
+    // Fetch buyer profile for shipping info (optional)
+    const { data: prof } = await service
+      .from("profiles")
+      .select("address_line1,address_line2,city,state,postcode,country,phone,latitude,longitude")
+      .eq("id", user.id)
+      .maybeSingle();
+
     // Insert order securely using service role
     const { data: order, error: oErr } = await service
       .from("orders")
@@ -115,6 +122,14 @@ serve(async (req) => {
         total_amount_cents: Math.round(amount_cents),
         currency,
         stripe_session_id: session.id,
+        recipient_name: null,
+        recipient_phone: (prof as any)?.phone ?? null,
+        ship_address_line1: (prof as any)?.address_line1 ?? null,
+        ship_address_line2: (prof as any)?.address_line2 ?? null,
+        ship_city: (prof as any)?.city ?? null,
+        ship_state: (prof as any)?.state ?? null,
+        ship_postcode: (prof as any)?.postcode ?? null,
+        ship_country: (prof as any)?.country ?? 'MY',
       })
       .select("id, created_at, status, total_amount_cents, currency")
       .single();
@@ -182,12 +197,6 @@ serve(async (req) => {
           pickup_lng = (prod as any)?.pickup_lng ?? null;
         }
 
-        const { data: prof } = await service
-          .from("profiles")
-          .select("latitude,longitude,address_line1,address_line2,city,state,postcode")
-          .eq("id", user.id)
-          .maybeSingle();
-
         const dropoff_lat = (prof as any)?.latitude ?? null;
         const dropoff_lng = (prof as any)?.longitude ?? null;
         const dropAddrParts = [
@@ -218,12 +227,14 @@ serve(async (req) => {
         if (dErr) throw dErr;
 
         if (delivery?.pickup_lat != null && delivery?.pickup_lng != null) {
-          // Fan-out to nearby riders
-          await service.rpc('assign_delivery_to_riders', {
-            delivery_id_param: delivery.id,
-            pickup_lat: delivery.pickup_lat as number,
-            pickup_lng: delivery.pickup_lng as number,
-          });
+          // Fan-out to nearby riders (don’t block the response)
+          (globalThis as any).EdgeRuntime?.waitUntil?.(
+            service.rpc('assign_delivery_to_riders', {
+              delivery_id_param: delivery.id,
+              pickup_lat: delivery.pickup_lat as number,
+              pickup_lng: delivery.pickup_lng as number,
+            })
+          );
         }
       } catch (e) {
         console.error('Delivery creation failed:', e);

@@ -27,6 +27,22 @@ const containerRef = useRef<HTMLDivElement | null>(null);
         return;
       }
       try {
+        // Ensure we have drop-off coordinates before creating the payment session
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData.user) {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("latitude,longitude,address_line1,city,postcode,phone")
+            .eq("id", userData.user.id)
+            .maybeSingle();
+          const missing = !prof || !prof.latitude || !prof.longitude || !prof.address_line1 || !prof.city || !prof.postcode || !prof.phone;
+          if (missing) {
+            toast("Add delivery details", { description: "Please set your drop-off address before checkout." });
+            navigate("/delivery-details", { state: { redirect: "/checkout" } });
+            return;
+          }
+        }
+
         const { data: cfg, error: cfgErr } = await supabase.functions.invoke("stripe-config");
         if (cfgErr) throw cfgErr;
         const pk = (cfg as any)?.publishableKey;
@@ -35,7 +51,7 @@ const containerRef = useRef<HTMLDivElement | null>(null);
         const stripe = await loadStripe(pk);
         if (!stripe) throw new Error("Failed to load Stripe.js");
 
-const { data, error } = await supabase.functions.invoke("create-embedded-checkout", {
+        const { data, error } = await supabase.functions.invoke("create-embedded-checkout", {
           body: {
             name: `Cart purchase (${cart.count} item${cart.count > 1 ? "s" : ""})`,
             amount_cents: totalCents,
