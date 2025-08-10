@@ -65,6 +65,23 @@ const containerRef = useRef<HTMLDivElement | null>(null);
           deliveryMethod = deliveryOnly ? 'rider' : 'easyparcel';
         }
 
+        // Compute total weight in grams from products; default 500g each if unknown
+        const ids = cart.items.map(i => i.product_id);
+        let totalWeightGrams = 0;
+        if (ids.length > 0) {
+          const { data: weightRows } = await supabase
+            .from('products')
+            .select('id, weight_grams')
+            .in('id', ids);
+          const weightMap = new Map((weightRows || []).map(r => [r.id, r.weight_grams as number | null]));
+          for (const it of cart.items) {
+            const w = weightMap.get(it.product_id);
+            const perItem = (typeof w === 'number' && w > 0) ? w : 500; // 0.5kg fallback
+            totalWeightGrams += perItem * it.quantity;
+          }
+        }
+
+
         const { data, error } = await supabase.functions.invoke("create-embedded-checkout", {
           body: {
             name: `Cart purchase (${cart.count} item${cart.count > 1 ? "s" : ""})`,
@@ -75,6 +92,7 @@ const containerRef = useRef<HTMLDivElement | null>(null);
             community_id: cart.community_id,
             product_id: cart.items[0]?.product_id,
             delivery_method: deliveryMethod,
+            total_weight_grams: totalWeightGrams,
           },
         });
         if (error) {

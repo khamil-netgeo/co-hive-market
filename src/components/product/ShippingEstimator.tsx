@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchEasyParcelRates } from "@/lib/shipping";
@@ -26,6 +27,7 @@ export default function ShippingEstimator({
   const [pick, setPick] = useState(defaultPickPostcode);
   const [send, setSend] = useState(defaultSendPostcode);
   const [weight, setWeight] = useState<number>(defaultWeightKg);
+  const [packageSize, setPackageSize] = useState<'S'|'M'|'L'>('M');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -35,10 +37,12 @@ export default function ShippingEstimator({
     setResults(null);
     setLoading(true);
     try {
+      // Map simple S/M/L to weight kg (dims optional for EP)
+      const weightKg = packageSize === 'S' ? 0.5 : packageSize === 'M' ? 1 : 3;
       const res: any = await fetchEasyParcelRates({
         pick_postcode: pick,
         send_postcode: send,
-        weight: weight || 1,
+        weight: weightKg,
         pick_country: "MY",
         send_country: "MY",
         domestic: true,
@@ -79,14 +83,18 @@ export default function ShippingEstimator({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Input placeholder="Pickup postcode" value={pick} onChange={(e) => setPick(e.target.value)} />
           <Input placeholder="Delivery postcode" value={send} onChange={(e) => setSend(e.target.value)} />
-          <Input
-            placeholder="Weight (kg)"
-            type="number"
-            min={0.1}
-            step={0.1}
-            value={weight}
-            onChange={(e) => setWeight(parseFloat(e.target.value))}
-          />
+          <div>
+            <Select value={packageSize} onValueChange={(v) => setPackageSize(v as any)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Package size" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="S">Small — up to 0.5 kg</SelectItem>
+                <SelectItem value="M">Medium — up to 1 kg</SelectItem>
+                <SelectItem value="L">Large — up to 3 kg</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         {!isDeliveryOnly && (
           <Button onClick={onCheck} disabled={loading || !pick || !send}>

@@ -40,6 +40,7 @@ serve(async (req) => {
       community_id,
       delivery_method,
       scheduled_dropoff_at,
+      total_weight_grams,
     } = body ?? {};
 
     if (!amount_cents || typeof amount_cents !== "number" || amount_cents <= 0) {
@@ -100,6 +101,7 @@ serve(async (req) => {
         community_id: community_id ? String(community_id) : undefined,
         delivery_method: delivery_method ? String(delivery_method) : undefined,
         scheduled_dropoff_at: scheduled_dropoff_at ? String(scheduled_dropoff_at) : undefined,
+        total_weight_grams: total_weight_grams ? String(total_weight_grams) : undefined,
       },
     });
 
