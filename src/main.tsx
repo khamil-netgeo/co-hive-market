@@ -3,6 +3,7 @@ import App from './App.tsx'
 import './index.css'
 import { registerSW } from 'virtual:pwa-register'
 import { CartProvider } from '@/hooks/useCart'
+import { CommunityProvider } from '@/context/CommunityContext'
 
 // Remove forced dark mode - now handled by ThemeProvider
 
@@ -11,6 +12,8 @@ registerSW({ immediate: true })
 
 createRoot(document.getElementById("root")!).render(
   <CartProvider>
-    <App />
+    <CommunityProvider>
+      <App />
+    </CommunityProvider>
   </CartProvider>
 );

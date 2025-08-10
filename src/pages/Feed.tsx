@@ -150,7 +150,7 @@ export default function Feed() {
       }
     };
     load();
-  }, [searchParams]);
+  }, [searchParams, selected?.id]);
 
   useEffect(() => {
     // Auto play current, pause others

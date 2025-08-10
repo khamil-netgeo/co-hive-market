@@ -79,6 +79,7 @@ export default function UnifiedCatalog() {
   
   // Detail view state
   const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null);
+  const { selected } = useCommunity();
 
   useEffect(() => {
     setSEO(
@@ -301,7 +302,7 @@ export default function UnifiedCatalog() {
     else if (sort === "price_desc") result.sort((a, b) => (b.price_cents || 0) - (a.price_cents || 0));
 
     return result;
-  }, [items, activeTab, query, categoryFilter, productKindFilter, itemCats, useNearMe, loc, radiusKm, sort, searchParams]);
+  }, [items, activeTab, query, categoryFilter, productKindFilter, itemCats, useNearMe, loc, radiusKm, sort, searchParams, selected?.id]);
 
   const fmtPrice = (cents: number, currency: string) => {
     const amount = cents / 100;
@@ -325,7 +326,6 @@ export default function UnifiedCatalog() {
     const discounted = Math.round(item.price_cents * (1 - (disc || 0) / 100));
     return discounted;
   };
-  const { selected } = useCommunity();
   // Actions
   const addToCart = (item: CatalogItem) => {
     if (item.type !== 'product') return;
