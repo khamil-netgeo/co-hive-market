@@ -30,6 +30,7 @@ export default function OrderTracker() {
   const orderId = params.id || null;
   const { events, loading } = useOrderProgress(orderId);
   const [order, setOrder] = useState<OrderMeta | null>(null);
+  const [delivery, setDelivery] = useState<any | null>(null);
 
   useEffect(() => {
     setSEOAdvanced({
@@ -64,6 +65,28 @@ export default function OrderTracker() {
     };
     init();
   }, [orderId, navigate]);
+
+  useEffect(() => {
+    if (!orderId) return;
+    const loadDelivery = async () => {
+      const { data: d } = await supabase
+        .from('deliveries')
+        .select('id,status,rider_user_id,pickup_address,dropoff_address,assigned_at,scheduled_pickup_at,scheduled_dropoff_at')
+        .eq('order_id', orderId)
+        .maybeSingle();
+      if (d) setDelivery(d as any);
+    };
+    loadDelivery();
+    const channel = supabase
+      .channel(`delivery-order-${orderId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'deliveries', filter: `order_id=eq.${orderId}` },
+        (payload) => setDelivery(payload.new as any)
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [orderId]);
 
   const timeline = useMemo(() => {
     return events.map((e) => ({
@@ -165,6 +188,39 @@ export default function OrderTracker() {
                 >
                   Track shipment
                 </Button>
+              </div>
+            )}
+
+            {order?.shipping_method === 'rider' && (
+              <div className="mt-2 space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Delivery</span>
+                  <span className="font-medium">Rider</span>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Status</span>
+                    <Badge variant="secondary">{delivery?.status || 'pending'}</Badge>
+                  </div>
+                  {delivery?.rider_user_id && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Rider</span>
+                      <span className="font-mono">{String(delivery.rider_user_id).slice(0,8)}</span>
+                    </div>
+                  )}
+                  {delivery?.pickup_address && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Pickup</span>
+                      <span className="truncate max-w-[60%] text-right">{delivery.pickup_address}</span>
+                    </div>
+                  )}
+                  {delivery?.dropoff_address && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Dropoff</span>
+                      <span className="truncate max-w-[60%] text-right">{delivery.dropoff_address}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </CardContent>

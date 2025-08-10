@@ -81,7 +81,7 @@ const App = () => (
               <Route path="/getting-started" element={<GettingStarted />} />
               <Route path="/auth" element={<Auth />} />
               
-              <Route path="/catalog" element={<UnifiedCatalog />} />
+              <Route path="/catalog" element={<Navigate to="/products" replace />} />
               <Route path="/food" element={<Navigate to="/products" replace />} />
               <Route path="/groceries" element={<Navigate to="/products" replace />} />
               <Route path="/feed" element={<Feed />} />

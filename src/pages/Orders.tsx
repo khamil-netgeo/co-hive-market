@@ -76,7 +76,7 @@ const Orders = () => {
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button variant="secondary" asChild className="w-full sm:w-auto">
-            <a href="/catalog">Go to Catalog</a>
+            <a href="/products">Go to Catalog</a>
           </Button>
           <Button variant="outline" onClick={() => refetch()} className="w-full sm:w-auto">Refresh</Button>
         </div>
