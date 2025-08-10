@@ -327,155 +327,186 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
 
 
   return (
-    <main className="container px-4 py-6 md:py-12">
-      <div className="space-y-8">
+    <main className="container px-4 py-6 pb-24 md:pb-12">
+      <div className="space-y-6">
         <Breadcrumbs
           items={[
             { label: "Home", href: "/" },
             { label: "Catalog", href: "/catalog" },
             { label: product.name },
           ]}
-          className="mb-2"
+          className="mb-4"
         />
 
-        {/* Hero Section - Product Overview */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Product Image Gallery */}
-          <div className="lg:col-span-6 xl:col-span-5">
-            <MediaGallery
-              images={product.image_urls || []}
-              videos={product.video_url ? [product.video_url] : []}
-              alt={product.name}
-              aspect="video"
-            />
-          </div>
-
-          {/* Essential Product Info */}
-          <div className="lg:col-span-6 xl:col-span-7 space-y-6">
-            <div className="flex items-start justify-between gap-4">
-              <h1 className="flex items-center gap-2 text-3xl font-bold">
-                <Package className="h-6 w-6 text-primary" />
-                {product.name}
-                {memberPrice && discountPercent > 0 && (
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-sm text-primary">
-                    Members save {discountPercent}%
-                  </span>
-                )}
-              </h1>
-              <ShareButtons title={product.name} />
+        {/* Mobile-First Hero Section */}
+        <div className="space-y-6">
+          {/* Product Header - Mobile Stack, Desktop Side-by-side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+            {/* Product Image Gallery */}
+            <div className="order-1">
+              <MediaGallery
+                images={product.image_urls || []}
+                videos={product.video_url ? [product.video_url] : []}
+                alt={product.name}
+                aspect="video"
+                className="rounded-xl overflow-hidden"
+              />
             </div>
 
-            {product.vendor_id && (
-              <div className="text-sm">
-                <Link to={`/catalog?vendor=${product.vendor_id}`} className="underline underline-offset-2">View more from this vendor</Link>
-              </div>
-            )}
-
-            {/* Pricing Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Pricing</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold mb-4">
-                  {memberPrice ? (
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-primary">{fmtPrice(memberPrice, product.currency)}</span>
-                      <span className="text-lg text-muted-foreground line-through">
-                        {fmtPrice(product.price_cents, product.currency)}
-                      </span>
-                    </div>
-                  ) : (
-                    <span>{fmtPrice(product.price_cents, product.currency)}</span>
+            {/* Product Title & Key Info */}
+            <div className="order-2 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex-1">
+                  <h1 className="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2">
+                    <Package className="h-6 w-6 text-primary flex-shrink-0" />
+                    <span className="leading-tight">{product.name}</span>
+                  </h1>
+                  {memberPrice && discountPercent > 0 && (
+                    <span className="inline-block rounded-full bg-primary/10 px-3 py-1 text-sm text-primary font-medium mb-3">
+                      Members save {discountPercent}%
+                    </span>
                   )}
                 </div>
+                <div className="flex-shrink-0">
+                  <ShareButtons title={product.name} />
+                </div>
+              </div>
 
-                {/* Community join CTA */}
-                {!memberPrice && discountPercent > 0 && community && (
-                  <div className="rounded-lg border bg-card p-4 mb-4">
-                    <div className="text-sm mb-3">
-                      <Star className="h-4 w-4 inline mr-1 text-primary" />
-                      Join {community.name} to save {discountPercent}% and pay {fmtPrice(Math.round(product.price_cents * (1 - discountPercent / 100)), product.currency)}.
-                    </div>
-                    <Button size="sm" variant="secondary" onClick={joinCommunity}>
-                      Join community to save
-                    </Button>
+              {product.vendor_id && (
+                <div className="text-sm">
+                  <Link to={`/catalog?vendor=${product.vendor_id}`} className="text-primary hover:underline underline-offset-2">View more from this vendor</Link>
+                </div>
+              )}
+
+              {/* Quick Product Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg">
+                {product.stock_qty != null && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <span>Stock: {product.stock_qty} available</span>
                   </div>
                 )}
+                {product.pickup_lat && product.pickup_lng && userLocation && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>Distance: {haversineKm(userLocation.lat, userLocation.lng, product.pickup_lat, product.pickup_lng).toFixed(1)} km away</span>
+                  </div>
+                )}
+              </div>
 
-                {/* Actions */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button 
-                    variant="secondary" 
-                    onClick={addToCart} 
-                    className="flex items-center gap-2"
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                    Add to cart
-                  </Button>
-                  <Button 
-                    variant="hero" 
-                    onClick={buyNow}
-                    className="flex items-center gap-2"
-                  >
-                    Buy now
-                  </Button>
-                  {product.vendor_id && (
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate(`/chat?vendorId=${product.vendor_id}`)}
-                      className="flex items-center gap-2"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      Message seller
-                    </Button>
+              {/* Pricing - Prominent on mobile */}
+              <Card className="lg:hidden">
+                <CardContent className="p-4">
+                  <div className="text-2xl md:text-3xl font-bold mb-3">
+                    {memberPrice ? (
+                      <div className="flex items-baseline gap-3 flex-wrap">
+                        <span className="text-primary">{fmtPrice(memberPrice, product.currency)}</span>
+                        <span className="text-lg text-muted-foreground line-through">
+                          {fmtPrice(product.price_cents, product.currency)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span>{fmtPrice(product.price_cents, product.currency)}</span>
+                    )}
+                  </div>
+
+                  {/* Community join CTA */}
+                  {!memberPrice && discountPercent > 0 && community && (
+                    <div className="rounded-lg border bg-card p-3 mb-4">
+                      <div className="text-sm mb-2">
+                        <Star className="h-4 w-4 inline mr-1 text-primary" />
+                        Join {community.name} to save {discountPercent}% and pay {fmtPrice(Math.round(product.price_cents * (1 - discountPercent / 100)), product.currency)}.
+                      </div>
+                      <Button size="sm" variant="secondary" onClick={joinCommunity} className="w-full">
+                        Join community to save
+                      </Button>
+                    </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Product Details Section */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Description & Details */}
-          <div className="space-y-6">
-            {product.description && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Description</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground whitespace-pre-wrap">{product.description}</p>
                 </CardContent>
               </Card>
-            )}
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Product Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3">
-                  {product.stock_qty != null && (
-                    <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                      <span>Stock: {product.stock_qty} available</span>
-                    </div>
-                  )}
-                  {product.pickup_lat && product.pickup_lng && userLocation && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>Distance: {haversineKm(userLocation.lat, userLocation.lng, product.pickup_lat, product.pickup_lng).toFixed(1)} km away</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            </div>
           </div>
 
+          {/* Desktop Pricing - Hidden on mobile */}
+          <Card className="hidden lg:block">
+            <CardHeader>
+              <CardTitle>Pricing</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold mb-4">
+                {memberPrice ? (
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-primary">{fmtPrice(memberPrice, product.currency)}</span>
+                    <span className="text-lg text-muted-foreground line-through">
+                      {fmtPrice(product.price_cents, product.currency)}
+                    </span>
+                  </div>
+                ) : (
+                  <span>{fmtPrice(product.price_cents, product.currency)}</span>
+                )}
+              </div>
+
+              {/* Community join CTA */}
+              {!memberPrice && discountPercent > 0 && community && (
+                <div className="rounded-lg border bg-card p-4 mb-4">
+                  <div className="text-sm mb-3">
+                    <Star className="h-4 w-4 inline mr-1 text-primary" />
+                    Join {community.name} to save {discountPercent}% and pay {fmtPrice(Math.round(product.price_cents * (1 - discountPercent / 100)), product.currency)}.
+                  </div>
+                  <Button size="sm" variant="secondary" onClick={joinCommunity}>
+                    Join community to save
+                  </Button>
+                </div>
+              )}
+
+              {/* Desktop Actions */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  variant="secondary" 
+                  onClick={addToCart} 
+                  className="flex items-center gap-2"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Add to cart
+                </Button>
+                <Button 
+                  variant="hero" 
+                  onClick={buyNow}
+                  className="flex items-center gap-2"
+                >
+                  Buy now
+                </Button>
+                {product.vendor_id && (
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(`/chat?vendorId=${product.vendor_id}`)}
+                    className="flex items-center gap-2"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Message seller
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Content Sections - Mobile Stack, Desktop Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          {/* Description */}
+          {product.description && (
+            <Card className="order-1">
+              <CardHeader>
+                <CardTitle>Description</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{product.description}</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Delivery Options */}
-          <div className="space-y-6">
+          <div className="order-2 space-y-4">
             {/* Delivery time (for hot food/perishables) */}
             {(product.product_kind === 'prepared_food' || product.perishable) && (
               <Card>
@@ -485,17 +516,29 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                 <CardContent>
                   <div className="space-y-4">
                     <h4 className="text-sm font-medium">Delivery time</h4>
-                    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                    <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-2">
-                        <button type="button" className={`px-3 py-1.5 rounded-md border text-sm ${deliveryOption === 'asap' ? 'bg-accent' : ''}`} onClick={() => setDeliveryOption('asap')}>ASAP</button>
-                        <button type="button" className={`px-3 py-1.5 rounded-md border text-sm ${deliveryOption === 'schedule' ? 'bg-accent' : ''}`} onClick={() => setDeliveryOption('schedule')}>Schedule</button>
+                        <button 
+                          type="button" 
+                          className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${deliveryOption === 'asap' ? 'bg-primary text-primary-foreground border-primary' : 'border-input hover:bg-accent'}`} 
+                          onClick={() => setDeliveryOption('asap')}
+                        >
+                          ASAP
+                        </button>
+                        <button 
+                          type="button" 
+                          className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${deliveryOption === 'schedule' ? 'bg-primary text-primary-foreground border-primary' : 'border-input hover:bg-accent'}`} 
+                          onClick={() => setDeliveryOption('schedule')}
+                        >
+                          Schedule
+                        </button>
                       </div>
                       {deliveryOption === 'schedule' && (
                         <input
                           type="datetime-local"
                           value={scheduledAt}
                           onChange={(e) => setScheduledAt(e.target.value)}
-                          className="border rounded-md px-3 py-1.5 text-sm"
+                          className="w-full border rounded-lg px-3 py-2 text-sm"
                         />
                       )}
                     </div>
@@ -519,21 +562,19 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
               onSelectDelivery={setDeliveryMethod}
             />
           </div>
-        </section>
+        </div>
 
-        {/* Additional Information Section */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <ProductSpecificationsCard
-              product={product}
-              vendor={vendor ? { id: vendor.id } : undefined}
-              userLocation={userLocation}
-              onAddToCart={addToCart}
-              onBuyNow={buyNow}
-            />
-          </div>
+        {/* Additional Information - Mobile Stack, Desktop Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          <ProductSpecificationsCard
+            product={product}
+            vendor={vendor ? { id: vendor.id } : undefined}
+            userLocation={userLocation}
+            onAddToCart={addToCart}
+            onBuyNow={buyNow}
+          />
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {deliveryMethod === 'easyparcel' && product.allow_easyparcel && (
               <ShippingEstimator 
                 defaultWeightKg={product.weight_grams ? Math.max(0.1, product.weight_grams / 1000) : 1}
@@ -545,7 +586,7 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
 
             <ProductTrustBadges />
           </div>
-        </section>
+        </div>
 
         {/* Reviews Section - Full Width */}
         <section id="reviews" className="w-full">
@@ -563,15 +604,21 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
           </Card>
         </section>
       </div>
-      {/* Sticky mobile CTA */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+
+      {/* Sticky Mobile CTA */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
         <div className="container px-4 py-3 flex items-center justify-between gap-3">
-          <div className="text-base font-semibold">
+          <div className="text-lg font-bold">
             {fmtPrice(memberPrice || product.price_cents, product.currency)}
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={addToCart}>Add</Button>
-            <Button variant="hero" onClick={buyNow}>Buy now</Button>
+            <Button variant="secondary" onClick={addToCart} size="sm">
+              <ShoppingCart className="h-4 w-4 mr-1" />
+              Add
+            </Button>
+            <Button variant="hero" onClick={buyNow} size="sm">
+              Buy now
+            </Button>
           </div>
         </div>
       </div>
