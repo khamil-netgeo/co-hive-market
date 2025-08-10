@@ -372,8 +372,15 @@ serve(async (req) => {
       }
     }
 
+    // Fetch final order with shipping method and EasyParcel identifiers
+    const { data: finalOrder } = await service
+      .from("orders")
+      .select("id, created_at, status, total_amount_cents, currency, shipping_method, easyparcel_order_no, easyparcel_awb_no")
+      .eq("id", order.id)
+      .single();
+
     return new Response(
-      JSON.stringify({ order, splits: { vendor_payout_cents: vendorPayout, community_share_cents: communityShare, coop_share_cents: coopShare } }),
+      JSON.stringify({ order: finalOrder ?? order, splits: { vendor_payout_cents: vendorPayout, community_share_cents: communityShare, coop_share_cents: coopShare } }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

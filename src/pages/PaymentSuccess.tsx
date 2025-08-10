@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
-
+import { trackEasyParcel } from "@/lib/shipping";
 export default function PaymentSuccess() {
   const [verifying, setVerifying] = useState(true);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -16,7 +16,9 @@ export default function PaymentSuccess() {
   const [rebroadcasting, setRebroadcasting] = useState(false);
   const rebroadcastTimer = useRef<number | null>(null);
   const { clear } = useCart();
-
+  const [shippingMethod, setShippingMethod] = useState<string | null>(null);
+  const [awbNo, setAwbNo] = useState<string | null>(null);
+  const [epOrderNo, setEpOrderNo] = useState<string | null>(null);
   useEffect(() => {
     setSEO(
       "Payment Success | CoopMarket",
@@ -39,6 +41,14 @@ export default function PaymentSuccess() {
         const oid = (data as any)?.order?.id ?? (data as any)?.order_id;
         if (oid) setOrderId(String(oid));
 
+        // Capture shipping details from response
+        const sm = (data as any)?.order?.shipping_method || null;
+        const awb = (data as any)?.order?.easyparcel_awb_no || null;
+        const epNo = (data as any)?.order?.easyparcel_order_no || null;
+        setShippingMethod(sm);
+        setAwbNo(awb);
+        setEpOrderNo(epNo);
+
         // If this payment was for a service booking, mark it paid
         if (bookingId) {
           await supabase
@@ -46,7 +56,7 @@ export default function PaymentSuccess() {
             .update({ status: "paid", stripe_session_id: sessionId })
             .eq("id", bookingId);
         }
-        toast("Payment verified", { description: "Your transaction has been confirmed. Rider assignment will follow shortly." });
+        toast("Payment verified", { description: sm === 'easyparcel' ? "Shipment will be handled by courier." : "Your transaction has been confirmed. Rider assignment will follow shortly." });
         clear();
       } catch (e: any) {
         toast("Verification issue", { description: e.message || String(e) });
@@ -60,7 +70,7 @@ export default function PaymentSuccess() {
 
   // Watch for the created order and subscribe to delivery updates
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId || shippingMethod !== 'rider') return;
 
     let deliveryChannel: ReturnType<typeof supabase.channel> | null = null;
     let assignmentChannel: ReturnType<typeof supabase.channel> | null = null;
@@ -135,11 +145,11 @@ export default function PaymentSuccess() {
       if (deliveryChannel) supabase.removeChannel(deliveryChannel);
       if (assignmentChannel) supabase.removeChannel(assignmentChannel);
     };
-  }, [orderId, deliveryId]);
+  }, [orderId, deliveryId, shippingMethod]);
 
   // Auto-rebroadcast after ~2 minutes if still no rider
   useEffect(() => {
-    if (!deliveryId || riderUserId) return;
+    if (shippingMethod !== 'rider' || !deliveryId || riderUserId) return;
     if (rebroadcastTimer.current) window.clearTimeout(rebroadcastTimer.current);
     rebroadcastTimer.current = window.setTimeout(async () => {
       try {
@@ -159,7 +169,7 @@ export default function PaymentSuccess() {
     return () => {
       if (rebroadcastTimer.current) window.clearTimeout(rebroadcastTimer.current);
     };
-  }, [deliveryId, riderUserId]);
+  }, [deliveryId, riderUserId, shippingMethod]);
 
   const manualRebroadcast = async () => {
     if (!deliveryId) return;
@@ -199,7 +209,17 @@ export default function PaymentSuccess() {
               <div>
                 Your transaction completed successfully{orderId ? ` (Order #${orderId})` : "."}
               </div>
-              {deliveryStatus ? (
+              {shippingMethod === 'easyparcel' ? (
+                <div>
+                  {awbNo ? (
+                    <div>
+                      Shipment booked via EasyParcel — AWB <span className="font-medium">{awbNo}</span>
+                    </div>
+                  ) : (
+                    <div>Shipment pending: waiting for courier booking or address completion.</div>
+                  )}
+                </div>
+              ) : deliveryStatus ? (
                 <div>
                   Delivery status: <span className="font-medium">{deliveryStatus}</span>
                   {riderUserId ? " — rider assigned" : " — searching for nearby riders"}
@@ -216,7 +236,23 @@ export default function PaymentSuccess() {
             <Button asChild variant="secondary">
               <a href="/orders">View my orders</a>
             </Button>
-            {!riderUserId && (
+            {shippingMethod === 'easyparcel' && awbNo && (
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    const res = await trackEasyParcel({ awb_no: awbNo });
+                    const status = (res as any)?.data?.[0]?.status || (res as any)?.result?.[0]?.status || "Status retrieved";
+                    toast("Tracking update", { description: String(status) });
+                  } catch (e: any) {
+                    toast("Tracking error", { description: e.message || String(e) });
+                  }
+                }}
+              >
+                Track shipment
+              </Button>
+            )}
+            {shippingMethod === 'rider' && !riderUserId && (
               <Button onClick={manualRebroadcast} disabled={!deliveryId || rebroadcasting} variant="outline">
                 {rebroadcasting ? "Searching riders…" : "Find rider again"}
               </Button>

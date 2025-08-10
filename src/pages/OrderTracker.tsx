@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useOrderProgress } from "@/hooks/useOrderProgress";
+import { toast } from "sonner";
+import { trackEasyParcel } from "@/lib/shipping";
 
 interface OrderMeta {
   id: string;
@@ -14,6 +16,9 @@ interface OrderMeta {
   status: string;
   total_amount_cents: number;
   currency: string;
+  shipping_method?: string | null;
+  easyparcel_awb_no?: string | null;
+  easyparcel_order_no?: string | null;
 }
 
 const cents = (n: number, currency: string) =>
@@ -52,7 +57,7 @@ export default function OrderTracker() {
       if (!orderId) return;
       const { data: o, error } = await supabase
         .from("orders")
-        .select("id, created_at, status, total_amount_cents, currency")
+        .select("id, created_at, status, total_amount_cents, currency, shipping_method, easyparcel_awb_no, easyparcel_order_no")
         .eq("id", orderId)
         .maybeSingle();
       if (!error) setOrder(o as any);
@@ -107,6 +112,35 @@ export default function OrderTracker() {
               <span className="text-muted-foreground">Total</span>
               <span className="font-medium">{order ? cents(order.total_amount_cents, order.currency) : "—"}</span>
             </div>
+            {order?.shipping_method === 'easyparcel' && (
+              <div className="mt-2 space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Courier</span>
+                  <span className="font-medium">EasyParcel</span>
+                </div>
+                {order?.easyparcel_awb_no && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">AWB</span>
+                    <span className="font-mono">{order.easyparcel_awb_no}</span>
+                  </div>
+                )}
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={async () => {
+                    try {
+                      const res = await trackEasyParcel({ awb_no: order?.easyparcel_awb_no || order?.easyparcel_order_no });
+                      const status = (res as any)?.data?.[0]?.status || (res as any)?.result?.[0]?.status || "Status retrieved";
+                      toast("Tracking update", { description: String(status) });
+                    } catch (e: any) {
+                      toast("Tracking error", { description: e.message || String(e) });
+                    }
+                  }}
+                >
+                  Track shipment
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
 
