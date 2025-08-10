@@ -2037,6 +2037,108 @@ export type Database = {
           },
         ]
       }
+      voucher_redemptions: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string | null
+          user_id: string
+          voucher_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          user_id: string
+          voucher_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          user_id?: string
+          voucher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voucher_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voucher_redemptions_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vouchers: {
+        Row: {
+          code: string
+          community_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_type: Database["public"]["Enums"]["voucher_discount_type"]
+          discount_value: number
+          end_at: string | null
+          free_shipping: boolean
+          id: string
+          min_order_amount_cents: number
+          per_user_limit: number
+          start_at: string | null
+          status: string
+          title: string | null
+          updated_at: string
+          usage_limit: number | null
+          vendor_id: string | null
+        }
+        Insert: {
+          code: string
+          community_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: Database["public"]["Enums"]["voucher_discount_type"]
+          discount_value: number
+          end_at?: string | null
+          free_shipping?: boolean
+          id?: string
+          min_order_amount_cents?: number
+          per_user_limit?: number
+          start_at?: string | null
+          status?: string
+          title?: string | null
+          updated_at?: string
+          usage_limit?: number | null
+          vendor_id?: string | null
+        }
+        Update: {
+          code?: string
+          community_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: Database["public"]["Enums"]["voucher_discount_type"]
+          discount_value?: number
+          end_at?: string | null
+          free_shipping?: boolean
+          id?: string
+          min_order_amount_cents?: number
+          per_user_limit?: number
+          start_at?: string | null
+          status?: string
+          title?: string | null
+          updated_at?: string
+          usage_limit?: number | null
+          vendor_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       product_rating_summary: {
@@ -2126,6 +2228,7 @@ export type Database = {
       review_status: "pending" | "approved" | "rejected"
       review_target: "product" | "service"
       shipping_method: "rider" | "easyparcel"
+      voucher_discount_type: "percent" | "amount"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2278,6 +2381,7 @@ export const Constants = {
       review_status: ["pending", "approved", "rejected"],
       review_target: ["product", "service"],
       shipping_method: ["rider", "easyparcel"],
+      voucher_discount_type: ["percent", "amount"],
     },
   },
 } as const
