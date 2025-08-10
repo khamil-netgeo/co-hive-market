@@ -116,37 +116,37 @@ export default function DeliveryMethodsCard({
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Truck className="h-5 w-5 text-primary" />
+    <Card className="shadow-sm border-l-0 border-r-0 sm:border-l sm:border-r rounded-none sm:rounded-lg overflow-hidden">
+      <CardHeader className="pb-2 sm:pb-3 md:pb-6 p-3 sm:p-6">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
+          <Truck className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
           Delivery Options
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6 pt-0">
         {/* Special handling alerts */}
         {isFoodProduct && (
-          <div className="flex items-start gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-            <Thermometer className="h-5 w-5 text-orange-600 mt-0.5" />
-            <div className="text-sm">
+          <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            <Thermometer className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+            <div className="text-xs sm:text-sm min-w-0">
               <p className="font-medium text-orange-800">Fresh Food Delivery</p>
-              <p className="text-orange-700">This item requires special temperature-controlled delivery by local riders to maintain quality and safety.</p>
+              <p className="text-orange-700 leading-relaxed">Temperature-controlled delivery by local riders.</p>
             </div>
           </div>
         )}
 
         {isGrocery && isPerishable && (
-          <div className="flex items-start gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-            <Shield className="h-5 w-5 text-green-600 mt-0.5" />
-            <div className="text-sm">
+          <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-green-50 border border-green-200 rounded-lg">
+            <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div className="text-xs sm:text-sm min-w-0">
               <p className="font-medium text-green-800">Fresh Grocery Item</p>
-              <p className="text-green-700">Perishable item that requires local delivery to maintain freshness.</p>
+              <p className="text-green-700 leading-relaxed">Requires local delivery to maintain freshness.</p>
             </div>
           </div>
         )}
 
         {/* Delivery methods */}
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {Object.entries(availableMethods).map(([method, available]) => {
             if (!available) return null;
             
@@ -160,43 +160,47 @@ export default function DeliveryMethodsCard({
               <div key={method} className="relative">
                 <button
                   onClick={() => onSelectDelivery?.(method as any)}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                  className={`w-full text-left p-3 sm:p-4 rounded-lg border-2 transition-all min-h-[44px] ${
                     isSelected 
                       ? 'border-primary bg-primary/5' 
                       : 'border-border hover:border-primary/50'
                   }`}
                 >
                   {isRecommended && (
-                    <Badge className="absolute -top-2 left-4 bg-primary text-primary-foreground text-xs">
+                    <Badge className="absolute -top-2 left-2 sm:left-4 bg-primary text-primary-foreground text-xs px-2 py-0.5">
                       Recommended
                     </Badge>
                   )}
                   
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                      <div className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                         {details.icon}
                       </div>
-                      <div>
-                        <h4 className="font-semibold">{details.title}</h4>
-                        <p className="text-sm text-muted-foreground">{details.description}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-semibold text-xs sm:text-sm md:text-base truncate">{details.title}</h4>
+                            <p className="text-xs sm:text-sm text-muted-foreground leading-tight">{details.description}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <div className="font-medium text-primary flex items-center gap-1 text-xs sm:text-sm">
+                              <Clock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                              <span className="whitespace-nowrap">{details.time}</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-medium text-primary flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {details.time}
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    {details.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <div className="w-1 h-1 bg-current rounded-full" />
-                        {feature}
-                      </div>
-                    ))}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2 ml-8 sm:ml-10">
+                      {details.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                          <div className="w-1 h-1 bg-current rounded-full flex-shrink-0" />
+                          <span className="truncate">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </button>
               </div>
