@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Star, Heart, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import ProductImage from "@/components/product/ProductImage";
+import MediaGallery from "@/components/common/MediaGallery";
 
 interface ProductRow {
   id: string;
@@ -127,11 +127,12 @@ const FeaturedListings = () => {
               {/* Make entire card clickable */}
               {!loading && p?.id && <Link to={`/product/${p.id}`} className="absolute inset-0" aria-label={`View ${p.name}`} />}
               <div className="relative overflow-hidden">
-                <ProductImage
-                  imageUrls={p?.image_urls}
-                  productName={p?.name ?? "Product image"}
-                  className="h-48 w-full object-cover transition-transform group-hover:scale-105"
-                  fallbackClassName="h-48 w-full bg-muted flex items-center justify-center"
+                <MediaGallery
+                  images={p?.image_urls || []}
+                  videos={[]}
+                  alt={p?.name ?? "Product image"}
+                  aspect="video"
+                  showThumbnails={false}
                 />
                 {!loading && (
                   <div className="absolute left-3 top-3 flex flex-col gap-2">

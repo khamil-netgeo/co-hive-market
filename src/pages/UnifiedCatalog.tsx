@@ -11,8 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import ProductImage from "@/components/product/ProductImage";
-import ServiceImage from "@/components/service/ServiceImage";
+import MediaGallery from "@/components/common/MediaGallery";
 import ShopSubnav from "@/components/shop/ShopSubnav";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
 import DeliveryBanner from "@/components/delivery/DeliveryBanner";
@@ -621,20 +620,13 @@ export default function UnifiedCatalog() {
                   >
                     <Card className="hover:shadow-elegant transition-shadow cursor-pointer group h-full">
                       <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                        {item.type === 'product' ? (
-                          <ProductImage 
-                            imageUrls={item.image_urls} 
-                            productName={item.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
-                          />
-                        ) : (
-                          <ServiceImage 
-                            imageUrls={item.image_urls}
-                            serviceName={item.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        )}
+                      <MediaGallery 
+                        images={item.image_urls || []}
+                        videos={item.type === 'product' && item.video_url ? [item.video_url] : []}
+                        alt={item.name}
+                        aspect="video"
+                        showThumbnails={false}
+                      />
                       </div>
                       
                       <CardHeader>
