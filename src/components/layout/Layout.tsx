@@ -11,7 +11,7 @@ const Layout = ({ children }: PropsWithChildren) => {
         <AppSidebar />
         <SidebarInset>
           <AppTopbar />
-          <main className="flex-1">
+          <main className="flex-1 min-w-0">
             {children ?? <Outlet />}
           </main>
           <SiteFooter />

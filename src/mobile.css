@@ -1,0 +1,39 @@
+/* Mobile responsiveness safety net */
+
+/* Prevent horizontal overflow at the root */
+html, body, #root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Make media responsive by default */
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Avoid long tokens causing overflow */
+:where(p, h1, h2, h3, h4, h5, h6, a, span, button, input, textarea, label, small, strong, em, code, pre) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Smooth horizontal scroll areas without visible bars */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;    /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar { /* Chrome, Safari */
+  display: none;
+}
+
+/* Ensure embedded content doesn't overflow */
+iframe, embed, object {
+  max-width: 100%;
+}
+
+/* Utility: safe horizontal scrolling container */
+.overflow-x-auto-touch {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

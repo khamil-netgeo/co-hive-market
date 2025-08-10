@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import './mobile.css'
 import { registerSW } from 'virtual:pwa-register'
 import { CartProvider } from '@/hooks/useCart'
 import { CommunityProvider } from '@/context/CommunityContext'

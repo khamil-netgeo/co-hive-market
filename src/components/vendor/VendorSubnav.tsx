@@ -19,7 +19,7 @@ export default function VendorSubnav() {
   return (
     <nav aria-label="Vendor navigation" className="w-full border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 py-3">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">
           {links.map((l) => {
             const Icon = l.icon;
             const active = isActive(l.to);

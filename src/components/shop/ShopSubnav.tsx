@@ -36,7 +36,7 @@ export default function ShopSubnav() {
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-16 z-40">
       <div className="container px-4">
-        <div className="flex items-center space-x-6 overflow-x-auto py-3">
+        <div className="flex items-center space-x-6 overflow-x-auto no-scrollbar py-3 -mx-1 px-1">
           {shopItems.map((item) => {
             const isActive = getIsActive(item);
             return (
