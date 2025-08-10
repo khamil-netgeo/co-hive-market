@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductImage from "@/components/product/ProductImage";
 import ServiceImage from "@/components/service/ServiceImage";
 import { Package, Briefcase, MapPin, Clock, Star, ShoppingCart, Calendar } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 // Unified item interface
 interface CatalogItem {
@@ -54,6 +54,7 @@ export default function UnifiedCatalog() {
   const [loading, setLoading] = useState(true);
   const cart = useCart();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   // Filters
   const [activeTab, setActiveTab] = useState<"all" | "products" | "services">("all");
@@ -215,6 +216,11 @@ export default function UnifiedCatalog() {
   const filtered = useMemo(() => {
     let result = [...items];
 
+    const vendorParam = searchParams.get('vendor');
+    if (vendorParam) {
+      result = result.filter(item => item.vendor_id === vendorParam);
+    }
+
     // Filter by type
     if (activeTab !== "all") {
       result = result.filter(item => item.type === activeTab.slice(0, -1)); // "products" -> "product"
@@ -249,7 +255,7 @@ export default function UnifiedCatalog() {
     else if (sort === "price_desc") result.sort((a, b) => (b.price_cents || 0) - (a.price_cents || 0));
 
     return result;
-  }, [items, activeTab, query, categoryFilter, itemCats, useNearMe, loc, radiusKm, sort]);
+  }, [items, activeTab, query, categoryFilter, itemCats, useNearMe, loc, radiusKm, sort, searchParams]);
 
   const fmtPrice = (cents: number, currency: string) => {
     const amount = cents / 100;

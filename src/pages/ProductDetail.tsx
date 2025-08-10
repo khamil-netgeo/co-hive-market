@@ -313,6 +313,15 @@ const [scheduledAt, setScheduledAt] = useState<string>('');
   const discountPercent = getDiscountPercent();
   const memberPrice = getMemberPrice();
 
+  const distanceKm = (product.pickup_lat && product.pickup_lng && userLocation)
+    ? haversineKm(userLocation.lat, userLocation.lng, product.pickup_lat, product.pickup_lng)
+    : null;
+  const basePrep = product.prep_time_minutes ?? 15;
+  const rideMins = distanceKm ? Math.max(10, Math.round(distanceKm * 3)) : 30;
+  const etaMin = basePrep + rideMins;
+  const etaRangeText = `${etaMin}-${etaMin + 15} mins`;
+
+
   return (
     <main className="container px-4 py-6 md:py-12">
       <div className="space-y-6">
@@ -367,6 +376,11 @@ const [scheduledAt, setScheduledAt] = useState<string>('');
               </h1>
               <ShareButtons title={product.name} />
             </div>
+            {product.vendor_id && (
+              <div className="text-sm">
+                <Link to={`/catalog?vendor=${product.vendor_id}`} className="underline underline-offset-2">View more from this vendor</Link>
+              </div>
+            )}
 
             {product.description && (
               <div>
@@ -444,7 +458,7 @@ const [scheduledAt, setScheduledAt] = useState<string>('');
                         />
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">Rider delivery • {product.prep_time_minutes ? `${product.prep_time_minutes + 30}-${product.prep_time_minutes + 60} mins` : '30-60 mins'} ETA for ASAP.</p>
+                    <p className="text-xs text-muted-foreground">Rider delivery • {etaRangeText} ETA for ASAP.</p>
                   </div>
                 )}
 
