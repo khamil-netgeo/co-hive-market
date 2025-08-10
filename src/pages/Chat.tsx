@@ -3,15 +3,45 @@ import { setSEO } from "@/lib/seo";
 import useChatThreads from "@/hooks/useChatThreads";
 import ChatThreadList from "@/components/chat/ChatThreadList";
 import ChatWindow from "@/components/chat/ChatWindow";
-
+import { useSearchParams } from "react-router-dom";
 export default function ChatPage() {
   const { threads, loading } = useChatThreads();
   const [active, setActive] = useState<string | null>(null);
-
+  const [searchParams] = useSearchParams();
+  const [paramsHandled, setParamsHandled] = useState(false);
   useEffect(() => {
     setSEO("Messages | CoopMarket", "Chat with vendors and buyers in real-time.");
   }, []);
 
+  // Handle deep-linking via query params: threadId OR (vendorId [+ buyerUserId])
+  useEffect(() => {
+    if (paramsHandled) return;
+    const threadId = searchParams.get("threadId");
+    const vendorId = searchParams.get("vendorId");
+    const buyerUserId = searchParams.get("buyerUserId");
+
+    const handle = async () => {
+      try {
+        if (threadId) {
+          setActive(threadId);
+          setParamsHandled(true);
+          return;
+        }
+        if (vendorId) {
+          // Ensure or find thread on-demand
+          const { ensureThreadWithVendor, ensureThreadBetween } = await import("@/lib/chat");
+          const id = buyerUserId
+            ? await ensureThreadBetween(buyerUserId, vendorId)
+            : await ensureThreadWithVendor(vendorId);
+          if (id) setActive(id);
+          setParamsHandled(true);
+        }
+      } catch {}
+    };
+    handle();
+  }, [searchParams, paramsHandled]);
+
+  // Default: select latest thread if none active
   useEffect(() => {
     if (!active && threads.length > 0) setActive(threads[0].id);
   }, [threads, active]);

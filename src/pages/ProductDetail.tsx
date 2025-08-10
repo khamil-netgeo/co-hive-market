@@ -7,7 +7,7 @@ import { setSEOAdvanced } from "@/lib/seo";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
 import ProductImage from "@/components/product/ProductImage";
-import { Package, MapPin, Star, ShoppingCart } from "lucide-react";
+import { Package, MapPin, Star, ShoppingCart, MessageSquare } from "lucide-react";
 import Breadcrumbs from "@/components/common/Breadcrumbs";
 import ShareButtons from "@/components/common/ShareButtons";
 import ProductTrustBadges from "@/components/product/ProductTrustBadges";
@@ -483,6 +483,16 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                   >
                     Buy now
                   </Button>
+                  {product.vendor_id && (
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate(`/chat?vendorId=${product.vendor_id}`)}
+                      className="flex items-center gap-2"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Message seller
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

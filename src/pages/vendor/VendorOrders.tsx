@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, Calendar, Eye, DollarSign, TrendingUp, Users } from "lucide-react";
+import { Package, Calendar, Eye, DollarSign, TrendingUp, Users, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { useNavigate, Link } from "react-router-dom";
@@ -435,20 +435,30 @@ const VendorOrders = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Select
-                              value={order.status}
-                              onValueChange={(newStatus) => updateOrderStatus(order.id, newStatus as any)}
-                            >
-                              <SelectTrigger className="w-32">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="paid">Paid</SelectItem>
-                                <SelectItem value="fulfilled">Fulfilled</SelectItem>
-                                <SelectItem value="canceled">Canceled</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => navigate(`/chat?vendorId=${vendor!.id}&buyerUserId=${order.buyer_user_id}`)}
+                              >
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                Message buyer
+                              </Button>
+                              <Select
+                                value={order.status}
+                                onValueChange={(newStatus) => updateOrderStatus(order.id, newStatus as any)}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="paid">Paid</SelectItem>
+                                  <SelectItem value="fulfilled">Fulfilled</SelectItem>
+                                  <SelectItem value="canceled">Canceled</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -520,21 +530,31 @@ const VendorOrders = () => {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Select
-                              value={booking.status}
-                              onValueChange={(newStatus) => updateBookingStatus(booking.id, newStatus)}
-                            >
-                              <SelectTrigger className="w-32">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="confirmed">Confirmed</SelectItem>
-                                <SelectItem value="in_progress">In Progress</SelectItem>
-                                <SelectItem value="completed">Completed</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => navigate(`/chat?vendorId=${vendor!.id}&buyerUserId=${booking.buyer_user_id}`)}
+                              >
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                Message buyer
+                              </Button>
+                              <Select
+                                value={booking.status}
+                                onValueChange={(newStatus) => updateBookingStatus(booking.id, newStatus)}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                                  <SelectItem value="in_progress">In Progress</SelectItem>
+                                  <SelectItem value="completed">Completed</SelectItem>
+                                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
