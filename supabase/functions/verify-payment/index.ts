@@ -293,6 +293,24 @@ serve(async (req) => {
               send_city: !!send_city,
               send_postcode: !!send_postcode,
             });
+            try {
+              await service.from("order_progress_events").insert({
+                order_id: order.id,
+                event: "shipment_pending_info",
+                description: "Shipment pending: missing pickup or delivery details. Please complete vendor pickup address and buyer address.",
+                created_by: user.id,
+                metadata: {
+                  missing: {
+                    pick_address: !pick_address,
+                    pick_city: !pick_city,
+                    pick_postcode: !pick_postcode,
+                    send_address: !send_address,
+                    send_city: !send_city,
+                    send_postcode: !send_postcode,
+                  },
+                },
+              } as any);
+            } catch (_) {}
           } else {
             // Estimate weight (kg). If unknown, default to 1kg.
             const weightKg = Math.max(1, Math.round(((md.total_weight_grams ? Number(md.total_weight_grams) : 1000) / 1000)));
