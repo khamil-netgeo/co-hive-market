@@ -4,6 +4,7 @@ import VendorSubnav from "@/components/vendor/VendorSubnav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { setSEO } from "@/lib/seo";
+import VideoUploadDialog from "@/components/media/VideoUploadDialog";
 import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
@@ -90,7 +91,24 @@ export default function CreatorStudio() {
                 <div className="p-4 space-y-2">
                   <div className="text-sm font-semibold line-clamp-1">{item.name}</div>
                   <div className="text-xs text-brand-1 font-medium">{(item.price_cents/100).toFixed(2)} {(item.currency || 'MYR').toUpperCase()}</div>
-                  <div className="pt-2 flex gap-2">
+                  <div className="pt-2 flex flex-wrap gap-2">
+                    {!item.video_url && (
+                      <VideoUploadDialog
+                        vendorId={vendorId}
+                        itemId={item.id}
+                        type={type}
+                        buttonText="Add Clip"
+                        buttonVariant="tiktok"
+                        size="sm"
+                        onDone={(newUrl) => {
+                          if (type === 'product') {
+                            setProducts(prev => prev.map(p => p.id === item.id ? { ...p, video_url: newUrl } : p));
+                          } else {
+                            setServices(prev => prev.map(s => s.id === item.id ? { ...s, video_url: newUrl } : s));
+                          }
+                        }}
+                      />
+                    )}
                     <Button asChild size="sm" variant="tiktok" className="flex-1">
                       <Link to={type === 'product' ? `/vendor/products/${item.id}/edit` : `/vendor/services/${item.id}/edit`}>Edit</Link>
                     </Button>
