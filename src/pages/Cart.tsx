@@ -83,9 +83,15 @@ export default function Cart() {
         setDeliveryMethod(deliveryOnly ? 'rider' : 'easyparcel');
       }
 
-      if (cart.vendor_id && !pickPostcode) {
-        const { data: vend } = await supabase.from('vendors').select('pickup_postcode').eq('id', cart.vendor_id).maybeSingle();
+      if (cart.vendor_id && (!pickPostcode || !pickState || !pickCountry)) {
+        const { data: vend } = await supabase
+          .from('vendors')
+          .select('pickup_postcode,pickup_state,pickup_country')
+          .eq('id', cart.vendor_id)
+          .maybeSingle();
         if ((vend as any)?.pickup_postcode) setPickPostcode((vend as any).pickup_postcode);
+        if ((vend as any)?.pickup_state) setPickState((vend as any).pickup_state);
+        if ((vend as any)?.pickup_country) setPickCountry((vend as any).pickup_country);
       }
     })();
   }, [cart.items, cart.vendor_id, pickPostcode]);
@@ -258,6 +264,31 @@ export default function Cart() {
                 <div>
                   <Label htmlFor="pick" className="text-sm font-medium">Pickup postcode</Label>
                   <Input id="pick" value={pickPostcode} onChange={(e) => setPickPostcode(e.target.value)} placeholder="e.g. 31650" className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Pickup state</Label>
+                  <Select value={pickState} onValueChange={(v) => setPickState(v)}>
+                    <SelectTrigger className="mt-1 h-9">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Selangor">Selangor</SelectItem>
+                      <SelectItem value="Kuala Lumpur">Kuala Lumpur</SelectItem>
+                      <SelectItem value="Putrajaya">Putrajaya</SelectItem>
+                      <SelectItem value="Johor">Johor</SelectItem>
+                      <SelectItem value="Kedah">Kedah</SelectItem>
+                      <SelectItem value="Kelantan">Kelantan</SelectItem>
+                      <SelectItem value="Melaka">Melaka</SelectItem>
+                      <SelectItem value="Negeri Sembilan">Negeri Sembilan</SelectItem>
+                      <SelectItem value="Pahang">Pahang</SelectItem>
+                      <SelectItem value="Perak">Perak</SelectItem>
+                      <SelectItem value="Perlis">Perlis</SelectItem>
+                      <SelectItem value="Pulau Pinang">Pulau Pinang</SelectItem>
+                      <SelectItem value="Sabah">Sabah</SelectItem>
+                      <SelectItem value="Sarawak">Sarawak</SelectItem>
+                      <SelectItem value="Terengganu">Terengganu</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="rounded-md border bg-muted/20 p-3">
                   <div className="font-medium text-sm">Shipping to</div>
