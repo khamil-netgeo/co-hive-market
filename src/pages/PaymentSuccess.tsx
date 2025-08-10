@@ -40,7 +40,7 @@ export default function PaymentSuccess() {
             .update({ status: "paid", stripe_session_id: sessionId })
             .eq("id", bookingId);
         }
-        toast("Payment verified", { description: "Your transaction has been confirmed." });
+        toast("Payment verified", { description: "Your transaction has been confirmed. Rider assignment will follow shortly if selected." });
         clear();
       } catch (e: any) {
         toast("Verification issue", { description: e.message || String(e) });

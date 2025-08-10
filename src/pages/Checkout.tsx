@@ -7,13 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 export default function Checkout() {
   const cart = useCart();
   const location = useLocation();
   const navigate = useNavigate();
-  const containerRef = useRef<HTMLDivElement | null>(null);
+const containerRef = useRef<HTMLDivElement | null>(null);
   const [mounting, setMounting] = useState(true);
+  const [useRider, setUseRider] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState<string>("");
 
   useMemo(() => setSEO("Checkout | CoopMarket", "Secure, embedded checkout without leaving the app."), []);
 
@@ -35,7 +40,7 @@ export default function Checkout() {
         const stripe = await loadStripe(pk);
         if (!stripe) throw new Error("Failed to load Stripe.js");
 
-        const { data, error } = await supabase.functions.invoke("create-embedded-checkout", {
+const { data, error } = await supabase.functions.invoke("create-embedded-checkout", {
           body: {
             name: `Cart purchase (${cart.count} item${cart.count > 1 ? "s" : ""})`,
             amount_cents: totalCents,
@@ -43,6 +48,8 @@ export default function Checkout() {
             success_path: "/payment-success",
             vendor_id: cart.vendor_id,
             community_id: cart.community_id,
+            delivery_method: useRider ? "rider" : undefined,
+            scheduled_dropoff_at: useRider && scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
           },
         });
         if (error) throw error;
@@ -71,6 +78,25 @@ export default function Checkout() {
         <section className="lg:col-span-2">
           <h1 className="text-2xl md:text-3xl font-semibold">Secure checkout</h1>
           <p className="mt-2 text-muted-foreground text-sm md:text-base">Complete your payment without leaving CoopMarket.</p>
+
+<Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Delivery</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="useRider">Request rider delivery</Label>
+                <Switch id="useRider" checked={useRider} onCheckedChange={setUseRider} />
+              </div>
+              {useRider && (
+                <div className="grid gap-2">
+                  <Label htmlFor="schedule">Schedule drop-off (optional)</Label>
+                  <Input id="schedule" type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">We’ll assign a nearby rider automatically after payment.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           <Card className="mt-6">
             <CardHeader>
