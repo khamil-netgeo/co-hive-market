@@ -76,7 +76,9 @@ serve(async (req) => {
       if (customers.data.length > 0) customerId = customers.data[0].id;
     }
 
-    const session = await stripe.checkout.sessions.create({
+    // Build Checkout Session params with Malaysia payment methods when using MYR
+    const isMYR = String(currency || "").toLowerCase() === "myr";
+    const params: any = {
       mode: "payment",
       ui_mode: "embedded",
       customer: customerId,
@@ -103,7 +105,14 @@ serve(async (req) => {
         scheduled_dropoff_at: scheduled_dropoff_at ? String(scheduled_dropoff_at) : undefined,
         total_weight_grams: total_weight_grams ? String(total_weight_grams) : undefined,
       },
-    });
+    };
+
+    if (isMYR) {
+      // Enable e-banking and e-wallets for Malaysia (account must have these methods enabled)
+      params.payment_method_types = ["card", "fpx", "grabpay"];
+    }
+
+    const session = await stripe.checkout.sessions.create(params);
 
     return new Response(JSON.stringify({ client_secret: session.client_secret }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
