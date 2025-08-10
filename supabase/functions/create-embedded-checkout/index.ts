@@ -49,6 +49,23 @@ serve(async (req) => {
       });
     }
 
+    // Enforce Stripe currency minimums to avoid 500s from Stripe
+    const cur = String(currency || "usd").toLowerCase();
+    const minByCurrency: Record<string, number> = {
+      myr: 200, // Stripe minimum RM2.00
+      usd: 50,  // $0.50
+      eur: 50,  // €0.50
+      gbp: 30,  // £0.30
+    };
+    const minCents = minByCurrency[cur] ?? 50;
+    if (Math.round(amount_cents) < minCents) {
+      const human = cur.toUpperCase();
+      return new Response(
+        JSON.stringify({ error: `Minimum charge is ${human} ${(minCents / 100).toFixed(2)}` }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
     // Try to reuse an existing customer

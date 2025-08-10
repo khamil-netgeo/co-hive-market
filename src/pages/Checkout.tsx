@@ -77,7 +77,16 @@ const containerRef = useRef<HTMLDivElement | null>(null);
             delivery_method: deliveryMethod,
           },
         });
-        if (error) throw error;
+        if (error) {
+          const errMsg = (error as any)?.message || (data as any)?.error || "Checkout failed";
+          // Surface minimum charge guidance for MYR
+          if (String(cart.currency || "").toLowerCase() === "myr" && /Minimum charge/i.test(String(errMsg))) {
+            toast("Minimum order", { description: "Stripe requires at least RM2.00. Please add more items." });
+          } else {
+            toast("Checkout error", { description: errMsg });
+          }
+          throw error;
+        }
         const clientSecret = (data as any)?.client_secret;
         if (!clientSecret) throw new Error("No client_secret returned");
 
