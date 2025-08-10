@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import SuperAdminLayout from "./SuperAdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { setSEO } from "@/lib/seo";
-import { useEffect } from "react";
-
 // Import existing page components
 import UsersRoles from "./UsersRoles";
 import GlobalSettings from "./GlobalSettings";
@@ -11,8 +10,9 @@ import FeatureFlags from "./FeatureFlags";
 import Categories from "./Categories";
 
 export default function PlatformManagement() {
-  const [activeTab, setActiveTab] = useState("users");
-
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") ?? "settings";
+  const [activeTab, setActiveTab] = useState(initialTab);
   useEffect(() => {
     setSEO(
       "Platform Management – Super Admin",
@@ -28,7 +28,14 @@ export default function PlatformManagement() {
           <p className="text-muted-foreground">Configure users, system settings, features, and content organization</p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => {
+            setActiveTab(v);
+            setSearchParams({ tab: v });
+          }}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto">
             <TabsTrigger value="users" className="text-xs md:text-sm px-2 py-3">Users & Roles</TabsTrigger>
             <TabsTrigger value="settings" className="text-xs md:text-sm px-2 py-3">Settings</TabsTrigger>
