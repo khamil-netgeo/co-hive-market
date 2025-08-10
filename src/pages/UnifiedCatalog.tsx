@@ -14,8 +14,12 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductImage from "@/components/product/ProductImage";
 import ServiceImage from "@/components/service/ServiceImage";
-import { Package, Briefcase, MapPin, Clock, Star, ShoppingCart, Calendar } from "lucide-react";
+import ShopSubnav from "@/components/shop/ShopSubnav";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
+import DeliveryBanner from "@/components/delivery/DeliveryBanner";
+import { Package, Briefcase, MapPin, Clock, Star, ShoppingCart, Calendar, X, Coffee, Truck } from "lucide-react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 // Unified item interface
 interface CatalogItem {
@@ -66,6 +70,7 @@ export default function UnifiedCatalog() {
   const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [productKindFilter, setProductKindFilter] = useState<string>("all");
   const [itemCats, setItemCats] = useState<Record<string, string[]>>({});
   
   // Service booking state
@@ -82,13 +87,29 @@ export default function UnifiedCatalog() {
     );
   }, []);
 
-  // Set default tab based on route path
+  // Set default tab and filters based on URL parameters
   useEffect(() => {
     const path = location.pathname;
-    if (path.includes('/products')) setActiveTab('products');
-    else if (path.includes('/services')) setActiveTab('services');
-    else setActiveTab('all');
-  }, [location.pathname]);
+    const typeParam = searchParams.get('type');
+    const filterParam = searchParams.get('filter');
+    
+    if (typeParam === 'services') {
+      setActiveTab('services');
+    } else if (path.includes('/services')) {
+      setActiveTab('services');
+    } else if (path.includes('/products') || filterParam) {
+      setActiveTab('products');
+    } else {
+      setActiveTab('all');
+    }
+
+    // Apply product_kind filter from URL
+    if (filterParam === 'prepared_food' || filterParam === 'grocery') {
+      setProductKindFilter(filterParam);
+    } else {
+      setProductKindFilter('all');
+    }
+  }, [location.pathname, searchParams]);
 
   const load = async () => {
     setLoading(true);
@@ -97,7 +118,7 @@ export default function UnifiedCatalog() {
       const [productsRes, servicesRes] = await Promise.all([
         supabase
           .from("products")
-          .select("id,name,description,price_cents,currency,vendor_id,community_id,status,pickup_lat,pickup_lng,image_urls,video_url,stock_qty")
+          .select("id,name,description,price_cents,currency,vendor_id,community_id,status,pickup_lat,pickup_lng,image_urls,video_url,stock_qty,product_kind")
           .eq("status", "active")
           .order("created_at", { ascending: false }),
         supabase
@@ -250,6 +271,13 @@ export default function UnifiedCatalog() {
       result = result.filter(item => (itemCats[item.id] || []).includes(categoryFilter));
     }
 
+    // Product kind filter (food, grocery, etc.)
+    if (productKindFilter !== "all" && activeTab !== "services") {
+      result = result.filter(item => 
+        item.type === 'product' && (item as any).product_kind === productKindFilter
+      );
+    }
+
     // Location filter for products
     if (useNearMe && loc) {
       result = result.filter(item => {
@@ -264,7 +292,7 @@ export default function UnifiedCatalog() {
     else if (sort === "price_desc") result.sort((a, b) => (b.price_cents || 0) - (a.price_cents || 0));
 
     return result;
-  }, [items, activeTab, query, categoryFilter, itemCats, useNearMe, loc, radiusKm, sort, searchParams]);
+  }, [items, activeTab, query, categoryFilter, productKindFilter, itemCats, useNearMe, loc, radiusKm, sort, searchParams]);
 
   const fmtPrice = (cents: number, currency: string) => {
     const amount = cents / 100;
@@ -414,14 +442,86 @@ export default function UnifiedCatalog() {
     }
   };
 
+  // Helper to clear filters
+  const clearFilters = () => {
+    navigate('/products');
+  };
+
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { label: "Home", href: "/" },
+    { label: "Shop", href: "/products" },
+    ...(productKindFilter === 'prepared_food' ? [{ label: "Food & Dining" }] :
+       productKindFilter === 'grocery' ? [{ label: "Groceries" }] :
+       activeTab === 'services' ? [{ label: "Services" }] : [])
+  ];
+
   return (
-    <main className="container px-4 py-6 md:py-12">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-semibold">Catalog</h1>
-          <p className="mt-2 max-w-prose text-muted-foreground">
-            Browse products and services. Member discounts apply automatically.
-          </p>
+    <>
+      <ShopSubnav />
+      <main className="container px-4 py-6 md:py-8">
+        <div className="space-y-6">
+        <div className="space-y-4">
+          <Breadcrumbs items={breadcrumbItems} />
+          
+          <div className="flex flex-col gap-4">
+            <div>
+              <h1 className="text-3xl font-semibold">
+                {productKindFilter === 'prepared_food' ? 'Food & Dining' :
+                 productKindFilter === 'grocery' ? 'Groceries' :
+                 activeTab === 'services' ? 'Services' : 'Shop'}
+              </h1>
+              <p className="mt-2 max-w-prose text-muted-foreground">
+                {productKindFilter === 'prepared_food' ? 'Fresh food delivered fast. Order from local restaurants and food vendors.' :
+                 productKindFilter === 'grocery' ? 'Fresh groceries and daily essentials. Shop from local vendors and farmers.' :
+                 activeTab === 'services' ? 'Book services with local providers. Professional services and experiences.' :
+                 'Browse products and services. Member discounts apply automatically.'}
+              </p>
+            </div>
+
+            {/* Active Filters */}
+            {(productKindFilter !== 'all' || activeTab === 'services') && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">Filters:</span>
+                {productKindFilter === 'prepared_food' && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Coffee className="h-3 w-3" />
+                    Food & Dining
+                    <button onClick={clearFilters} className="ml-1 hover:text-destructive">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {productKindFilter === 'grocery' && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <ShoppingCart className="h-3 w-3" />
+                    Groceries
+                    <button onClick={clearFilters} className="ml-1 hover:text-destructive">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {activeTab === 'services' && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Briefcase className="h-3 w-3" />
+                    Services
+                    <button onClick={() => navigate('/products')} className="ml-1 hover:text-destructive">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Delivery Banner for Food/Grocery */}
+            {(productKindFilter === 'prepared_food' || productKindFilter === 'grocery') && (
+              <DeliveryBanner 
+                productKind={productKindFilter}
+                perishable={productKindFilter === 'grocery'}
+                estimatedDeliveryTime={productKindFilter === 'prepared_food' ? "30-45 mins" : "1-2 hours"}
+              />
+            )}
+          </div>
         </div>
 
         {/* Type Filter Tabs */}
@@ -565,13 +665,26 @@ export default function UnifiedCatalog() {
                           )}
                         </CardHeader>
                         
-                        <CardContent className="grid gap-3">
-                          {item.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
-                          )}
-                          
-                          {/* Type-specific info */}
-                          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                         <CardContent className="grid gap-3">
+                           {item.description && (
+                             <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                           )}
+                           
+                           {/* Type-specific info */}
+                           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                             {/* Delivery indicator for food/grocery */}
+                             {item.type === 'product' && (item as any).product_kind === 'prepared_food' && (
+                               <div className="flex items-center gap-1 text-green-600">
+                                 <Truck className="h-3 w-3" />
+                                 <span>Hot delivery</span>
+                               </div>
+                             )}
+                             {item.type === 'product' && (item as any).product_kind === 'grocery' && (
+                               <div className="flex items-center gap-1 text-blue-600">
+                                 <Truck className="h-3 w-3" />
+                                 <span>Fresh delivery</span>
+                               </div>
+                             )}
                             {item.type === 'service' && typeof item.duration_minutes === "number" && item.duration_minutes > 0 && (
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
@@ -650,7 +763,8 @@ export default function UnifiedCatalog() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
-    </main>
+        </div>
+      </main>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { setSEOAdvanced } from "@/lib/seo";
@@ -48,6 +48,7 @@ export default function Feed() {
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const navigate = useNavigate();
   const { add } = useCart();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     setSEOAdvanced({
@@ -113,7 +114,18 @@ export default function Feed() {
             created_at: s.created_at,
           } as FeedService)),
         ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        setItems(normalized);
+        
+        // Filter based on URL parameters
+        const filterParam = searchParams.get('filter');
+        let filteredItems = normalized;
+        
+        if (filterParam === 'prepared_food' || filterParam === 'grocery') {
+          filteredItems = normalized.filter(item => 
+            item.kind === 'product' && (item as FeedProduct).product_kind === filterParam
+          );
+        }
+        
+        setItems(filteredItems);
       } catch (e: any) {
         toast("Failed to load feed", { description: e.message || String(e) });
       } finally {
@@ -121,7 +133,7 @@ export default function Feed() {
       }
     };
     load();
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     // Auto play current, pause others

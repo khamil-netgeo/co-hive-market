@@ -82,10 +82,10 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               
               <Route path="/catalog" element={<Navigate to="/products" replace />} />
-              <Route path="/food" element={<Navigate to="/products" replace />} />
-              <Route path="/groceries" element={<Navigate to="/products" replace />} />
+              <Route path="/food" element={<Navigate to="/products?filter=prepared_food" replace />} />
+              <Route path="/groceries" element={<Navigate to="/products?filter=grocery" replace />} />
               <Route path="/feed" element={<Feed />} />
-              <Route path="/services" element={<UnifiedCatalog />} />
+              <Route path="/services" element={<Navigate to="/products?type=services" replace />} />
               <Route path="/products" element={<UnifiedCatalog />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/service/:id" element={<ServiceDetail />} />

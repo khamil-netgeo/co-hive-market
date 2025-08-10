@@ -1,6 +1,6 @@
 import { NavLink, useLocation, Link } from "react-router-dom";
 import { useState } from "react";
-import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings, Truck, DollarSign, User, Globe, UserCog, Flag, Megaphone, AlertTriangle, ScrollText } from "lucide-react";
+import { ShoppingBag, Users, ListOrdered, Store, Shield, LayoutGrid, BarChart3, Briefcase, Wallet, ChevronDown, Package, Settings, Truck, DollarSign, User, Globe, UserCog, Flag, Megaphone, AlertTriangle, ScrollText, Coffee, ShoppingCart } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,12 +19,16 @@ import useIsRider from "@/hooks/useIsRider";
 import useIsVendor from "@/hooks/useIsVendor";
 
 const items = [
-  { title: "Catalog", url: "/catalog", icon: ShoppingBag },
-  { title: "Food", url: "/food", icon: Store },
-  { title: "Groceries", url: "/groceries", icon: Package },
-  { title: "Shop Feed", url: "/feed", icon: Store },
   { title: "Communities", url: "/communities", icon: Users },
   { title: "Orders", url: "/orders", icon: ListOrdered },
+];
+
+const shopItems = [
+  { title: "All Products", url: "/products", icon: ShoppingBag },
+  { title: "Food & Dining", url: "/products?filter=prepared_food", icon: Coffee },
+  { title: "Groceries", url: "/products?filter=grocery", icon: ShoppingCart },
+  { title: "Services", url: "/products?type=services", icon: Briefcase },
+  { title: "Shop Feed", url: "/feed", icon: Store },
 ];
 
 const vendorItems = [
@@ -64,13 +68,16 @@ export default function AppSidebar() {
   const currentPath = location.pathname;
   const { isRider } = useIsRider();
   const { isVendor } = useIsVendor();
+  const searchParams = new URLSearchParams(location.search);
 
   const isVendorPath = currentPath.startsWith("/vendor");
   const isRiderPath = currentPath.startsWith("/rider");
   const isSuperAdminPath = currentPath.startsWith("/superadmin") || currentPath.startsWith("/admin");
+  const isShopPath = currentPath.startsWith("/products") || currentPath.startsWith("/services") || currentPath.startsWith("/feed") || currentPath === "/catalog";
 
   // State to control which section is open (only one at a time)
-  const [openSection, setOpenSection] = useState<'vendor' | 'rider' | 'superadmin' | null>(() => {
+  const [openSection, setOpenSection] = useState<'shop' | 'vendor' | 'rider' | 'superadmin' | null>(() => {
+    if (isShopPath) return 'shop';
     if (isVendorPath) return 'vendor';
     if (isRiderPath) return 'rider';
     if (isSuperAdminPath) return 'superadmin';
@@ -93,6 +100,48 @@ export default function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent>
+        {/* Shop Section - Always visible */}
+        <Collapsible open={openSection === 'shop'} onOpenChange={(open) => setOpenSection(open ? 'shop' : null)}>
+          <SidebarGroup>
+            <CollapsibleTrigger asChild>
+              <SidebarGroupLabel className="cursor-pointer flex items-center justify-between hover:bg-muted/50 px-2 py-1 rounded">
+                {collapsed ? <ShoppingBag className="h-4 w-4" /> : <>Shop <ChevronDown className="h-4 w-4" /></>}
+              </SidebarGroupLabel>
+            </CollapsibleTrigger>
+            {!collapsed && (
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {shopItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink 
+                            to={item.url} 
+                            className={({ isActive }) => {
+                              // Custom active logic for shop items with query params
+                              const isShopActive = currentPath === "/products" && (
+                                (item.url === "/products" && !searchParams.get('filter') && !searchParams.get('type')) ||
+                                (item.url.includes('filter=prepared_food') && searchParams.get('filter') === 'prepared_food') ||
+                                (item.url.includes('filter=grocery') && searchParams.get('filter') === 'grocery') ||
+                                (item.url.includes('type=services') && searchParams.get('type') === 'services')
+                              );
+                              const feedActive = currentPath === "/feed" && item.url === "/feed";
+                              return getNavCls({ isActive: isShopActive || feedActive || isActive });
+                            }}
+                          >
+                            <item.icon className="mr-2 h-4 w-4" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            )}
+          </SidebarGroup>
+        </Collapsible>
+
         <SidebarGroup>
           <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
