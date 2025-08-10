@@ -48,6 +48,7 @@ import Profile from "./pages/Profile";
 import Communities from "./pages/Communities";
 import CommunityDetail from "./pages/communities/CommunityDetail";
 import CommunityManage from "./pages/communities/CommunityManage";
+import CommunityFeed from "./pages/communities/CommunityFeed";
 import Services from "./pages/Services";
 import VendorServices from "./pages/vendor/Services";
 import VendorProducts from "./pages/vendor/VendorProducts";
@@ -99,6 +100,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/communities" element={<Communities />} />
               <Route path="/communities/:id" element={<CommunityDetail />} />
+              <Route path="/communities/:id/feed" element={<CommunityFeed />} />
               <Route path="/communities/:id/manage" element={<CommunityManage />} />
               <Route path="/riders" element={<Riders />} />
               <Route path="/rider" element={<RiderDashboard />} />
