@@ -328,7 +328,7 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
 
   return (
     <main className="container px-4 py-6 md:py-12">
-      <div className="space-y-6">
+      <div className="space-y-8">
         <Breadcrumbs
           items={[
             { label: "Home", href: "/" },
@@ -338,9 +338,10 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
           className="mb-2"
         />
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Image Section */}
-          <div className="space-y-4">
+        {/* Hero Section - Product Overview */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Product Image Gallery */}
+          <div className="lg:col-span-6 xl:col-span-5">
             <MediaGallery
               images={product.image_urls || []}
               videos={product.video_url ? [product.video_url] : []}
@@ -349,10 +350,10 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
             />
           </div>
 
-          {/* Details Section */}
-          <div className="space-y-6">
+          {/* Essential Product Info */}
+          <div className="lg:col-span-6 xl:col-span-7 space-y-6">
             <div className="flex items-start justify-between gap-4">
-              <h1 className="flex items-center gap-2 text-3xl font-bold mb-2">
+              <h1 className="flex items-center gap-2 text-3xl font-bold">
                 <Package className="h-6 w-6 text-primary" />
                 {product.name}
                 {memberPrice && discountPercent > 0 && (
@@ -363,39 +364,14 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
               </h1>
               <ShareButtons title={product.name} />
             </div>
+
             {product.vendor_id && (
               <div className="text-sm">
                 <Link to={`/catalog?vendor=${product.vendor_id}`} className="underline underline-offset-2">View more from this vendor</Link>
               </div>
             )}
 
-            {product.description && (
-              <div>
-                <h3 className="font-semibold mb-2">Description</h3>
-                <p className="text-muted-foreground whitespace-pre-wrap">{product.description}</p>
-              </div>
-            )}
-
-            {/* Product Details */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Product Details</h3>
-              <div className="grid gap-3">
-                {product.stock_qty != null && (
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <span>Stock: {product.stock_qty} available</span>
-                  </div>
-                )}
-                {product.pickup_lat && product.pickup_lng && userLocation && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>Distance: {haversineKm(userLocation.lat, userLocation.lng, product.pickup_lat, product.pickup_lng).toFixed(1)} km away</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Pricing */}
+            {/* Pricing Section */}
             <Card>
               <CardHeader>
                 <CardTitle>Pricing</CardTitle>
@@ -424,28 +400,6 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                     <Button size="sm" variant="secondary" onClick={joinCommunity}>
                       Join community to save
                     </Button>
-                  </div>
-                )}
-
-                {/* Delivery time (for hot food/perishables) */}
-                {(product.product_kind === 'prepared_food' || product.perishable) && (
-                  <div className="mb-4 space-y-2">
-                    <h4 className="text-sm font-medium">Delivery time</h4>
-                    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-                      <div className="flex items-center gap-2">
-                        <button type="button" className={`px-3 py-1.5 rounded-md border text-sm ${deliveryOption === 'asap' ? 'bg-accent' : ''}`} onClick={() => setDeliveryOption('asap')}>ASAP</button>
-                        <button type="button" className={`px-3 py-1.5 rounded-md border text-sm ${deliveryOption === 'schedule' ? 'bg-accent' : ''}`} onClick={() => setDeliveryOption('schedule')}>Schedule</button>
-                      </div>
-                      {deliveryOption === 'schedule' && (
-                        <input
-                          type="datetime-local"
-                          value={scheduledAt}
-                          onChange={(e) => setScheduledAt(e.target.value)}
-                          className="border rounded-md px-3 py-1.5 text-sm"
-                        />
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">Rider delivery • {etaRangeText} ETA for ASAP.</p>
                   </div>
                 )}
 
@@ -479,46 +433,122 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </section>
 
-            {/* Enhanced Delivery & Product Information */}
-            <div className="space-y-4">
-              <DeliveryMethodsCard
+        {/* Product Details Section */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Description & Details */}
+          <div className="space-y-6">
+            {product.description && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Description</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{product.description}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Product Details</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3">
+                  {product.stock_qty != null && (
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <span>Stock: {product.stock_qty} available</span>
+                    </div>
+                  )}
+                  {product.pickup_lat && product.pickup_lng && userLocation && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span>Distance: {haversineKm(userLocation.lat, userLocation.lng, product.pickup_lat, product.pickup_lng).toFixed(1)} km away</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Delivery Options */}
+          <div className="space-y-6">
+            {/* Delivery time (for hot food/perishables) */}
+            {(product.product_kind === 'prepared_food' || product.perishable) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Delivery Options</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium">Delivery time</h4>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                      <div className="flex items-center gap-2">
+                        <button type="button" className={`px-3 py-1.5 rounded-md border text-sm ${deliveryOption === 'asap' ? 'bg-accent' : ''}`} onClick={() => setDeliveryOption('asap')}>ASAP</button>
+                        <button type="button" className={`px-3 py-1.5 rounded-md border text-sm ${deliveryOption === 'schedule' ? 'bg-accent' : ''}`} onClick={() => setDeliveryOption('schedule')}>Schedule</button>
+                      </div>
+                      {deliveryOption === 'schedule' && (
+                        <input
+                          type="datetime-local"
+                          value={scheduledAt}
+                          onChange={(e) => setScheduledAt(e.target.value)}
+                          className="border rounded-md px-3 py-1.5 text-sm"
+                        />
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Rider delivery • {etaRangeText} ETA for ASAP.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <DeliveryMethodsCard
+              productKind={product.product_kind}
+              perishable={product.perishable}
+              refrigerationRequired={product.refrigeration_required}
+              allowEasyparcel={product.allow_easyparcel}
+              allowRiderDelivery={product.allow_rider_delivery}
+              prepTimeMinutes={product.prep_time_minutes}
+              pickupLat={product.pickup_lat}
+              pickupLng={product.pickup_lng}
+              userLocation={userLocation}
+              selectedMethod={deliveryMethod}
+              onSelectDelivery={setDeliveryMethod}
+            />
+          </div>
+        </section>
+
+        {/* Additional Information Section */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <ProductSpecificationsCard
+              product={product}
+              vendor={vendor ? { id: vendor.id } : undefined}
+              userLocation={userLocation}
+              onAddToCart={addToCart}
+              onBuyNow={buyNow}
+            />
+          </div>
+
+          <div className="space-y-6">
+            {deliveryMethod === 'easyparcel' && product.allow_easyparcel && (
+              <ShippingEstimator 
+                defaultWeightKg={product.weight_grams ? Math.max(0.1, product.weight_grams / 1000) : 1}
                 productKind={product.product_kind}
                 perishable={product.perishable}
-                refrigerationRequired={product.refrigeration_required}
                 allowEasyparcel={product.allow_easyparcel}
-                allowRiderDelivery={product.allow_rider_delivery}
-                prepTimeMinutes={product.prep_time_minutes}
-                pickupLat={product.pickup_lat}
-                pickupLng={product.pickup_lng}
-                userLocation={userLocation}
-                selectedMethod={deliveryMethod}
-                onSelectDelivery={setDeliveryMethod}
               />
-              
-              <ProductSpecificationsCard
-                product={product}
-                vendor={vendor ? { id: vendor.id } : undefined}
-                userLocation={userLocation}
-                onAddToCart={addToCart}
-                onBuyNow={buyNow}
-              />
+            )}
 
-              {deliveryMethod === 'easyparcel' && product.allow_easyparcel && (
-                <ShippingEstimator 
-                  defaultWeightKg={product.weight_grams ? Math.max(0.1, product.weight_grams / 1000) : 1}
-                  productKind={product.product_kind}
-                  perishable={product.perishable}
-                  allowEasyparcel={product.allow_easyparcel}
-                />
-              )}
-
-              <ProductTrustBadges />
-            </div>
+            <ProductTrustBadges />
           </div>
-        </div>
+        </section>
 
-        <section id="reviews" className="mt-8">
+        {/* Reviews Section - Full Width */}
+        <section id="reviews" className="w-full">
           <Card>
             <CardHeader>
               <CardTitle>Customer Reviews</CardTitle>
