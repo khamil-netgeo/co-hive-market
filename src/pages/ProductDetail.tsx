@@ -378,21 +378,6 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                 </div>
               )}
 
-              {/* Quick Product Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-muted/30 rounded-lg">
-                {product.stock_qty != null && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <span>Stock: {product.stock_qty} available</span>
-                  </div>
-                )}
-                {product.pickup_lat && product.pickup_lng && userLocation && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>Distance: {haversineKm(userLocation.lat, userLocation.lng, product.pickup_lat, product.pickup_lng).toFixed(1)} km away</span>
-                  </div>
-                )}
-              </div>
 
               {/* Pricing - Prominent on mobile */}
               <Card className="lg:hidden">
@@ -493,17 +478,31 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
 
         {/* Content Sections - Mobile Stack, Desktop Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* Description */}
-          {product.description && (
-            <Card className="order-1">
-              <CardHeader>
-                <CardTitle>Description</CardTitle>
-              </CardHeader>
-              <CardContent>
+          {/* Description & Details */}
+          <Card className="order-1">
+            <CardHeader>
+              <CardTitle>Description & Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {product.description && (
                 <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{product.description}</p>
-              </CardContent>
-            </Card>
-          )}
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {product.stock_qty != null && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                    <span>Stock: {product.stock_qty} available</span>
+                  </div>
+                )}
+                {product.pickup_lat && product.pickup_lng && userLocation && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>Distance: {haversineKm(userLocation.lat, userLocation.lng, product.pickup_lat, product.pickup_lng).toFixed(1)} km away</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Delivery Options */}
           <div className="order-2 space-y-4">
