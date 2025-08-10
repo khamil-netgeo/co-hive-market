@@ -372,11 +372,6 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                 </div>
               </div>
 
-              {product.vendor_id && (
-                <div className="text-sm">
-                  <Link to={`/catalog?vendor=${product.vendor_id}`} className="text-primary hover:underline underline-offset-2">View more from this vendor</Link>
-                </div>
-              )}
 
 
               {/* Pricing - Prominent on mobile */}
@@ -478,29 +473,74 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
 
         {/* Content Sections - Mobile Stack, Desktop Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* Description & Details */}
+          {/* Description, Details & Vendor Info */}
           <Card className="order-1">
             <CardHeader>
-              <CardTitle>Description & Details</CardTitle>
+              <CardTitle>Product Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Description */}
               {product.description && (
-                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{product.description}</p>
+                <div>
+                  <h4 className="font-medium mb-2">Description</h4>
+                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{product.description}</p>
+                </div>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {product.stock_qty != null && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <span>Stock: {product.stock_qty} available</span>
-                  </div>
-                )}
-                {product.pickup_lat && product.pickup_lng && userLocation && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>Distance: {haversineKm(userLocation.lat, userLocation.lng, product.pickup_lat, product.pickup_lng).toFixed(1)} km away</span>
-                  </div>
-                )}
+
+              {/* Product Details */}
+              <div>
+                <h4 className="font-medium mb-3">Product Details</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {product.stock_qty != null && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <span>Stock: {product.stock_qty} available</span>
+                    </div>
+                  )}
+                  {product.pickup_lat && product.pickup_lng && userLocation && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span>Distance: {haversineKm(userLocation.lat, userLocation.lng, product.pickup_lat, product.pickup_lng).toFixed(1)} km away</span>
+                    </div>
+                  )}
+                  {product.weight_grams && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <span>Weight: {(product.weight_grams / 1000).toFixed(2)} kg</span>
+                    </div>
+                  )}
+                  {product.product_kind && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                      <span>Category: {product.product_kind.replace('_', ' ')}</span>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Vendor Information */}
+              {product.vendor_id && (
+                <div>
+                  <h4 className="font-medium mb-3">Vendor Information</h4>
+                  <div className="bg-muted/30 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Sold by</span>
+                      <Link 
+                        to={`/catalog?vendor=${product.vendor_id}`} 
+                        className="text-primary hover:underline underline-offset-2 font-medium"
+                      >
+                        View store profile
+                      </Link>
+                    </div>
+                    {vendor?.member_discount_override_percent != null && vendor.member_discount_override_percent > 0 && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Star className="h-4 w-4 text-primary" />
+                        <span>This vendor offers {vendor.member_discount_override_percent}% member discount</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
