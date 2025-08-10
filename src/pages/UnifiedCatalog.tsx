@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProductImage from "@/components/product/ProductImage";
 import ServiceImage from "@/components/service/ServiceImage";
 import ShopSubnav from "@/components/shop/ShopSubnav";
@@ -524,24 +523,8 @@ export default function UnifiedCatalog() {
           </div>
         </div>
 
-        {/* Type Filter Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
-            <TabsTrigger value="all" className="flex items-center gap-2 py-3">
-              <span>All</span>
-            </TabsTrigger>
-            <TabsTrigger value="products" className="flex items-center gap-2 py-3">
-              <Package className="h-4 w-4" />
-              <span>Products</span>
-            </TabsTrigger>
-            <TabsTrigger value="services" className="flex items-center gap-2 py-3">
-              <Briefcase className="h-4 w-4" />
-              <span>Services</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Filters */}
-          <div className="mt-6 space-y-4">
+        {/* Filters */}
+        <div className="space-y-4">
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -606,163 +589,162 @@ export default function UnifiedCatalog() {
             </div>
           </div>
 
-          {/* Results */}
-          <TabsContent value={activeTab} className="mt-8">
-            {loading ? (
-              <div className="text-muted-foreground">Loading...</div>
-            ) : filtered.length === 0 ? (
-              <div className="rounded-md border bg-card p-6 text-muted-foreground">
-                No items found. Try adjusting your filters.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filtered.map((item) => {
-                  const discounted = memberPrice(item);
-                  const discPercent = effectiveDiscountPercent(item);
+          {/* Content */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <span className="text-muted-foreground">Loading...</span>
+            </div>
+          ) : !filtered.length ? (
+            <div className="rounded-md border bg-card p-6 text-muted-foreground">
+              No items found. Try adjusting your filters.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((item) => {
+                const discounted = memberPrice(item);
+                const discPercent = effectiveDiscountPercent(item);
 
-                   return (
-                    <Link 
-                      key={`${item.type}-${item.id}`} 
-                      to={`/${item.type}/${item.id}`}
-                      className="block"
-                    >
-                      <Card className="hover:shadow-elegant transition-shadow cursor-pointer group h-full">
-                        <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                          {item.type === 'product' ? (
-                            <ProductImage 
-                              imageUrls={item.image_urls} 
-                              productName={item.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
-                            />
-                          ) : (
-                            <ServiceImage 
-                              imageUrls={item.image_urls}
-                              serviceName={item.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
+                return (
+                  <Link 
+                    key={`${item.type}-${item.id}`} 
+                    to={`/${item.type}/${item.id}`}
+                    className="block"
+                  >
+                    <Card className="hover:shadow-elegant transition-shadow cursor-pointer group h-full">
+                      <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                        {item.type === 'product' ? (
+                          <ProductImage 
+                            imageUrls={item.image_urls} 
+                            productName={item.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            fallbackClassName="w-full h-full bg-muted flex items-center justify-center"
+                          />
+                        ) : (
+                          <ServiceImage 
+                            imageUrls={item.image_urls}
+                            serviceName={item.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        )}
+                      </div>
+                      
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            {item.type === 'product' ? (
+                              <Package className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Briefcase className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            <span className="line-clamp-1">{item.name}</span>
+                          </div>
+                          {discounted != null && discPercent > 0 && (
+                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary whitespace-nowrap">
+                              {discPercent}% off
+                            </span>
+                          )}
+                        </CardTitle>
+                        {item.subtitle && (
+                          <p className="text-sm text-muted-foreground line-clamp-1">{item.subtitle}</p>
+                        )}
+                      </CardHeader>
+                      
+                      <CardContent className="grid gap-3">
+                        {item.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                        )}
+                        
+                        {/* Type-specific info */}
+                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          {/* Delivery indicator for food/grocery */}
+                          {item.type === 'product' && (item as any).product_kind === 'prepared_food' && (
+                            <div className="flex items-center gap-1 text-green-600">
+                              <Truck className="h-3 w-3" />
+                              <span>Hot delivery</span>
+                            </div>
+                          )}
+                          {item.type === 'product' && (item as any).product_kind === 'grocery' && (
+                            <div className="flex items-center gap-1 text-blue-600">
+                              <Truck className="h-3 w-3" />
+                              <span>Fresh delivery</span>
+                            </div>
+                          )}
+                          {item.type === 'service' && typeof item.duration_minutes === "number" && item.duration_minutes > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{item.duration_minutes} min</span>
+                            </div>
+                          )}
+                          {item.type === 'service' && item.service_area && (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              <span>{item.service_area}</span>
+                            </div>
+                          )}
+                          {item.type === 'product' && item.pickup_lat && item.pickup_lng && loc && (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              <span>{haversineKm(loc.lat, loc.lng, item.pickup_lat, item.pickup_lng).toFixed(1)} km away</span>
+                            </div>
                           )}
                         </div>
-                        
-                        <CardHeader>
-                          <CardTitle className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              {item.type === 'product' ? (
-                                <Package className="h-4 w-4 text-muted-foreground" />
-                              ) : (
-                                <Briefcase className="h-4 w-4 text-muted-foreground" />
-                              )}
-                              <span className="line-clamp-1">{item.name}</span>
-                            </div>
-                            {discounted != null && discPercent > 0 && (
-                              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary whitespace-nowrap">
-                                {discPercent}% off
+
+                        {/* Pricing */}
+                        <div className="text-xl font-semibold">
+                          {discounted != null ? (
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-primary">{fmtPrice(discounted, item.currency)}</span>
+                              <span className="text-sm text-muted-foreground line-through">
+                                {fmtPrice(item.price_cents, item.currency)}
                               </span>
-                            )}
-                          </CardTitle>
-                          {item.subtitle && (
-                            <p className="text-sm text-muted-foreground line-clamp-1">{item.subtitle}</p>
+                            </div>
+                          ) : (
+                            <span>{fmtPrice(item.price_cents, item.currency)}</span>
                           )}
-                        </CardHeader>
-                        
-                         <CardContent className="grid gap-3">
-                           {item.description && (
-                             <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
-                           )}
-                           
-                           {/* Type-specific info */}
-                           <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                             {/* Delivery indicator for food/grocery */}
-                             {item.type === 'product' && (item as any).product_kind === 'prepared_food' && (
-                               <div className="flex items-center gap-1 text-green-600">
-                                 <Truck className="h-3 w-3" />
-                                 <span>Hot delivery</span>
-                               </div>
-                             )}
-                             {item.type === 'product' && (item as any).product_kind === 'grocery' && (
-                               <div className="flex items-center gap-1 text-blue-600">
-                                 <Truck className="h-3 w-3" />
-                                 <span>Fresh delivery</span>
-                               </div>
-                             )}
-                            {item.type === 'service' && typeof item.duration_minutes === "number" && item.duration_minutes > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span>{item.duration_minutes} min</span>
-                              </div>
-                            )}
-                            {item.type === 'service' && item.service_area && (
-                              <div className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                <span>{item.service_area}</span>
-                              </div>
-                            )}
-                            {item.type === 'product' && item.pickup_lat && item.pickup_lng && loc && (
-                              <div className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                <span>{haversineKm(loc.lat, loc.lng, item.pickup_lat, item.pickup_lng).toFixed(1)} km away</span>
-                              </div>
-                            )}
-                          </div>
+                        </div>
 
-                          {/* Pricing */}
-                          <div className="text-xl font-semibold">
-                            {discounted != null ? (
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-primary">{fmtPrice(discounted, item.currency)}</span>
-                                <span className="text-sm text-muted-foreground line-through">
-                                  {fmtPrice(item.price_cents, item.currency)}
-                                </span>
-                              </div>
-                            ) : (
-                              <span>{fmtPrice(item.price_cents, item.currency)}</span>
-                            )}
-                          </div>
-
-                          {/* Quick actions on catalog */}
-                          <div className="flex flex-col sm:flex-row gap-2 mt-auto">
-                            {item.type === 'product' ? (
-                              <>
-                                <Button 
-                                  variant="secondary" 
-                                  size="sm"
-                                  onClick={(e) => { 
-                                    e.preventDefault(); 
-                                    e.stopPropagation(); 
-                                    addToCart(item); 
-                                  }} 
-                                  className="flex items-center gap-2"
-                                >
-                                  <ShoppingCart className="h-3 w-3" />
-                                  Add to cart
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  className="text-xs"
-                                >
-                                  View details →
-                                </Button>
-                              </>
-                            ) : (
+                        {/* Quick actions on catalog */}
+                        <div className="flex flex-col sm:flex-row gap-2 mt-auto">
+                          {item.type === 'product' ? (
+                            <>
+                              <Button 
+                                variant="secondary" 
+                                size="sm"
+                                onClick={(e) => { 
+                                  e.preventDefault(); 
+                                  e.stopPropagation(); 
+                                  addToCart(item); 
+                                }} 
+                                className="flex items-center gap-2"
+                              >
+                                <ShoppingCart className="h-3 w-3" />
+                                Add to cart
+                              </Button>
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                className="w-full text-xs"
+                                className="text-xs"
                               >
-                                View & book →
+                                View details →
                               </Button>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                            </>
+                          ) : (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="w-full text-xs"
+                            >
+                              View & book →
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </main>
     </>
