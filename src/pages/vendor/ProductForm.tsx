@@ -42,7 +42,7 @@ const productSchema = z.object({
     .regex(/^\d+(\.\d{1,2})?$/, "Invalid price format"),
   currency: z.string().default("myr"),
   status: z.enum(["active", "inactive", "archived"]).default("inactive"),
-  category: z.enum(["grocery", "food", "other"]).default("grocery"),
+  category: z.string().min(1, "Category is required"),
   // Product classification decides fulfillment rules
   product_kind: z.enum(["prepared_food","packaged_food","grocery","other"]).default("other"),
   perishable: z.boolean().default(false),
@@ -73,6 +73,7 @@ interface Vendor {
 interface Category {
   id: string;
   name: string;
+  slug: string;
   type: "product" | "service" | "both";
   parent_id: string | null;
   sort_order: number;
@@ -100,7 +101,7 @@ const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
       price: "",
       currency: "myr",
       status: "inactive",
-      category: "grocery",
+      category: "",
       product_kind: "grocery",
       perishable: false,
       refrigeration_required: false,
@@ -152,13 +153,18 @@ setVendor(vendorData);
 // Load available categories (product/both)
 const { data: cats, error: catsErr } = await supabase
   .from("categories")
-  .select("id,name,type,parent_id,sort_order,is_active")
+  .select("id,name,slug,type,parent_id,sort_order,is_active")
   .eq("is_active", true)
   .in("type", ["product", "both"])
   .order("sort_order", { ascending: true })
   .order("name", { ascending: true });
 if (catsErr) throw catsErr;
-setAvailableCategories((cats as any) || []);
+const catList = (cats as any) || [];
+setAvailableCategories(catList);
+// Set default category if creating
+if (!isEditing && catList.length && !form.getValues("category")) {
+  form.setValue("category", catList[0].slug);
+}
 
 // If editing, fetch product data
 if (isEditing && productId) {
@@ -298,7 +304,7 @@ const onSubmit = async (data: ProductFormData) => {
       status: data.status,
       vendor_id: vendor.id,
       community_id: vendor.community_id,
-      category: data.category,
+      category: data.category, // store slug for legacy compatibility
       product_kind: data.product_kind,
       perishable: !!data.perishable,
       refrigeration_required: !!data.refrigeration_required,
@@ -355,9 +361,9 @@ const onSubmit = async (data: ProductFormData) => {
     }
 
     navigate("/vendor/dashboard");
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error saving product:", error);
-    toast.error("Failed to save product");
+    toast.error("Failed to save product", { description: error?.message || error?.hint || error?.code || "Permission denied" });
   } finally {
     setSaving(false);
   }
@@ -456,32 +462,33 @@ const onSubmit = async (data: ProductFormData) => {
                   />
                 </div>
 
-                {/* Type */}
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="grocery">Groceries</SelectItem>
-                          <SelectItem value="food">Prepared food</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Choose Groceries for items like produce, dairy, pantry. Choose Prepared food for cooked meals.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+{/* Primary category (from Categories DB) */}
+<FormField
+  control={form.control}
+  name="category"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Primary Category</FormLabel>
+      <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="Select category" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          {availableCategories.map((c) => (
+            <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FormDescription>
+        This sets the product’s main category and improves discovery.
+      </FormDescription>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
 
 {/* Categories (from Super Admin) */}
 <div className="space-y-2">
@@ -515,36 +522,39 @@ const onSubmit = async (data: ProductFormData) => {
 
 {/* Quick presets */}
 <div className="flex flex-col sm:flex-row gap-2">
-  <Button
-    type="button"
-    variant="secondary"
-    onClick={() => {
-      form.setValue("category", "grocery");
-      form.setValue("product_kind", "grocery");
-      form.setValue("perishable", false);
-      form.setValue("refrigeration_required", false);
-      form.setValue("prep_time_minutes", "");
-      form.setValue("allow_easyparcel", true);
-      form.setValue("allow_rider_delivery", true);
-    }}
-  >
-    Groceries preset
-  </Button>
-  <Button
-    type="button"
-    variant="secondary"
-    onClick={() => {
-      form.setValue("category", "food");
-      form.setValue("product_kind", "prepared_food");
-      form.setValue("perishable", true);
-      form.setValue("refrigeration_required", false);
-      if (!form.getValues("prep_time_minutes")) form.setValue("prep_time_minutes", "15");
-      form.setValue("allow_easyparcel", false);
-      form.setValue("allow_rider_delivery", true);
-    }}
-  >
-    Prepared food preset
-  </Button>
+<Button
+  type="button"
+  variant="secondary"
+  onClick={() => {
+    form.setValue("product_kind", "grocery");
+    form.setValue("perishable", false);
+    form.setValue("refrigeration_required", false);
+    form.setValue("prep_time_minutes", "");
+    form.setValue("allow_easyparcel", true);
+    form.setValue("allow_rider_delivery", true);
+    // Try set category to a matching slug if present
+    const c = availableCategories.find((x) => x.slug.includes("grocery"));
+    if (c) form.setValue("category", c.slug);
+  }}
+>
+  Groceries preset
+</Button>
+<Button
+  type="button"
+  variant="secondary"
+  onClick={() => {
+    form.setValue("product_kind", "prepared_food");
+    form.setValue("perishable", true);
+    form.setValue("refrigeration_required", false);
+    if (!form.getValues("prep_time_minutes")) form.setValue("prep_time_minutes", "15");
+    form.setValue("allow_easyparcel", false);
+    form.setValue("allow_rider_delivery", true);
+    const c = availableCategories.find((x) => x.slug.includes("food"));
+    if (c) form.setValue("category", c.slug);
+  }}
+>
+  Prepared food preset
+</Button>
 </div>
 
 {/* Product classification */}
@@ -554,12 +564,9 @@ const onSubmit = async (data: ProductFormData) => {
   render={({ field }) => (
     <FormItem>
       <FormLabel>Product classification</FormLabel>
-      <Select onValueChange={(v) => {
+<Select onValueChange={(v) => {
         field.onChange(v);
-        // Auto-set category for convenience
-        if (v === 'prepared_food') form.setValue('category', 'food');
-        if (v === 'grocery' || v === 'packaged_food') form.setValue('category', 'grocery');
-        // Sensible shipping defaults
+        // Sensible shipping defaults based on classification
         if (v === 'prepared_food') {
           form.setValue('allow_easyparcel', false);
           form.setValue('allow_rider_delivery', true);
