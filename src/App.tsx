@@ -12,6 +12,7 @@ import Catalog from "./pages/Catalog";
 import UnifiedCatalog from "./pages/UnifiedCatalog";
 import ProductDetail from "./pages/ProductDetail";
 import ServiceDetail from "./pages/ServiceDetail";
+import Feed from "./pages/Feed";
 import Orders from "./pages/Orders";
 import VendorOrders from "./pages/vendor/VendorOrders";
 import VendorAnalytics from "./pages/vendor/VendorAnalytics";
@@ -55,6 +56,7 @@ import RiderDeliveries from "./pages/rider/Deliveries";
 import RiderProfile from "./pages/rider/Profile";
 import RiderPayouts from "./pages/rider/Payouts";
 import VendorListings from "./pages/vendor/Listings";
+import CreatorStudio from "./pages/vendor/CreatorStudio";
 import { CartProvider } from "@/hooks/useCart";
 
 const queryClient = new QueryClient();
@@ -76,6 +78,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               
               <Route path="/catalog" element={<UnifiedCatalog />} />
+              <Route path="/feed" element={<Feed />} />
               <Route path="/services" element={<UnifiedCatalog />} />
               <Route path="/products" element={<UnifiedCatalog />} />
               <Route path="/product/:id" element={<ProductDetail />} />
@@ -96,6 +99,7 @@ const App = () => (
               <Route path="/vendor/services/:serviceId/edit" element={<ServiceForm />} />
               <Route path="/vendor/dashboard" element={<VendorDashboard />} />
               <Route path="/vendor/listings" element={<VendorListings />} />
+              <Route path="/vendor/creator" element={<CreatorStudio />} />
               <Route path="/vendor/products" element={<Navigate to="/vendor/listings?type=products" replace />} />
               <Route path="/vendor/products/new" element={<ProductForm />} />
               <Route path="/vendor/products/:productId/edit" element={<ProductForm />} />

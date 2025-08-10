@@ -55,6 +55,7 @@ export default function AppTopbar() {
                 <DropdownMenuItem onSelect={() => navigate("/profile")}>Profile</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/orders")}>My Orders</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/catalog")}>Catalog</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => navigate("/feed")}>Shop Feed</DropdownMenuItem>
                 
                 {/* Role-based sections */}
                 {(isVendor || isRider || isAdmin || isSuperadmin) && <DropdownMenuSeparator />}

@@ -20,16 +20,19 @@ import useIsVendor from "@/hooks/useIsVendor";
 
 const items = [
   { title: "Catalog", url: "/catalog", icon: ShoppingBag },
+  { title: "Shop Feed", url: "/feed", icon: Store },
   { title: "Communities", url: "/communities", icon: Users },
   { title: "Orders", url: "/orders", icon: ListOrdered },
 ];
 
 const vendorItems = [
   { title: "Overview", url: "/vendor/dashboard", icon: LayoutGrid },
+  { title: "Creator Studio", url: "/vendor/creator", icon: Megaphone },
+  { title: "Listings", url: "/vendor/listings", icon: Briefcase },
   { title: "Products", url: "/vendor/products", icon: Package },
+  { title: "Services", url: "/vendor/services", icon: Briefcase },
   { title: "Orders", url: "/vendor/orders", icon: ListOrdered },
   { title: "Analytics", url: "/vendor/analytics", icon: BarChart3 },
-  { title: "Services", url: "/vendor/services", icon: Briefcase },
   { title: "Payouts", url: "/vendor/payouts", icon: Wallet },
   { title: "Store Settings", url: "/vendor/store-settings", icon: Settings },
 ];

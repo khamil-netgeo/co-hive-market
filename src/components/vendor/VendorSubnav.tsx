@@ -5,6 +5,7 @@ import { LayoutGrid, ListOrdered, BarChart3, Briefcase, Wallet } from "lucide-re
 
 const links = [
   { to: "/vendor/dashboard", label: "Overview", icon: LayoutGrid },
+  { to: "/vendor/creator", label: "Creator Studio", icon: Briefcase },
   { to: "/vendor/orders", label: "Orders", icon: ListOrdered },
   { to: "/vendor/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/vendor/listings", label: "Listings", icon: Briefcase },
