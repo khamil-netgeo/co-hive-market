@@ -7,7 +7,7 @@ const links = [
   { to: "/vendor/dashboard", label: "Overview", icon: LayoutGrid },
   { to: "/vendor/orders", label: "Orders", icon: ListOrdered },
   { to: "/vendor/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/vendor/services", label: "Services", icon: Briefcase },
+  { to: "/vendor/listings", label: "Listings", icon: Briefcase },
   { to: "/vendor/payouts", label: "Payouts", icon: Wallet },
 ];
 

@@ -1599,6 +1599,13 @@ export type Database = {
         }
         Returns: number
       }
+      can_submit_review: {
+        Args: {
+          _target_type: Database["public"]["Enums"]["review_target"]
+          _target_id: string
+        }
+        Returns: boolean
+      }
       find_nearby_riders: {
         Args: {
           pickup_lat: number

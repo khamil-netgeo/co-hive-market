@@ -54,6 +54,7 @@ import RiderAssignments from "./pages/rider/Assignments";
 import RiderDeliveries from "./pages/rider/Deliveries";
 import RiderProfile from "./pages/rider/Profile";
 import RiderPayouts from "./pages/rider/Payouts";
+import VendorListings from "./pages/vendor/Listings";
 import { CartProvider } from "@/hooks/useCart";
 
 const queryClient = new QueryClient();
@@ -94,6 +95,7 @@ const App = () => (
               <Route path="/vendor/services/new" element={<ServiceForm />} />
               <Route path="/vendor/services/:serviceId/edit" element={<ServiceForm />} />
               <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+              <Route path="/vendor/listings" element={<VendorListings />} />
               <Route path="/vendor/products" element={<VendorProducts />} />
               <Route path="/vendor/products/new" element={<ProductForm />} />
               <Route path="/vendor/products/:productId/edit" element={<ProductForm />} />
