@@ -79,7 +79,9 @@ export default function Feed() {
           if (vErr) throw vErr;
           const vendorIds = ((vendorRows as any[]) || []).map((v) => v.id);
 
-          const productsQ = supabase
+          const kindFilter = searchParams.get('filter');
+
+          const productsQBase = supabase
             .from('products')
             .select('id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes')
             .not('video_url', 'is', null)
@@ -87,6 +89,10 @@ export default function Feed() {
             .eq('community_id', selected.id)
             .order('created_at', { ascending: false })
             .limit(50);
+
+          const productsQ = (kindFilter === 'prepared_food' || kindFilter === 'grocery')
+            ? productsQBase.eq('product_kind', kindFilter)
+            : productsQBase;
 
           const servicesQ = vendorIds.length
             ? supabase
@@ -144,14 +150,20 @@ export default function Feed() {
           return;
         }
 
+        const kindFilter = searchParams.get('filter');
+        const productsQBase = supabase
+          .from('products')
+          .select('id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes')
+          .not('video_url', 'is', null)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        const productsQ = (kindFilter === 'prepared_food' || kindFilter === 'grocery')
+          ? productsQBase.eq('product_kind', kindFilter)
+          : productsQBase;
+
         const [{ data: products, error: pErr }, { data: services, error: sErr }] = await Promise.all([
-          supabase
-            .from('products')
-            .select('id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes')
-            .not('video_url', 'is', null)
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(50),
+          productsQ,
           supabase
             .from('vendor_services')
             .select('id,name,subtitle,description,price_cents,currency,vendor_id,video_url,created_at,status')
