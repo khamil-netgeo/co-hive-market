@@ -19,6 +19,7 @@ import DeliveryBanner from "@/components/delivery/DeliveryBanner";
 import { Package, Briefcase, MapPin, Clock, Star, ShoppingCart, Calendar, X, Coffee, Truck } from "lucide-react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { useCommunity } from "@/context/CommunityContext";
 
 // Unified item interface
 interface CatalogItem {
@@ -46,7 +47,7 @@ interface CatalogItem {
   availability_preset?: string | null;
 }
 
-interface Vendor { id: string; member_discount_override_percent: number | null }
+interface Vendor { id: string; member_discount_override_percent: number | null; community_id?: string | null }
 interface Community { id: string; name: string; member_discount_percent: number }
 
 export default function UnifiedCatalog() {
@@ -156,13 +157,14 @@ export default function UnifiedCatalog() {
 
       // Load related data
       const [vendRes, commRes, memberRes, catRes, pcRes, scRes] = await Promise.all([
-        vendorIds.length ? supabase.from("vendors").select("id,member_discount_override_percent").in("id", vendorIds) : Promise.resolve({ data: [], error: null }),
+        vendorIds.length ? supabase.from("vendors").select("id,member_discount_override_percent,community_id").in("id", vendorIds) : Promise.resolve({ data: [], error: null }),
         communityIds.length ? supabase.from("communities").select("id,name,member_discount_percent").in("id", communityIds) : Promise.resolve({ data: [], error: null }),
         sessionData.session ? supabase.from("community_members").select("community_id") : Promise.resolve({ data: [], error: null }),
         supabase.from("categories").select("id,name,type,is_active,sort_order").eq("is_active", true).order("sort_order", { ascending: true }).order("name", { ascending: true }),
         productIds.length ? supabase.from("product_categories").select("product_id,category_id").in("product_id", productIds) : Promise.resolve({ data: [], error: null }),
         serviceIds.length ? supabase.from("service_categories").select("service_id,category_id").in("service_id", serviceIds) : Promise.resolve({ data: [], error: null }),
-      ]);
+]);
+
 
       // Process vendors
       const vMap: Record<string, Vendor> = {};
@@ -245,6 +247,14 @@ export default function UnifiedCatalog() {
   const filtered = useMemo(() => {
     let result = [...items];
 
+    // Community filter
+    if (selected.id) {
+      result = result.filter((item) => {
+        if (item.type === 'product') return item.community_id === selected.id;
+        const v = vendorsById[item.vendor_id];
+        return (v?.community_id ?? null) === selected.id;
+      });
+    }
     const vendorParam = searchParams.get('vendor');
     if (vendorParam) {
       result = result.filter(item => item.vendor_id === vendorParam);
@@ -315,8 +325,7 @@ export default function UnifiedCatalog() {
     const discounted = Math.round(item.price_cents * (1 - (disc || 0) / 100));
     return discounted;
   };
-
-
+  const { selected } = useCommunity();
   // Actions
   const addToCart = (item: CatalogItem) => {
     if (item.type !== 'product') return;

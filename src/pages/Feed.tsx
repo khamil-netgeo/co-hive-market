@@ -6,6 +6,7 @@ import { setSEOAdvanced } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
+import { useCommunity } from "@/context/CommunityContext";
 
 // TikTok-style vertical shopping feed (products + services)
 // Mobile-first, full-screen, swipeable interface
@@ -49,6 +50,7 @@ export default function Feed() {
   const navigate = useNavigate();
   const { add } = useCart();
   const [searchParams] = useSearchParams();
+  const { selected } = useCommunity();
 
   useEffect(() => {
     setSEOAdvanced({
@@ -115,14 +117,29 @@ export default function Feed() {
           } as FeedService)),
         ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         
-        // Filter based on URL parameters
-        const filterParam = searchParams.get('filter');
         let filteredItems = normalized;
-        
+
+        // URL filter
+        const filterParam = searchParams.get('filter');
         if (filterParam === 'prepared_food' || filterParam === 'grocery') {
-          filteredItems = normalized.filter(item => 
+          filteredItems = filteredItems.filter(item => 
             item.kind === 'product' && (item as FeedProduct).product_kind === filterParam
           );
+        }
+
+        // Community filter (products by product.community_id; services by vendor.community_id)
+        if (selected.id) {
+          const vendorIds = Array.from(new Set(filteredItems.map((i) => i.vendor_id)));
+          const { data: vendorRows, error: vErr } = await supabase
+            .from('vendors')
+            .select('id,community_id')
+            .in('id', vendorIds);
+          if (vErr) throw vErr;
+          const vMap = new Map<string, string | null>((vendorRows as any[] || []).map((v) => [v.id, v.community_id]));
+          filteredItems = filteredItems.filter((it) => {
+            if (it.kind === 'product') return (it as FeedProduct).community_id === selected.id;
+            return (vMap.get(it.vendor_id) ?? null) === selected.id;
+          });
         }
         
         setItems(filteredItems);

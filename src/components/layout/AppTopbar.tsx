@@ -9,6 +9,7 @@ import useIsRider from "@/hooks/useIsRider";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import CommunitySelector from "@/components/community/CommunitySelector";
 
 export default function AppTopbar() {
   const { user, isAdmin, isSuperadmin, signOut } = useAuthRoles();
@@ -27,6 +28,7 @@ export default function AppTopbar() {
         </div>
         <div className="flex items-center gap-3">
           <ThemeToggle />
+          <CommunitySelector />
           <Button variant="ghost" asChild>
             <Link to="/cart" aria-label={`Cart (${count} items)`}>
               <ShoppingCart className="h-5 w-5" />
