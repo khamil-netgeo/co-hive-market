@@ -12,6 +12,13 @@ serve(async (req) => {
     const publishableKey = Deno.env.get("STRIPE_PUBLISHABLE_KEY");
     if (!publishableKey) throw new Error("Missing STRIPE_PUBLISHABLE_KEY");
 
+    // Safety: prevent leaking a secret key to the client
+    if (publishableKey.startsWith("sk_")) {
+      throw new Error(
+        "Configured STRIPE_PUBLISHABLE_KEY is a secret key. Please set a publishable key (pk_...)."
+      );
+    }
+
     return new Response(JSON.stringify({ publishableKey }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
