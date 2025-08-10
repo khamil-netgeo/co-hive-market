@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import MediaGallery from "@/components/common/MediaGallery";
 
 interface OrderRow {
   id: string;
@@ -137,6 +138,7 @@ const Orders = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Product</TableHead>
                     <TableHead>Order</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
@@ -147,6 +149,17 @@ const Orders = () => {
                 <TableBody>
                   {orders.map((o) => (
                     <TableRow key={o.id}>
+                      <TableCell className="w-16">
+                        <div className="h-12 w-12">
+                          <MediaGallery
+                            images={orderThumbs[o.id] ? [orderThumbs[o.id]] : []}
+                            alt={`Order ${o.id.slice(0, 8)}`}
+                            aspect="square"
+                            showThumbnails={false}
+                            className="h-12 w-12"
+                          />
+                        </div>
+                      </TableCell>
                       <TableCell className="font-mono text-xs sm:text-sm">
                         <a href={`/orders/${o.id}`} className="underline-offset-2 hover:underline">{o.id.slice(0, 8)}</a>
                       </TableCell>
