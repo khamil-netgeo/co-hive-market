@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { Image as ImageIcon, Save } from "lucide-react";
 import { setSEO } from "@/lib/seo";
 import KycUploader from "@/components/kyc/KycUploader";
@@ -43,6 +44,7 @@ export default function StoreSettings() {
     days.forEach((d) => (init[d] = { ...defaultDay }));
     return init;
   });
+  const [deliveryRadius, setDeliveryRadius] = useState<number>(10);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -50,7 +52,7 @@ export default function StoreSettings() {
       try {
         const { data: vendor, error } = await supabase
           .from("vendors")
-          .select("id, display_name, description, logo_url, opening_hours, website_url, facebook_url, instagram_url, tiktok_url")
+          .select("id, display_name, description, logo_url, opening_hours, website_url, facebook_url, instagram_url, tiktok_url, delivery_radius_km")
           .eq("user_id", user.id)
           .maybeSingle();
         if (error) throw error;

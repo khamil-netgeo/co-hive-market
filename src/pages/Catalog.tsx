@@ -27,9 +27,14 @@ interface Product {
   pickup_lng?: number | null;
   image_urls?: string[] | null;
   video_url?: string | null;
+  allow_rider_delivery?: boolean | null;
+  allow_easyparcel?: boolean | null;
+  product_kind?: string | null;
+  perishable?: boolean | null;
+  prep_time_minutes?: number | null;
 }
 
-interface Vendor { id: string; member_discount_override_percent: number | null }
+interface Vendor { id: string; member_discount_override_percent: number | null; opening_hours?: any | null; delivery_radius_km?: number | null }
 interface Community { id: string; name: string; member_discount_percent: number }
 
 export default function Catalog() {
@@ -48,8 +53,11 @@ export default function Catalog() {
   const [productCats, setProductCats] = useState<Record<string, string[]>>({});
   // Type filter (Food vs Groceries)
   const location = useLocation();
-  const initialType = location.pathname.includes('/food') ? 'food' : location.pathname.includes('/groceries') ? 'grocery' : 'all';
-  const [typeFilter, setTypeFilter] = useState<'all' | 'food' | 'grocery'>(initialType);
+const initialType = location.pathname.includes('/food') ? 'food' : location.pathname.includes('/groceries') ? 'grocery' : 'all';
+const [typeFilter, setTypeFilter] = useState<'all' | 'food' | 'grocery'>(initialType);
+const [deliveryFilter, setDeliveryFilter] = useState<'any' | 'rider' | 'parcel'>('any');
+const [perishableOnly, setPerishableOnly] = useState(false);
+const [openNow, setOpenNow] = useState(false);
 
   useEffect(() => {
     setSEO(
@@ -61,7 +69,7 @@ export default function Catalog() {
       try {
         const { data: productsData, error: pErr } = await supabase
           .from("products")
-          .select("id,name,description,price_cents,currency,vendor_id,community_id,status,category,pickup_lat,pickup_lng,image_urls,video_url")
+          .select("id,name,description,price_cents,currency,vendor_id,community_id,status,category,pickup_lat,pickup_lng,image_urls,video_url,allow_rider_delivery,allow_easyparcel,product_kind,perishable,prep_time_minutes")
           .eq("status", "active")
           .order("created_at", { ascending: false });
         if (pErr) throw pErr;
@@ -78,6 +86,11 @@ export default function Catalog() {
           pickup_lng: p.pickup_lng ?? null,
           image_urls: p.image_urls ?? null,
           video_url: p.video_url ?? null,
+          allow_rider_delivery: p.allow_rider_delivery ?? null,
+          allow_easyparcel: p.allow_easyparcel ?? null,
+          product_kind: p.product_kind ?? null,
+          perishable: p.perishable ?? null,
+          prep_time_minutes: p.prep_time_minutes ?? null,
         }));
         setProducts(prods);
 
@@ -91,7 +104,7 @@ export default function Catalog() {
           vendorIds.length
             ? supabase
                 .from("vendors")
-                .select("id,member_discount_override_percent")
+                .select("id,member_discount_override_percent,opening_hours,delivery_radius_km")
                 .in("id", vendorIds)
             : Promise.resolve({ data: [], error: null } as any),
           communityIds.length
@@ -177,13 +190,38 @@ export default function Catalog() {
     initLoc();
   }, []);
 
-  // Type + category filters
+  // Filters: type, category, delivery method, perishable, open now
   const productsFiltered = useMemo(() => {
+    const now = new Date();
+    const dayKeys = ["sun","mon","tue","wed","thu","fri","sat"] as const;
+    const dayKey = dayKeys[now.getDay()];
+    const minutesNow = now.getHours() * 60 + now.getMinutes();
+
+    const isVendorOpen = (vendorId: string) => {
+      const v = vendorsById[vendorId];
+      const oh: any = v?.opening_hours;
+      if (!oh || !oh[dayKey]) return true; // if not configured, consider open
+      if (oh[dayKey].closed) return false;
+      const [oH, oM] = String(oh[dayKey].open || "00:00").split(":").map((s: string) => parseInt(s, 10));
+      const [cH, cM] = String(oh[dayKey].close || "23:59").split(":").map((s: string) => parseInt(s, 10));
+      const openMin = (oH || 0) * 60 + (oM || 0);
+      const closeMin = (cH || 23) * 60 + (cM || 59);
+      return minutesNow >= openMin && minutesNow <= closeMin;
+    };
+
     let base = products;
     if (typeFilter !== "all") base = base.filter((p) => (p.category || "") === typeFilter);
     if (categoryFilter !== "all") base = base.filter((p) => (productCats[p.id] || []).includes(categoryFilter));
+
+    if (deliveryFilter === 'rider') base = base.filter((p) => p.allow_rider_delivery);
+    if (deliveryFilter === 'parcel') base = base.filter((p) => p.allow_easyparcel);
+
+    if (perishableOnly) base = base.filter((p) => p.perishable || p.product_kind === 'prepared_food');
+
+    if (openNow) base = base.filter((p) => isVendorOpen(p.vendor_id));
+
     return base;
-  }, [products, productCats, categoryFilter, typeFilter]);
+  }, [products, productCats, categoryFilter, typeFilter, deliveryFilter, perishableOnly, openNow, vendorsById]);
  
  
    const fmtPrice = (cents: number, currency: string) => {
@@ -342,6 +380,27 @@ export default function Catalog() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="whitespace-nowrap text-sm">Delivery</Label>
+            <Select value={deliveryFilter} onValueChange={(v) => setDeliveryFilter(v as any)}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Any method" />
+              </SelectTrigger>
+              <SelectContent className="z-50 bg-popover">
+                <SelectItem value="any">Any</SelectItem>
+                <SelectItem value="rider">Riders only</SelectItem>
+                <SelectItem value="parcel">EasyParcel ok</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="perishable" className="whitespace-nowrap text-sm">Perishable only</Label>
+            <Switch id="perishable" checked={perishableOnly} onCheckedChange={setPerishableOnly} />
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="open-now" className="whitespace-nowrap text-sm">Open now</Label>
+            <Switch id="open-now" checked={openNow} onCheckedChange={setOpenNow} />
           </div>
         </div>
 

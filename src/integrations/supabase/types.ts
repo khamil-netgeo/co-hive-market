@@ -1376,6 +1376,45 @@ export type Database = {
           },
         ]
       }
+      short_posts: {
+        Row: {
+          caption: string | null
+          comments_count: number
+          community_id: string | null
+          created_at: string
+          id: string
+          likes_count: number
+          status: string
+          updated_at: string
+          user_id: string
+          video_path: string
+        }
+        Insert: {
+          caption?: string | null
+          comments_count?: number
+          community_id?: string | null
+          created_at?: string
+          id?: string
+          likes_count?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+          video_path: string
+        }
+        Update: {
+          caption?: string | null
+          comments_count?: number
+          community_id?: string | null
+          created_at?: string
+          id?: string
+          likes_count?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+          video_path?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -1572,6 +1611,8 @@ export type Database = {
           active: boolean
           community_id: string
           created_at: string
+          delivery_hours: Json
+          delivery_radius_km: number
           description: string | null
           display_name: string
           facebook_url: string | null
@@ -1589,6 +1630,8 @@ export type Database = {
           active?: boolean
           community_id: string
           created_at?: string
+          delivery_hours?: Json
+          delivery_radius_km?: number
           description?: string | null
           display_name: string
           facebook_url?: string | null
@@ -1606,6 +1649,8 @@ export type Database = {
           active?: boolean
           community_id?: string
           created_at?: string
+          delivery_hours?: Json
+          delivery_radius_km?: number
           description?: string | null
           display_name?: string
           facebook_url?: string | null
