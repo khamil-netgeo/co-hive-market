@@ -70,7 +70,7 @@ const [serviceCats, setServiceCats] = useState<Record<string, string[]>>({});
             .from("categories")
             .select("id,name,type,is_active,sort_order")
             .eq("is_active", true)
-            .in("type", ["services", "both"])
+            .in("type", ["service", "services", "both"])
             .order("sort_order", { ascending: true })
             .order("name", { ascending: true }),
           serviceIds.length

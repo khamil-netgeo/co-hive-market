@@ -158,7 +158,7 @@ const ProductForm = () => {
         .from("categories")
         .select("id, name, slug, type, parent_id, sort_order, is_active")
         .eq("is_active", true)
-        .in("type", ["product", "both"])
+        .in("type", ["product", "products", "both"])
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
         

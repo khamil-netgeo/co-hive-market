@@ -123,7 +123,7 @@ const [openNow, setOpenNow] = useState(false);
             .from("categories")
             .select("id,name,type,is_active,sort_order")
             .eq("is_active", true)
-            .in("type", ["products", "both"])
+            .in("type", ["product", "products", "both"])
             .order("sort_order", { ascending: true })
             .order("name", { ascending: true }),
           productIds.length
