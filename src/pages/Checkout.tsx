@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { setSEO } from "@/lib/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -95,8 +96,15 @@ const containerRef = useRef<HTMLDivElement | null>(null);
               <CardTitle>Payment</CardTitle>
             </CardHeader>
             <CardContent>
-              <div ref={containerRef} className="min-h-[600px] w-full rounded-md border" />
-              {mounting && <p className="mt-3 text-sm text-muted-foreground">Preparing checkout…</p>}
+              <div className="relative">
+                <div ref={containerRef} className="min-h-[600px] w-full rounded-md border" />
+                {mounting && (
+                  <div className="absolute inset-0 rounded-md overflow-hidden">
+                    <Skeleton className="h-full w-full" />
+                  </div>
+                )}
+              </div>
+              {mounting && <p className="mt-3 text-sm text-muted-foreground" aria-live="polite">Preparing checkout…</p>}
             </CardContent>
           </Card>
         </section>

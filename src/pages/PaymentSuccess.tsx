@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
@@ -184,8 +185,15 @@ export default function PaymentSuccess() {
           <CardTitle>Thank you!</CardTitle>
         </CardHeader>
         <CardContent className="text-muted-foreground">
-          {verifying ? (
-            <div>Finalizing your order…</div>
+{verifying ? (
+            <div className="space-y-4" aria-live="polite">
+              <div className="flex items-center gap-3">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
+                <span className="font-medium">Finalizing your order…</span>
+              </div>
+              <Skeleton className="h-24 w-full" />
+              <p className="text-sm text-muted-foreground">This usually takes a few seconds. Please don’t close the window.</p>
+            </div>
           ) : (
             <div className="space-y-2">
               <div>
