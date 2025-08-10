@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ export default function PaymentSuccess() {
   const [deliveryId, setDeliveryId] = useState<string | null>(null);
   const [deliveryStatus, setDeliveryStatus] = useState<string | null>(null);
   const [riderUserId, setRiderUserId] = useState<string | null>(null);
+  const [rebroadcasting, setRebroadcasting] = useState(false);
+  const rebroadcastTimer = useRef<number | null>(null);
   const { clear } = useCart();
 
   useEffect(() => {
@@ -133,6 +135,47 @@ export default function PaymentSuccess() {
       if (assignmentChannel) supabase.removeChannel(assignmentChannel);
     };
   }, [orderId, deliveryId]);
+
+  // Auto-rebroadcast after ~2 minutes if still no rider
+  useEffect(() => {
+    if (!deliveryId || riderUserId) return;
+    if (rebroadcastTimer.current) window.clearTimeout(rebroadcastTimer.current);
+    rebroadcastTimer.current = window.setTimeout(async () => {
+      try {
+        setRebroadcasting(true);
+        const { error } = await supabase.functions.invoke("rebroadcast-delivery", {
+          body: { delivery_id: deliveryId },
+        });
+        if (error) throw error;
+        toast("Searching riders again", { description: "We’re notifying more nearby riders." });
+      } catch (e: any) {
+        toast("Couldn’t rebroadcast", { description: e.message || String(e) });
+      } finally {
+        setRebroadcasting(false);
+      }
+    }, 125000);
+
+    return () => {
+      if (rebroadcastTimer.current) window.clearTimeout(rebroadcastTimer.current);
+    };
+  }, [deliveryId, riderUserId]);
+
+  const manualRebroadcast = async () => {
+    if (!deliveryId) return;
+    try {
+      setRebroadcasting(true);
+      const { error } = await supabase.functions.invoke("rebroadcast-delivery", {
+        body: { delivery_id: deliveryId },
+      });
+      if (error) throw error;
+      toast("Rebroadcasted", { description: "We’re notifying nearby riders again." });
+    } catch (e: any) {
+      toast("Couldn’t rebroadcast", { description: e.message || String(e) });
+    } finally {
+      setRebroadcasting(false);
+    }
+  };
+
   return (
     <main className="container py-16">
       <h1 className="text-3xl font-semibold">Payment successful</h1>
@@ -165,9 +208,15 @@ export default function PaymentSuccess() {
             <Button asChild variant="secondary">
               <a href="/orders">View my orders</a>
             </Button>
+            {!riderUserId && (
+              <Button onClick={manualRebroadcast} disabled={!deliveryId || rebroadcasting} variant="outline">
+                {rebroadcasting ? "Searching riders…" : "Find rider again"}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
     </main>
   );
 }
+

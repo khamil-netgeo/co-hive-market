@@ -8,6 +8,7 @@ import RiderStatusCard from "@/components/rider/RiderStatusCard";
 import useIsRider from "@/hooks/useIsRider";
 import { useDeliveryAssignments } from "@/hooks/useDeliveryAssignments";
 import { Link } from "react-router-dom";
+import useRiderLiveTracking from "@/hooks/useRiderLiveTracking";
 
 const RiderDashboard = () => {
   const { isRider, loading: riderLoading } = useIsRider();
@@ -18,8 +19,10 @@ const RiderDashboard = () => {
     availableBalance: 0,
   });
   const [loading, setLoading] = useState(true);
-
   const { assignments } = useDeliveryAssignments();
+
+  // Enable live tracking while online
+  useRiderLiveTracking();
 
   useEffect(() => {
     setSEO(
@@ -121,58 +124,58 @@ const RiderDashboard = () => {
               <CardHeader>
                 <CardTitle className="text-sm">Total Deliveries</CardTitle>
               </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalDeliveries}</div>
-                </CardContent>
-              </Card>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalDeliveries}</div>
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Pending Assignments</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.pendingAssignments}</div>
-                  {stats.pendingAssignments > 0 && (
-                    <Button asChild size="sm" className="mt-2">
-                      <Link to="/rider/assignments">View Assignments</Link>
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Available Balance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{formatCurrency(stats.availableBalance)}</div>
-                  <Button asChild size="sm" className="mt-2" variant="outline">
-                    <Link to="/rider/payouts">Manage Payouts</Link>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Pending Assignments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingAssignments}</div>
+                {stats.pendingAssignments > 0 && (
+                  <Button asChild size="sm" className="mt-2">
+                    <Link to="/rider/assignments">View Assignments</Link>
                   </Button>
-                </CardContent>
-              </Card>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Available Balance</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(stats.availableBalance)}</div>
+                <Button asChild size="sm" className="mt-2" variant="outline">
+                  <Link to="/rider/payouts">Manage Payouts</Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Quick Actions */}
           <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <Button asChild>
-                    <Link to="/rider/assignments">View Assignments</Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to="/rider/deliveries">My Deliveries</Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to="/rider/profile">Update Profile</Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to="/rider/payouts">Request Payout</Link>
-                  </Button>
-                </div>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <Button asChild>
+                  <Link to="/rider/assignments">View Assignments</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/rider/deliveries">My Deliveries</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/rider/profile">Update Profile</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/rider/payouts">Request Payout</Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

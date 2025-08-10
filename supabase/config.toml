@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.create-embedded-checkout]
 verify_jwt = false
+
+[functions.rebroadcast-delivery]
+verify_jwt = true
