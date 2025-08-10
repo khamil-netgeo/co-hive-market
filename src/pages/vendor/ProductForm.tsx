@@ -563,6 +563,13 @@ const onSubmit = async (data: ProductFormData) => {
         if (v === 'prepared_food') {
           form.setValue('allow_easyparcel', false);
           form.setValue('allow_rider_delivery', true);
+          form.setValue('perishable', true);
+          if (!form.getValues('prep_time_minutes')) form.setValue('prep_time_minutes', '15');
+        } else if (v === 'packaged_food') {
+          form.setValue('allow_easyparcel', true);
+          form.setValue('allow_rider_delivery', true);
+          form.setValue('perishable', false);
+          form.setValue('refrigeration_required', false);
         }
       }} defaultValue={field.value}>
         <FormControl>
@@ -683,7 +690,18 @@ const onSubmit = async (data: ProductFormData) => {
                           <FormDescription>Requires timely delivery</FormDescription>
                         </div>
                         <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
+            <Switch checked={field.value} onCheckedChange={(v) => {
+              field.onChange(v);
+              const pk = form.getValues('product_kind');
+              if (pk === 'grocery') {
+                if (v) {
+                  form.setValue('allow_easyparcel', false);
+                  form.setValue('allow_rider_delivery', true);
+                } else {
+                  form.setValue('allow_easyparcel', true);
+                }
+              }
+            }} />
                         </FormControl>
                       </FormItem>
                     )}

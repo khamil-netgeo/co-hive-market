@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import ProductImage from "@/components/product/ProductImage";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLocation } from "react-router-dom";
+import { Clock } from "lucide-react";
 
 interface Product {
   id: string;
@@ -39,13 +41,15 @@ export default function Catalog() {
   const cart = useCart();
   const [useNearMe, setUseNearMe] = useState(true);
   const [radiusKm, setRadiusKm] = useState(10);
-const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
-// Category filter state
-const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-const [categoryFilter, setCategoryFilter] = useState<string>("all");
-const [productCats, setProductCats] = useState<Record<string, string[]>>({});
-// Type filter (Food vs Groceries)
-const [typeFilter, setTypeFilter] = useState<'all' | 'food' | 'grocery'>('all');
+  const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
+  // Category filter state
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [productCats, setProductCats] = useState<Record<string, string[]>>({});
+  // Type filter (Food vs Groceries)
+  const location = useLocation();
+  const initialType = location.pathname.includes('/food') ? 'food' : location.pathname.includes('/groceries') ? 'grocery' : 'all';
+  const [typeFilter, setTypeFilter] = useState<'all' | 'food' | 'grocery'>(initialType);
 
   useEffect(() => {
     setSEO(
@@ -387,6 +391,13 @@ const [typeFilter, setTypeFilter] = useState<'all' | 'food' | 'grocery'>('all');
                         <span>{fmtPrice(p.price_cents, p.currency)}</span>
                       )}
                     </div>
+
+                    {(p.category === 'food' || p.category === 'grocery') && (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>{p.category === 'food' ? 'ETA 30-60 mins via riders' : 'Local delivery available'}</span>
+                      </div>
+                    )}
 
                     {discounted == null && discPercent > 0 && (
                       <div className="rounded-md border bg-card p-3">
