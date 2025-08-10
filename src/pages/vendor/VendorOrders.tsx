@@ -152,6 +152,35 @@ const VendorOrders = () => {
     },
   });
 
+  useEffect(() => {
+    if (!vendor?.id) return;
+    try {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
+    } catch {}
+    const channel = supabase
+      .channel('vendor-new-orders')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders', filter: `vendor_id=eq.${vendor!.id}` },
+        (payload) => {
+          const id = (payload.new as any)?.id as string;
+          toast.success('New order received', { description: id ? id.slice(0, 8) : 'New order' });
+          try {
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('New order', { body: `Order ${id?.slice(0, 8) || ''} placed` });
+            }
+          } catch {}
+          refetchOrders();
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [vendor?.id, refetchOrders]);
+
   const formatPrice = (cents: number, currency: string) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -183,6 +212,27 @@ const VendorOrders = () => {
     } catch (error) {
       console.error("Error updating order status:", error);
       toast.error("Failed to update order status");
+    }
+  };
+
+  const addEvent = async (orderId: string, event: string, description?: string) => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        toast.error("Please sign in to update order");
+        return;
+      }
+      const { error } = await supabase.from("order_progress_events").insert({
+        order_id: orderId,
+        event,
+        description: description ?? null,
+        created_by: session.session.user.id,
+      });
+      if (error) throw error;
+      toast.success("Update sent");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to send update");
     }
   };
 

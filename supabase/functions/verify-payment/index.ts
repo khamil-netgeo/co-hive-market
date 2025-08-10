@@ -180,6 +180,21 @@ serve(async (req) => {
     ]);
     if (ledgerErr) throw ledgerErr;
 
+    // Mark order as paid and record initial progress events
+    try {
+      await service.from("orders").update({ status: "paid" }).eq("id", order.id);
+      await service.from("order_progress_events").insert([
+        {
+          order_id: order.id,
+          event: "order_paid",
+          description: "Payment confirmed. Vendor notified to prepare.",
+          created_by: user.id,
+        },
+      ]);
+    } catch (e) {
+      console.error("Failed to record initial order events:", e);
+    }
+
     // Optional: Create delivery for rider method (food/groceries local delivery)
     const deliveryMethod = md.delivery_method;
     if (deliveryMethod === 'rider') {

@@ -105,7 +105,9 @@ const Orders = () => {
                 <TableBody>
                   {orders.map((o) => (
                     <TableRow key={o.id}>
-                      <TableCell className="font-mono text-xs sm:text-sm">{o.id.slice(0, 8)}</TableCell>
+                      <TableCell className="font-mono text-xs sm:text-sm">
+                        <a href={`/orders/${o.id}`} className="underline-offset-2 hover:underline">{o.id.slice(0, 8)}</a>
+                      </TableCell>
                       <TableCell>{new Date(o.created_at).toLocaleString()}</TableCell>
                       <TableCell>
                         <Badge variant={o.status === "completed" ? "default" : o.status === "canceled" ? "destructive" : "secondary"}>

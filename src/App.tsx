@@ -15,6 +15,7 @@ import ProductDetail from "./pages/ProductDetail";
 import ServiceDetail from "./pages/ServiceDetail";
 import Feed from "./pages/Feed";
 import Orders from "./pages/Orders";
+import OrderTracker from "./pages/OrderTracker";
 import VendorOrders from "./pages/vendor/VendorOrders";
 import VendorAnalytics from "./pages/vendor/VendorAnalytics";
 import VendorPayouts from "./pages/vendor/VendorPayouts";
@@ -88,10 +89,11 @@ const App = () => (
               <Route path="/products" element={<UnifiedCatalog />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/service/:id" element={<ServiceDetail />} />
-<Route path="/cart" element={<Cart />} />
+              <Route path="/cart" element={<Cart />} />
               <Route path="/delivery-details" element={<DeliveryDetails />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
+              <Route path="/orders/:id" element={<OrderTracker />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/communities" element={<Communities />} />
               <Route path="/riders" element={<Riders />} />
