@@ -43,9 +43,17 @@ const productSchema = z.object({
   currency: z.string().default("myr"),
   status: z.enum(["active", "inactive", "archived"]).default("inactive"),
   category: z.enum(["grocery", "food", "other"]).default("grocery"),
+  // Product classification decides fulfillment rules
+  product_kind: z.enum(["prepared_food","packaged_food","grocery","other"]).default("other"),
   perishable: z.boolean().default(false),
   refrigeration_required: z.boolean().default(false),
   weight_grams: z.string().optional(),
+  length_cm: z.string().optional(),
+  width_cm: z.string().optional(),
+  height_cm: z.string().optional(),
+  // Shipping options
+  allow_easyparcel: z.boolean().default(true),
+  allow_rider_delivery: z.boolean().default(true),
   stock_qty: z.string().default("0"),
   prep_time_minutes: z.string().optional(),
   pickup_lat: z.string().optional(),
@@ -93,9 +101,15 @@ const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
       currency: "myr",
       status: "inactive",
       category: "grocery",
+      product_kind: "grocery",
       perishable: false,
       refrigeration_required: false,
       weight_grams: "",
+      length_cm: "",
+      width_cm: "",
+      height_cm: "",
+      allow_easyparcel: true,
+      allow_rider_delivery: true,
       stock_qty: "0",
       prep_time_minutes: "",
       pickup_lat: "",
@@ -201,9 +215,15 @@ form.reset({
   currency: productData.currency,
   status: productData.status as "active" | "inactive" | "archived",
   category: (productData as any).category || "grocery",
+  product_kind: (productData as any).product_kind || ((productData as any).category === 'food' ? 'prepared_food' : ((productData as any).category === 'grocery' ? 'grocery' : 'other')),
   perishable: Boolean((productData as any).perishable),
   refrigeration_required: Boolean((productData as any).refrigeration_required),
   weight_grams: (productData as any).weight_grams?.toString() || "",
+  length_cm: (productData as any).length_cm?.toString() || "",
+  width_cm: (productData as any).width_cm?.toString() || "",
+  height_cm: (productData as any).height_cm?.toString() || "",
+  allow_easyparcel: (productData as any).allow_easyparcel ?? true,
+  allow_rider_delivery: (productData as any).allow_rider_delivery ?? true,
   stock_qty: ((productData as any).stock_qty ?? 0).toString(),
   prep_time_minutes: (productData as any).prep_time_minutes?.toString() || "",
   pickup_lat: (productData as any).pickup_lat?.toString() || "",
@@ -279,9 +299,15 @@ const onSubmit = async (data: ProductFormData) => {
       vendor_id: vendor.id,
       community_id: vendor.community_id,
       category: data.category,
+      product_kind: data.product_kind,
       perishable: !!data.perishable,
       refrigeration_required: !!data.refrigeration_required,
       weight_grams: data.weight_grams ? parseInt(data.weight_grams, 10) : null,
+      length_cm: data.length_cm ? parseInt(data.length_cm, 10) : null,
+      width_cm: data.width_cm ? parseInt(data.width_cm, 10) : null,
+      height_cm: data.height_cm ? parseInt(data.height_cm, 10) : null,
+      allow_easyparcel: !!data.allow_easyparcel,
+      allow_rider_delivery: !!data.allow_rider_delivery,
       stock_qty: data.stock_qty ? Math.max(0, parseInt(data.stock_qty, 10)) : 0,
       prep_time_minutes: data.prep_time_minutes ? parseInt(data.prep_time_minutes, 10) : null,
       pickup_lat: data.pickup_lat ? parseFloat(data.pickup_lat) : null,
@@ -494,9 +520,12 @@ const onSubmit = async (data: ProductFormData) => {
     variant="secondary"
     onClick={() => {
       form.setValue("category", "grocery");
+      form.setValue("product_kind", "grocery");
       form.setValue("perishable", false);
       form.setValue("refrigeration_required", false);
       form.setValue("prep_time_minutes", "");
+      form.setValue("allow_easyparcel", true);
+      form.setValue("allow_rider_delivery", true);
     }}
   >
     Groceries preset
@@ -506,16 +535,143 @@ const onSubmit = async (data: ProductFormData) => {
     variant="secondary"
     onClick={() => {
       form.setValue("category", "food");
+      form.setValue("product_kind", "prepared_food");
       form.setValue("perishable", true);
       form.setValue("refrigeration_required", false);
       if (!form.getValues("prep_time_minutes")) form.setValue("prep_time_minutes", "15");
+      form.setValue("allow_easyparcel", false);
+      form.setValue("allow_rider_delivery", true);
     }}
   >
     Prepared food preset
   </Button>
 </div>
 
-                {/* Handling */}
+{/* Product classification */}
+<FormField
+  control={form.control}
+  name="product_kind"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Product classification</FormLabel>
+      <Select onValueChange={(v) => {
+        field.onChange(v);
+        // Auto-set category for convenience
+        if (v === 'prepared_food') form.setValue('category', 'food');
+        if (v === 'grocery' || v === 'packaged_food') form.setValue('category', 'grocery');
+        // Sensible shipping defaults
+        if (v === 'prepared_food') {
+          form.setValue('allow_easyparcel', false);
+          form.setValue('allow_rider_delivery', true);
+        }
+      }} defaultValue={field.value}>
+        <FormControl>
+          <SelectTrigger>
+            <SelectValue placeholder="Select classification" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          <SelectItem value="prepared_food">Prepared food (cooked meals)</SelectItem>
+          <SelectItem value="packaged_food">Packaged food (shelf-stable)</SelectItem>
+          <SelectItem value="grocery">Groceries (fresh)</SelectItem>
+          <SelectItem value="other">Other</SelectItem>
+        </SelectContent>
+      </Select>
+      <FormDescription>
+        Prepared food is rider-only. Packaged food can use EasyParcel. Perishable groceries are rider-only.
+      </FormDescription>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+
+{/* Shipping & fulfillment */}
+<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  <FormField
+    control={form.control}
+    name="allow_easyparcel"
+    render={({ field }) => {
+      const pk = form.watch('product_kind');
+      const perishable = form.watch('perishable');
+      const disableEP = pk === 'prepared_food' || (pk === 'grocery' && perishable === true);
+      return (
+        <FormItem className="flex items-center justify-between rounded-md border p-3">
+          <div>
+            <FormLabel>EasyParcel shipping</FormLabel>
+            <FormDescription>
+              {disableEP ? 'Disabled for prepared food or perishable groceries' : 'Enable courier shipping for this product'}
+            </FormDescription>
+          </div>
+          <FormControl>
+            <Switch checked={!!field.value && !disableEP} onCheckedChange={(v) => field.onChange(v)} disabled={disableEP} />
+          </FormControl>
+        </FormItem>
+      );
+    }}
+  />
+  <FormField
+    control={form.control}
+    name="allow_rider_delivery"
+    render={({ field }) => (
+      <FormItem className="flex items-center justify-between rounded-md border p-3">
+        <div>
+          <FormLabel>Rider delivery</FormLabel>
+          <FormDescription>Local delivery by riders</FormDescription>
+        </div>
+        <FormControl>
+          <Switch checked={field.value} onCheckedChange={field.onChange} />
+        </FormControl>
+      </FormItem>
+    )}
+  />
+</div>
+
+{/* Parcel dimensions (for EasyParcel) */}
+{form.watch('allow_easyparcel') && (
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <FormField
+      control={form.control}
+      name="length_cm"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Length (cm)</FormLabel>
+          <FormControl>
+            <Input type="number" min={0} placeholder="e.g. 20" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    <FormField
+      control={form.control}
+      name="width_cm"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Width (cm)</FormLabel>
+          <FormControl>
+            <Input type="number" min={0} placeholder="e.g. 15" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+    <FormField
+      control={form.control}
+      name="height_cm"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Height (cm)</FormLabel>
+          <FormControl>
+            <Input type="number" min={0} placeholder="e.g. 10" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  </div>
+)}
+
+{/* Handling */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}

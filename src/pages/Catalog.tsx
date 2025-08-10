@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import ProductImage from "@/components/product/ProductImage";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Product {
   id: string;
@@ -43,6 +44,8 @@ const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
 const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
 const [categoryFilter, setCategoryFilter] = useState<string>("all");
 const [productCats, setProductCats] = useState<Record<string, string[]>>({});
+// Type filter (Food vs Groceries)
+const [typeFilter, setTypeFilter] = useState<'all' | 'food' | 'grocery'>('all');
 
   useEffect(() => {
     setSEO(
@@ -170,11 +173,13 @@ const [productCats, setProductCats] = useState<Record<string, string[]>>({});
     initLoc();
   }, []);
 
-  // Category filter
+  // Type + category filters
   const productsFiltered = useMemo(() => {
-    if (categoryFilter === "all") return products;
-    return products.filter((p) => (productCats[p.id] || []).includes(categoryFilter));
-  }, [products, productCats, categoryFilter]);
+    let base = products;
+    if (typeFilter !== "all") base = base.filter((p) => (p.category || "") === typeFilter);
+    if (categoryFilter !== "all") base = base.filter((p) => (productCats[p.id] || []).includes(categoryFilter));
+    return base;
+  }, [products, productCats, categoryFilter, typeFilter]);
  
  
    const fmtPrice = (cents: number, currency: string) => {
@@ -294,6 +299,15 @@ const [productCats, setProductCats] = useState<Record<string, string[]>>({});
         <p className="mt-2 max-w-prose text-muted-foreground">
           Member discounts apply automatically when you’re a member of the product’s community.
         </p>
+        <div className="mt-4">
+          <Tabs value={typeFilter} onValueChange={(v) => setTypeFilter(v as any)}>
+            <TabsList>
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="food">Food</TabsTrigger>
+              <TabsTrigger value="grocery">Groceries</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
         <div className="mt-4 flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <Label htmlFor="near">Near me</Label>

@@ -754,7 +754,19 @@ export type Database = {
           community_id: string
           created_at: string
           currency: string
+          easyparcel_awb_no: string | null
+          easyparcel_order_no: string | null
           id: string
+          recipient_name: string | null
+          recipient_phone: string | null
+          ship_address_line1: string | null
+          ship_address_line2: string | null
+          ship_city: string | null
+          ship_country: string | null
+          ship_postcode: string | null
+          ship_state: string | null
+          shipping_amount_cents: number
+          shipping_method: Database["public"]["Enums"]["shipping_method"] | null
           status: Database["public"]["Enums"]["order_status"]
           stripe_session_id: string | null
           total_amount_cents: number
@@ -766,7 +778,21 @@ export type Database = {
           community_id: string
           created_at?: string
           currency?: string
+          easyparcel_awb_no?: string | null
+          easyparcel_order_no?: string | null
           id?: string
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          ship_address_line1?: string | null
+          ship_address_line2?: string | null
+          ship_city?: string | null
+          ship_country?: string | null
+          ship_postcode?: string | null
+          ship_state?: string | null
+          shipping_amount_cents?: number
+          shipping_method?:
+            | Database["public"]["Enums"]["shipping_method"]
+            | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
           total_amount_cents?: number
@@ -778,7 +804,21 @@ export type Database = {
           community_id?: string
           created_at?: string
           currency?: string
+          easyparcel_awb_no?: string | null
+          easyparcel_order_no?: string | null
           id?: string
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          ship_address_line1?: string | null
+          ship_address_line2?: string | null
+          ship_city?: string | null
+          ship_country?: string | null
+          ship_postcode?: string | null
+          ship_state?: string | null
+          shipping_amount_cents?: number
+          shipping_method?:
+            | Database["public"]["Enums"]["shipping_method"]
+            | null
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
           total_amount_cents?: number
@@ -899,19 +939,24 @@ export type Database = {
       }
       products: {
         Row: {
+          allow_easyparcel: boolean
+          allow_rider_delivery: boolean
           category: string | null
           community_id: string
           created_at: string
           currency: string
           description: string | null
+          height_cm: number | null
           id: string
           image_urls: string[] | null
+          length_cm: number | null
           name: string
           perishable: boolean
           pickup_lat: number | null
           pickup_lng: number | null
           prep_time_minutes: number | null
           price_cents: number
+          product_kind: Database["public"]["Enums"]["product_kind_type"] | null
           refrigeration_required: boolean
           status: Database["public"]["Enums"]["product_status"]
           stock_qty: number
@@ -919,21 +964,27 @@ export type Database = {
           vendor_id: string
           video_url: string | null
           weight_grams: number | null
+          width_cm: number | null
         }
         Insert: {
+          allow_easyparcel?: boolean
+          allow_rider_delivery?: boolean
           category?: string | null
           community_id: string
           created_at?: string
           currency?: string
           description?: string | null
+          height_cm?: number | null
           id?: string
           image_urls?: string[] | null
+          length_cm?: number | null
           name: string
           perishable?: boolean
           pickup_lat?: number | null
           pickup_lng?: number | null
           prep_time_minutes?: number | null
           price_cents: number
+          product_kind?: Database["public"]["Enums"]["product_kind_type"] | null
           refrigeration_required?: boolean
           status?: Database["public"]["Enums"]["product_status"]
           stock_qty?: number
@@ -941,21 +992,27 @@ export type Database = {
           vendor_id: string
           video_url?: string | null
           weight_grams?: number | null
+          width_cm?: number | null
         }
         Update: {
+          allow_easyparcel?: boolean
+          allow_rider_delivery?: boolean
           category?: string | null
           community_id?: string
           created_at?: string
           currency?: string
           description?: string | null
+          height_cm?: number | null
           id?: string
           image_urls?: string[] | null
+          length_cm?: number | null
           name?: string
           perishable?: boolean
           pickup_lat?: number | null
           pickup_lng?: number | null
           prep_time_minutes?: number | null
           price_cents?: number
+          product_kind?: Database["public"]["Enums"]["product_kind_type"] | null
           refrigeration_required?: boolean
           status?: Database["public"]["Enums"]["product_status"]
           stock_qty?: number
@@ -963,6 +1020,7 @@ export type Database = {
           vendor_id?: string
           video_url?: string | null
           weight_grams?: number | null
+          width_cm?: number | null
         }
         Relationships: [
           {
@@ -1651,9 +1709,11 @@ export type Database = {
         | "manager"
         | "rider"
       order_status: "pending" | "paid" | "canceled" | "fulfilled" | "refunded"
+      product_kind_type: "prepared_food" | "packaged_food" | "grocery" | "other"
       product_status: "active" | "inactive" | "archived"
       review_status: "pending" | "approved" | "rejected"
       review_target: "product" | "service"
+      shipping_method: "rider" | "easyparcel"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1801,9 +1861,11 @@ export const Constants = {
         "rider",
       ],
       order_status: ["pending", "paid", "canceled", "fulfilled", "refunded"],
+      product_kind_type: ["prepared_food", "packaged_food", "grocery", "other"],
       product_status: ["active", "inactive", "archived"],
       review_status: ["pending", "approved", "rejected"],
       review_target: ["product", "service"],
+      shipping_method: ["rider", "easyparcel"],
     },
   },
 } as const
