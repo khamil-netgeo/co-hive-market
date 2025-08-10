@@ -10,7 +10,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, CalendarIcon } from "lucide-react";
+import { ArrowLeft, CalendarIcon, Package, DollarSign, Image, Truck, Settings } from "lucide-react";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import MediaUploader from "@/components/media/MediaUploader";
-import ProductImage from "@/components/product/ProductImage";
+import { Separator } from "@/components/ui/separator";
 
 const DIETARY_OPTIONS = [
   "vegan",
@@ -84,7 +84,6 @@ const ProductForm = () => {
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState("");
   const isEditing = Boolean(productId);
@@ -131,6 +130,8 @@ const ProductForm = () => {
     if (!user) return;
 
     try {
+      console.log("Fetching vendor and categories data...");
+      
       // Get vendor profile
       const { data: vendorData, error: vendorError } = await supabase
         .from("vendors")
@@ -138,7 +139,10 @@ const ProductForm = () => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (vendorError) throw vendorError;
+      if (vendorError) {
+        console.error("Vendor error:", vendorError);
+        throw vendorError;
+      }
 
       if (!vendorData) {
         toast.error("You don't have a vendor profile. Please join as a vendor first.");
@@ -147,22 +151,32 @@ const ProductForm = () => {
       }
 
       setVendor(vendorData);
+      console.log("Vendor loaded:", vendorData);
 
-      // Load available categories (product/both)
-      const { data: cats, error: catsErr } = await supabase
+      // Load available categories (product/both types only)
+      const { data: categoriesData, error: categoriesError } = await supabase
         .from("categories")
-        .select("id,name,slug,type,parent_id,sort_order,is_active")
+        .select("id, name, slug, type, parent_id, sort_order, is_active")
         .eq("is_active", true)
         .in("type", ["product", "both"])
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
-      if (catsErr) throw catsErr;
-      const catList = (cats as any) || [];
+        
+      if (categoriesError) {
+        console.error("Categories error:", categoriesError);
+        throw categoriesError;
+      }
+
+      const catList = categoriesData as Category[] || [];
+      console.log("Categories loaded:", catList);
       setAvailableCategories(catList);
       
-      // Set default category if creating
-      if (!isEditing && catList.length && !form.getValues("category")) {
+      // Set default category if creating new product
+      if (!isEditing && catList.length > 0 && !form.getValues("category")) {
         form.setValue("category", catList[0].slug);
+        // Also select in multi-category
+        setSelectedCategoryIds([catList[0].id]);
+        console.log("Set default category:", catList[0].slug);
       }
 
       // If editing, fetch product data
@@ -219,8 +233,8 @@ const ProductForm = () => {
           price: (productData.price_cents / 100).toFixed(2),
           currency: productData.currency,
           status: productData.status as "active" | "inactive" | "archived",
-          category: (productData as any).category || "grocery",
-          product_kind: (productData as any).product_kind || ((productData as any).category === 'food' ? 'prepared_food' : ((productData as any).category === 'grocery' ? 'grocery' : 'other')),
+          category: (productData as any).category || "",
+          product_kind: (productData as any).product_kind || "grocery",
           perishable: Boolean((productData as any).perishable),
           refrigeration_required: Boolean((productData as any).refrigeration_required),
           weight_grams: (productData as any).weight_grams?.toString() || "",
@@ -384,7 +398,7 @@ const ProductForm = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 animate-fade-in">
+        <div className="lg:col-span-2">
           <div className="flex items-center gap-4 mb-8">
             <Button variant="ghost" size="sm" asChild>
               <Link to="/vendor/dashboard" className="flex items-center gap-2">
@@ -394,52 +408,64 @@ const ProductForm = () => {
             </Button>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {isEditing ? 'Edit Product' : 'Create New Product'}
-              </CardTitle>
-              <CardDescription>
-                {isEditing 
-                  ? 'Update your product details and pricing'
-                  : 'Add a new product to your marketplace listing'
-                }
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  {/* Product name */}
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Product Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g. Fresh tomatoes, Chicken curry" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {isEditing ? 'Edit Product' : 'Create New Product'}
+                </CardTitle>
+                <CardDescription>
+                  {isEditing 
+                    ? 'Update your product details and pricing'
+                    : 'Add a new product to your marketplace listing'
+                  }
+                </CardDescription>
+              </CardHeader>
+            </Card>
 
-                  {/* Price + Stock */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                
+                {/* Section 1: Basic Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Package className="h-5 w-5" />
+                      Basic Information
+                    </CardTitle>
+                    <CardDescription>Essential details about your product</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <FormField
                       control={form.control}
-                      name="price"
+                      name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Price (MYR)</FormLabel>
+                          <FormLabel>Product Name *</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
-                              step="0.01"
-                              placeholder="0.00"
+                            <Input placeholder="e.g. Fresh tomatoes, Chicken curry" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="Describe your product, ingredients, storage instructions..."
+                              className="min-h-[100px]"
                               {...field}
                             />
                           </FormControl>
+                          <FormDescription>
+                            Help customers understand what makes your product special
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -447,200 +473,197 @@ const ProductForm = () => {
 
                     <FormField
                       control={form.control}
-                      name="stock_qty"
+                      name="status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Stock Quantity</FormLabel>
-                          <FormControl>
-                            <Input type="number" min={0} placeholder="e.g. 20" {...field} />
-                          </FormControl>
+                          <FormLabel>Status</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="inactive">Draft (not visible to customers)</SelectItem>
+                              <SelectItem value="active">Published (visible to customers)</SelectItem>
+                              <SelectItem value="archived">Archived</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Category selection */}
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select onValueChange={(value) => {
-                          field.onChange(value);
-                          // Auto-select this category in the multi-select too
-                          const selectedCat = availableCategories.find(c => c.slug === value);
-                          if (selectedCat && !selectedCategoryIds.includes(selectedCat.id)) {
-                            setSelectedCategoryIds(prev => [...prev, selectedCat.id]);
-                          }
-                        }} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choose the main category for your product" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {availableCategories.map((c) => (
-                              <SelectItem key={c.id} value={c.slug}>{c.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Choose the category that best describes your product
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Quick setup buttons */}
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        form.setValue("product_kind", "grocery");
-                        form.setValue("perishable", false);
-                        form.setValue("refrigeration_required", false);
-                        form.setValue("prep_time_minutes", "");
-                        form.setValue("allow_easyparcel", true);
-                        form.setValue("allow_rider_delivery", true);
-                        const c = availableCategories.find((x) => x.slug.includes("grocery"));
-                        if (c) form.setValue("category", c.slug);
-                        toast.success("Settings applied for grocery products");
-                      }}
-                    >
-                      🥬 Grocery Setup
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        form.setValue("product_kind", "prepared_food");
-                        form.setValue("perishable", true);
-                        form.setValue("refrigeration_required", false);
-                        if (!form.getValues("prep_time_minutes")) form.setValue("prep_time_minutes", "15");
-                        form.setValue("allow_easyparcel", false);
-                        form.setValue("allow_rider_delivery", true);
-                        const c = availableCategories.find((x) => x.slug.includes("food"));
-                        if (c) form.setValue("category", c.slug);
-                        toast.success("Settings applied for prepared food");
-                      }}
-                    >
-                      🍜 Prepared Food Setup
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        form.setValue("product_kind", "packaged_food");
-                        form.setValue("perishable", false);
-                        form.setValue("refrigeration_required", false);
-                        form.setValue("allow_easyparcel", true);
-                        form.setValue("allow_rider_delivery", true);
-                        toast.success("Settings applied for packaged products");
-                      }}
-                    >
-                      📦 Packaged Setup
-                    </Button>
-                  </div>
-
-                  {/* Product Type */}
-                  <FormField
-                    control={form.control}
-                    name="product_kind"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Product Type</FormLabel>
-                        <Select onValueChange={(v) => {
-                          field.onChange(v);
-                          // Auto-apply sensible defaults
-                          if (v === 'prepared_food') {
-                            form.setValue('allow_easyparcel', false);
-                            form.setValue('allow_rider_delivery', true);
-                            form.setValue('perishable', true);
-                            if (!form.getValues('prep_time_minutes')) form.setValue('prep_time_minutes', '15');
-                          } else if (v === 'packaged_food') {
-                            form.setValue('allow_easyparcel', true);
-                            form.setValue('allow_rider_delivery', true);
-                            form.setValue('perishable', false);
-                            form.setValue('refrigeration_required', false);
-                          }
-                        }} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="What type of product is this?" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="prepared_food">🍜 Prepared Food (hot meals, cooked dishes)</SelectItem>
-                            <SelectItem value="packaged_food">📦 Packaged Food (shelf-stable, canned)</SelectItem>
-                            <SelectItem value="grocery">🥬 Fresh Groceries (fruits, vegetables)</SelectItem>
-                            <SelectItem value="other">📱 Other Products</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          This determines shipping options: prepared food = rider only, fresh groceries = rider only if perishable
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Shipping & fulfillment */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Section 2: Category & Type */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Settings className="h-5 w-5" />
+                      Category & Type
+                    </CardTitle>
+                    <CardDescription>Classify your product for better discovery</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <FormField
                       control={form.control}
-                      name="allow_easyparcel"
-                      render={({ field }) => {
-                        const pk = form.watch('product_kind');
-                        const perishable = form.watch('perishable');
-                        const disableEP = pk === 'prepared_food' || (pk === 'grocery' && perishable === true);
-                        return (
-                          <FormItem className="flex items-center justify-between rounded-md border p-3">
-                            <div>
-                              <FormLabel>EasyParcel shipping</FormLabel>
-                              <FormDescription>
-                                {disableEP ? 'Disabled for prepared food or perishable groceries' : 'Enable courier shipping for this product'}
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch checked={!!field.value && !disableEP} onCheckedChange={(v) => field.onChange(v)} disabled={disableEP} />
-                            </FormControl>
-                          </FormItem>
-                        );
-                      }}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="allow_rider_delivery"
+                      name="category"
                       render={({ field }) => (
-                        <FormItem className="flex items-center justify-between rounded-md border p-3">
-                          <div>
-                            <FormLabel>Rider delivery</FormLabel>
-                            <FormDescription>Local delivery by riders</FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
+                        <FormItem>
+                          <FormLabel>Category *</FormLabel>
+                          <Select onValueChange={(value) => {
+                            field.onChange(value);
+                            // Auto-select this category in the multi-select too
+                            const selectedCat = availableCategories.find(c => c.slug === value);
+                            if (selectedCat && !selectedCategoryIds.includes(selectedCat.id)) {
+                              setSelectedCategoryIds(prev => [...prev, selectedCat.id]);
+                            }
+                          }} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder={
+                                  availableCategories.length === 0 
+                                    ? "Loading categories..." 
+                                    : "Choose the main category"
+                                } />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {availableCategories.length === 0 ? (
+                                <SelectItem value="" disabled>No categories available</SelectItem>
+                              ) : (
+                                availableCategories.map((c) => (
+                                  <SelectItem key={c.id} value={c.slug}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Select the primary category that best describes your product
+                          </FormDescription>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  {/* Parcel dimensions (for EasyParcel) */}
-                  {form.watch('allow_easyparcel') && (
+                    <FormField
+                      control={form.control}
+                      name="product_kind"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Product Type *</FormLabel>
+                          <Select onValueChange={(v) => {
+                            field.onChange(v);
+                            // Auto-apply sensible defaults
+                            if (v === 'prepared_food') {
+                              form.setValue('allow_easyparcel', false);
+                              form.setValue('allow_rider_delivery', true);
+                              form.setValue('perishable', true);
+                              if (!form.getValues('prep_time_minutes')) form.setValue('prep_time_minutes', '15');
+                              toast.success("Applied settings for prepared food: rider delivery only, perishable");
+                            } else if (v === 'packaged_food') {
+                              form.setValue('allow_easyparcel', true);
+                              form.setValue('allow_rider_delivery', true);
+                              form.setValue('perishable', false);
+                              form.setValue('refrigeration_required', false);
+                              toast.success("Applied settings for packaged food: all shipping options enabled");
+                            } else if (v === 'grocery') {
+                              form.setValue('allow_easyparcel', true);
+                              form.setValue('allow_rider_delivery', true);
+                              toast.success("Applied settings for grocery: all shipping options enabled");
+                            }
+                          }} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="What type of product is this?" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="prepared_food">🍜 Prepared Food (hot meals, cooked dishes)</SelectItem>
+                              <SelectItem value="packaged_food">📦 Packaged Food (shelf-stable, canned)</SelectItem>
+                              <SelectItem value="grocery">🥬 Fresh Groceries (fruits, vegetables)</SelectItem>
+                              <SelectItem value="other">📱 Other Products</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            This determines shipping options automatically
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Additional categories */}
+                    {availableCategories.length > 0 && (
+                      <div className="space-y-2">
+                        <FormLabel>Additional Categories (optional)</FormLabel>
+                        <ScrollArea className="h-32 rounded-md border p-3">
+                          <div className="space-y-2">
+                            {availableCategories.map((c) => {
+                              const checked = selectedCategoryIds.includes(c.id);
+                              return (
+                                <label key={c.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-1 rounded">
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={() => {
+                                      setSelectedCategoryIds((prev) =>
+                                        prev.includes(c.id) ? prev.filter((id) => id !== c.id) : [...prev, c.id]
+                                      );
+                                    }}
+                                  />
+                                  <span className="text-sm">{c.name}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </ScrollArea>
+                        <FormDescription>
+                          Select multiple categories to improve product discoverability
+                        </FormDescription>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Section 3: Pricing & Stock */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <DollarSign className="h-5 w-5" />
+                      Pricing & Stock
+                    </CardTitle>
+                    <CardDescription>Set your product pricing and inventory</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
-                        name="length_cm"
+                        name="price"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Length (cm)</FormLabel>
+                            <FormLabel>Price (MYR) *</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                step="0.01"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="stock_qty"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Stock Quantity *</FormLabel>
                             <FormControl>
                               <Input type="number" min={0} placeholder="e.g. 20" {...field} />
                             </FormControl>
@@ -648,326 +671,212 @@ const ProductForm = () => {
                           </FormItem>
                         )}
                       />
+
                       <FormField
                         control={form.control}
-                        name="width_cm"
+                        name="currency"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Width (cm)</FormLabel>
-                            <FormControl>
-                              <Input type="number" min={0} placeholder="e.g. 15" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="height_cm"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Height (cm)</FormLabel>
-                            <FormControl>
-                              <Input type="number" min={0} placeholder="e.g. 10" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  )}
-
-                  {/* Handling */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="perishable"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between rounded-md border p-3">
-                          <div>
-                            <FormLabel>Perishable</FormLabel>
-                            <FormDescription>Requires timely delivery</FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch checked={field.value} onCheckedChange={(v) => {
-                              field.onChange(v);
-                              const pk = form.getValues('product_kind');
-                              if (pk === 'grocery') {
-                                if (v) {
-                                  form.setValue('allow_easyparcel', false);
-                                  form.setValue('allow_rider_delivery', true);
-                                } else {
-                                  form.setValue('allow_easyparcel', true);
-                                }
-                              }
-                            }} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="refrigeration_required"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between rounded-md border p-3">
-                          <div>
-                            <FormLabel>Refrigeration</FormLabel>
-                            <FormDescription>Needs cold chain</FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  {/* Best before (only if perishable) */}
-                  {form.watch("perishable") && (
-                    <FormField
-                      control={form.control}
-                      name="best_before"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                          <FormLabel>Best before (optional)</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
+                            <FormLabel>Currency</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full sm:w-[240px] justify-start text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                  )}
-                                >
-                                  {field.value ? (
-                                    format(field.value, "PPP")
-                                  ) : (
-                                    <span>Pick a date</span>
-                                  )}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
                               </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                initialFocus
-                                className={cn("p-3 pointer-events-auto")}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                          <FormDescription>This will be added to the description</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
-
-                  {/* Dietary tags */}
-                  <FormField
-                    control={form.control}
-                    name="dietary_tags"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Dietary tags (optional)</FormLabel>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {DIETARY_OPTIONS.map((opt) => {
-                            const checked = Array.isArray(field.value) && field.value.includes(opt);
-                            return (
-                              <label key={opt} className="flex items-center gap-2 rounded-md border p-2 cursor-pointer">
-                                <Checkbox
-                                  checked={checked}
-                                  onCheckedChange={(isChecked) => {
-                                    const current: string[] = Array.isArray(field.value) ? field.value : [];
-                                    if (isChecked) {
-                                      field.onChange([...current, opt]);
-                                    } else {
-                                      field.onChange(current.filter((v) => v !== opt));
-                                    }
-                                  }}
-                                />
-                                <span className="text-sm capitalize">{opt.replace("-", " ")}</span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                        <FormDescription>These will be added to the description</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Description */}
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Ingredients, storage, allergy info..."
-                            className="min-h-[100px]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Media */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="font-medium">Product Images</div>
-                      <MediaUploader bucket="product-images" folder={`${vendor.id}/products`} value={imageUrls} onChange={setImageUrls} />
+                              <SelectContent>
+                                <SelectItem value="myr">MYR (RM)</SelectItem>
+                                <SelectItem value="usd">USD ($)</SelectItem>
+                                <SelectItem value="eur">EUR (€)</SelectItem>
+                                <SelectItem value="gbp">GBP (£)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* Section 4: Media */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Image className="h-5 w-5" />
+                      Product Media
+                    </CardTitle>
+                    <CardDescription>Add photos and videos to showcase your product</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div className="space-y-2">
-                      <FormLabel>Promo video URL (optional)</FormLabel>
-                      <Input placeholder="https://... (YouTube, Vimeo or MP4)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+                      <FormLabel>Product Images</FormLabel>
+                      <MediaUploader 
+                        bucket="product-images" 
+                        folder={`${vendor.id}/products`} 
+                        value={imageUrls} 
+                        onChange={setImageUrls} 
+                      />
+                      <FormDescription>
+                        Upload high-quality images that show your product clearly
+                      </FormDescription>
                     </div>
-                  </div>
+                    
+                    <div className="space-y-2">
+                      <FormLabel>Promo Video URL (optional)</FormLabel>
+                      <Input 
+                        placeholder="https://... (YouTube, Vimeo or MP4)" 
+                        value={videoUrl} 
+                        onChange={(e) => setVideoUrl(e.target.value)} 
+                      />
+                      <FormDescription>
+                        Add a video to better showcase your product
+                      </FormDescription>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Advanced options */}
-                  <div className="space-y-2">
-                    <Button type="button" variant="outline" onClick={() => setShowAdvanced((v) => !v)}>
-                      {showAdvanced ? 'Hide' : 'Show'} advanced options
-                    </Button>
-                    {showAdvanced && (
-                      <div className="space-y-6 rounded-md border p-4 bg-muted/20">
-                        <div className="text-sm font-medium text-muted-foreground">Advanced Settings</div>
-                        
-                        {/* Pickup location */}
-                        <div className="space-y-4">
-                          <div className="text-sm font-medium">Pickup Location</div>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <FormField
-                              control={form.control}
-                              name="pickup_lat"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Latitude</FormLabel>
-                                  <FormControl>
-                                    <Input type="number" step="any" placeholder="e.g. 3.139" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="pickup_lng"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Longitude</FormLabel>
-                                  <FormControl>
-                                    <Input type="number" step="any" placeholder="e.g. 101.6869" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <div className="flex items-end">
-                              <Button type="button" variant="secondary" className="w-full" onClick={fillPickupFromProfile}>
-                                Use my profile location
-                              </Button>
+                {/* Section 5: Shipping & Handling */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Truck className="h-5 w-5" />
+                      Shipping & Handling
+                    </CardTitle>
+                    <CardDescription>Configure how your product will be delivered</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Shipping options */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="allow_easyparcel"
+                        render={({ field }) => {
+                          const pk = form.watch('product_kind');
+                          const perishable = form.watch('perishable');
+                          const disableEP = pk === 'prepared_food' || (pk === 'grocery' && perishable === true);
+                          return (
+                            <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                              <div className="space-y-0.5">
+                                <FormLabel>EasyParcel Shipping</FormLabel>
+                                <FormDescription>
+                                  {disableEP ? 'Disabled for prepared food or perishable groceries' : 'Enable courier shipping'}
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch checked={!!field.value && !disableEP} onCheckedChange={(v) => field.onChange(v)} disabled={disableEP} />
+                              </FormControl>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="allow_rider_delivery"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel>Rider Delivery</FormLabel>
+                              <FormDescription>Local delivery by riders</FormDescription>
                             </div>
-                          </div>
-                        </div>
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                        {/* Additional categories */}
-                        <div className="space-y-2">
-                          <FormLabel>Additional Categories (optional)</FormLabel>
-                          <ScrollArea className="h-32 rounded-md border p-2">
-                            <div className="grid gap-2">
-                              {availableCategories.length === 0 ? (
-                                <div className="text-sm text-muted-foreground">No categories available.</div>
-                              ) : (
-                                availableCategories.map((c) => {
-                                  const checked = selectedCategoryIds.includes(c.id);
-                                  return (
-                                    <label key={c.id} className="flex items-center gap-2 rounded-md p-1 cursor-pointer hover:bg-muted/50">
-                                      <Checkbox
-                                        checked={checked}
-                                        onCheckedChange={() => {
-                                          setSelectedCategoryIds((prev) =>
-                                            prev.includes(c.id) ? prev.filter((id) => id !== c.id) : [...prev, c.id]
-                                          );
-                                        }}
-                                      />
-                                      <span className="text-sm">{c.name}</span>
-                                    </label>
-                                  );
-                                })
-                              )}
+                    {/* Handling properties */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="perishable"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel>Perishable</FormLabel>
+                              <FormDescription>Requires timely delivery</FormDescription>
                             </div>
-                          </ScrollArea>
-                          <p className="text-xs text-muted-foreground">Select multiple categories for better discoverability</p>
-                        </div>
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={(v) => {
+                                field.onChange(v);
+                                const pk = form.getValues('product_kind');
+                                if (pk === 'grocery') {
+                                  if (v) {
+                                    form.setValue('allow_easyparcel', false);
+                                    form.setValue('allow_rider_delivery', true);
+                                    toast.success("Switched to rider delivery only for perishable grocery");
+                                  } else {
+                                    form.setValue('allow_easyparcel', true);
+                                  }
+                                }
+                              }} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="refrigeration_required"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel>Refrigeration Required</FormLabel>
+                              <FormDescription>Needs cold storage</FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="currency"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Currency</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select currency" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="usd">USD ($)</SelectItem>
-                                    <SelectItem value="eur">EUR (€)</SelectItem>
-                                    <SelectItem value="gbp">GBP (£)</SelectItem>
-                                    <SelectItem value="myr">MYR (RM)</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="status"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Status</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select status" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="inactive">Draft (not visible)</SelectItem>
-                                    <SelectItem value="active">Published (visible to buyers)</SelectItem>
-                                    <SelectItem value="archived">Archived</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                    {/* Package dimensions (for EasyParcel) */}
+                    {form.watch('allow_easyparcel') && (
+                      <div className="space-y-4">
+                        <Separator />
+                        <div>
+                          <FormLabel>Package Dimensions (for shipping calculation)</FormLabel>
+                          <FormDescription>Required for EasyParcel shipping rates</FormDescription>
                         </div>
-
-                        {/* Prep time and weight */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                           <FormField
                             control={form.control}
-                            name="prep_time_minutes"
+                            name="length_cm"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Prep time (minutes)</FormLabel>
+                                <FormLabel>Length (cm)</FormLabel>
                                 <FormControl>
-                                  <Input type="number" min={0} placeholder="e.g. 15" {...field} />
+                                  <Input type="number" min={0} placeholder="20" {...field} />
                                 </FormControl>
-                                <FormDescription>For prepared food</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="width_cm"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Width (cm)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" min={0} placeholder="15" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="height_cm"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Height (cm)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" min={0} placeholder="10" {...field} />
+                                </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -977,11 +886,10 @@ const ProductForm = () => {
                             name="weight_grams"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Weight (grams)</FormLabel>
+                                <FormLabel>Weight (g)</FormLabel>
                                 <FormControl>
-                                  <Input type="number" min={0} placeholder="e.g. 500" {...field} />
+                                  <Input type="number" min={0} placeholder="500" {...field} />
                                 </FormControl>
-                                <FormDescription>For shipping calculations</FormDescription>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -989,59 +897,242 @@ const ProductForm = () => {
                         </div>
                       </div>
                     )}
-                  </div>
 
-                  {/* Submit buttons */}
-                  <div className="flex gap-4 pt-6">
-                    <Button type="submit" disabled={saving}>
-                      {saving ? "Saving..." : (isEditing ? "Update Product" : "Create Product")}
-                    </Button>
-                    <Button type="button" variant="outline" onClick={() => navigate("/vendor/dashboard")}>
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+                    {/* Prep time for prepared food */}
+                    {form.watch('product_kind') === 'prepared_food' && (
+                      <FormField
+                        control={form.control}
+                        name="prep_time_minutes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Preparation Time (minutes)</FormLabel>
+                            <FormControl>
+                              <Input type="number" min={0} placeholder="15" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                              How long does it take to prepare this food item?
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Section 6: Additional Details */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Settings className="h-5 w-5" />
+                      Additional Details
+                    </CardTitle>
+                    <CardDescription>Optional details to enhance your product listing</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Best before date for perishables */}
+                    {form.watch("perishable") && (
+                      <FormField
+                        control={form.control}
+                        name="best_before"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Best Before Date (optional)</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full sm:w-[240px] justify-start text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value ? (
+                                      format(field.value, "PPP")
+                                    ) : (
+                                      <span>Pick a date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  initialFocus
+                                  className={cn("p-3 pointer-events-auto")}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormDescription>This will be displayed in the product description</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {/* Dietary tags */}
+                    <FormField
+                      control={form.control}
+                      name="dietary_tags"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Dietary Tags (optional)</FormLabel>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {DIETARY_OPTIONS.map((opt) => {
+                              const checked = Array.isArray(field.value) && field.value.includes(opt);
+                              return (
+                                <label key={opt} className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer hover:bg-muted/50">
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={(isChecked) => {
+                                      const current: string[] = Array.isArray(field.value) ? field.value : [];
+                                      if (isChecked) {
+                                        field.onChange([...current, opt]);
+                                      } else {
+                                        field.onChange(current.filter((v) => v !== opt));
+                                      }
+                                    }}
+                                  />
+                                  <span className="text-sm capitalize">{opt.replace("-", " ")}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                          <FormDescription>These will be added to your product description</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Pickup location */}
+                    <div className="space-y-4">
+                      <Separator />
+                      <div>
+                        <FormLabel>Pickup Location (optional)</FormLabel>
+                        <FormDescription>Set specific pickup coordinates for this product</FormDescription>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="pickup_lat"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Latitude</FormLabel>
+                              <FormControl>
+                                <Input type="number" step="any" placeholder="3.139" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="pickup_lng"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Longitude</FormLabel>
+                              <FormControl>
+                                <Input type="number" step="any" placeholder="101.6869" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex items-end">
+                          <Button type="button" variant="outline" className="w-full" onClick={fillPickupFromProfile}>
+                            Use My Profile Location
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Submit buttons */}
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex gap-4">
+                      <Button type="submit" disabled={saving}>
+                        {saving ? "Saving..." : (isEditing ? "Update Product" : "Create Product")}
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => navigate("/vendor/dashboard")}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </form>
+            </Form>
+          </div>
         </div>
 
         {/* Preview sidebar */}
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Preview</CardTitle>
-              <CardDescription>How your product will appear to customers</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {imageUrls.length > 0 && (
-                  <div className="aspect-square rounded-lg overflow-hidden bg-muted">
-                    <img
-                      src={imageUrls[0]}
-                      alt={form.watch("name") || "Product"}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <div>
-                  <h3 className="font-semibold text-lg">{form.watch("name") || "Product Name"}</h3>
-                  <p className="text-muted-foreground text-sm">{form.watch("category") || "Category"}</p>
-                  <p className="font-bold text-xl">
-                    RM {parseFloat(form.watch("price") || "0").toFixed(2)}
-                  </p>
-                  <p className="text-sm mt-2">
-                    Stock: {form.watch("stock_qty") || "0"} units
-                  </p>
-                  {form.watch("description") && (
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {form.watch("description").substring(0, 100)}...
-                    </p>
+          <div className="sticky top-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Live Preview</CardTitle>
+                <CardDescription>How your product will appear to customers</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {imageUrls.length > 0 && (
+                    <div className="aspect-square rounded-lg overflow-hidden bg-muted">
+                      <img
+                        src={imageUrls[0]}
+                        alt={form.watch("name") || "Product"}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   )}
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">
+                      {form.watch("name") || "Product Name"}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {availableCategories.find(c => c.slug === form.watch("category"))?.name || "Category"}
+                      </span>
+                      <span className="text-xs bg-muted px-2 py-1 rounded">
+                        {form.watch("product_kind")?.replace("_", " ") || "Type"}
+                      </span>
+                    </div>
+                    <p className="font-bold text-xl text-primary">
+                      RM {parseFloat(form.watch("price") || "0").toFixed(2)}
+                    </p>
+                    <div className="text-sm text-muted-foreground">
+                      <p>Stock: {form.watch("stock_qty") || "0"} units</p>
+                      <p>Status: {form.watch("status") === "active" ? "Published" : "Draft"}</p>
+                    </div>
+                    {form.watch("description") && (
+                      <p className="text-sm text-muted-foreground">
+                        {form.watch("description").substring(0, 100)}
+                        {form.watch("description").length > 100 ? "..." : ""}
+                      </p>
+                    )}
+                    
+                    {/* Shipping info */}
+                    <div className="text-xs space-y-1 pt-2 border-t">
+                      <p className="font-medium">Shipping Options:</p>
+                      {form.watch("allow_easyparcel") && <span className="bg-green-100 text-green-800 px-2 py-1 rounded mr-1">EasyParcel</span>}
+                      {form.watch("allow_rider_delivery") && <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">Rider</span>}
+                      
+                      {form.watch("perishable") && (
+                        <p className="text-orange-600">⚠️ Perishable item</p>
+                      )}
+                      {form.watch("refrigeration_required") && (
+                        <p className="text-blue-600">❄️ Requires refrigeration</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
