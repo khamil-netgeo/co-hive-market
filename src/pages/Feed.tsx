@@ -68,86 +68,104 @@ export default function Feed() {
 
   useEffect(() => {
     const load = async () => {
+      setLoading(true);
       try {
+        if (selected?.id) {
+          const { data: vendorRows, error: vErr } = await supabase
+            .from('vendors')
+            .select('id')
+            .eq('community_id', selected.id);
+          if (vErr) throw vErr;
+          const vendorIds = ((vendorRows as any[]) || []).map((v) => v.id);
+
+          const productsQ = supabase
+            .from('products')
+            .select('id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes')
+            .not('video_url', 'is', null)
+            .eq('status', 'active')
+            .eq('community_id', selected.id)
+            .order('created_at', { ascending: false })
+            .limit(50);
+
+          const servicesQ = vendorIds.length
+            ? supabase
+                .from('vendor_services')
+                .select('id,name,subtitle,description,price_cents,currency,vendor_id,video_url,created_at,status')
+                .not('video_url', 'is', null)
+                .eq('status', 'active')
+                .in('vendor_id', vendorIds)
+                .order('created_at', { ascending: false })
+                .limit(50)
+            : Promise.resolve({ data: [], error: null } as any);
+
+          const [{ data: products, error: pErr }, { data: services, error: sErr }] = await Promise.all([productsQ, servicesQ]);
+          if (pErr) throw pErr;
+          if (sErr) throw sErr;
+
+          const normalized: FeedItem[] = [
+            ...(((products as any[]) || []).map((p) => ({
+              kind: 'product', id: p.id, name: p.name, description: p.description,
+              price_cents: p.price_cents, currency: p.currency, vendor_id: p.vendor_id,
+              community_id: p.community_id, video_url: p.video_url, created_at: p.created_at,
+              product_kind: p.product_kind, perishable: p.perishable, prep_time_minutes: p.prep_time_minutes,
+            } as FeedProduct))),
+            ...(((services as any[]) || []).map((s) => ({
+              kind: 'service', id: s.id, name: s.name, subtitle: s.subtitle, description: s.description,
+              price_cents: s.price_cents, currency: s.currency, vendor_id: s.vendor_id,
+              video_url: s.video_url, created_at: s.created_at,
+            } as FeedService))),
+          ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+          const filterParam = searchParams.get('filter');
+          const filtered = filterParam === 'prepared_food' || filterParam === 'grocery'
+            ? normalized.filter((item) => item.kind === 'product' && (item as FeedProduct).product_kind === filterParam)
+            : normalized;
+
+          setItems(filtered);
+          return;
+        }
+
         const [{ data: products, error: pErr }, { data: services, error: sErr }] = await Promise.all([
           supabase
-            .from("products")
-            .select("id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes")
-            .not("video_url", "is", null)
-            .eq("status", "active")
-            .order("created_at", { ascending: false })
+            .from('products')
+            .select('id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes')
+            .not('video_url', 'is', null)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
             .limit(50),
           supabase
-            .from("vendor_services")
-            .select("id,name,subtitle,description,price_cents,currency,vendor_id,video_url,created_at,status")
-            .not("video_url", "is", null)
-            .eq("status", "active")
-            .order("created_at", { ascending: false })
+            .from('vendor_services')
+            .select('id,name,subtitle,description,price_cents,currency,vendor_id,video_url,created_at,status')
+            .not('video_url', 'is', null)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
             .limit(50),
         ]);
         if (pErr) throw pErr;
         if (sErr) throw sErr;
+
         const normalized: FeedItem[] = [
-          ...((products as any[]) || []).map((p) => ({
-            kind: "product",
-            id: p.id,
-            name: p.name,
-            description: p.description,
-            price_cents: p.price_cents,
-            currency: p.currency,
-            vendor_id: p.vendor_id,
-            community_id: p.community_id,
-            video_url: p.video_url,
-            created_at: p.created_at,
-            product_kind: p.product_kind,
-            perishable: p.perishable,
-            prep_time_minutes: p.prep_time_minutes,
-          } as FeedProduct)),
-          ...((services as any[]) || []).map((s) => ({
-            kind: "service",
-            id: s.id,
-            name: s.name,
-            subtitle: s.subtitle,
-            description: s.description,
-            price_cents: s.price_cents,
-            currency: s.currency,
-            vendor_id: s.vendor_id,
-            video_url: s.video_url,
-            created_at: s.created_at,
-          } as FeedService)),
+          ...(((products as any[]) || []).map((p) => ({
+            kind: 'product', id: p.id, name: p.name, description: p.description,
+            price_cents: p.price_cents, currency: p.currency, vendor_id: p.vendor_id,
+            community_id: p.community_id, video_url: p.video_url, created_at: p.created_at,
+            product_kind: p.product_kind, perishable: p.perishable, prep_time_minutes: p.prep_time_minutes,
+          } as FeedProduct))),
+          ...(((services as any[]) || []).map((s) => ({
+            kind: 'service', id: s.id, name: s.name, subtitle: s.subtitle, description: s.description,
+            price_cents: s.price_cents, currency: s.currency, vendor_id: s.vendor_id,
+            video_url: s.video_url, created_at: s.created_at,
+          } as FeedService))),
         ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        
-        let filteredItems = normalized;
 
-        // URL filter
         const filterParam = searchParams.get('filter');
-        if (filterParam === 'prepared_food' || filterParam === 'grocery') {
-          filteredItems = filteredItems.filter(item => 
-            item.kind === 'product' && (item as FeedProduct).product_kind === filterParam
-          );
-        }
+        const filtered = filterParam === 'prepared_food' || filterParam === 'grocery'
+          ? normalized.filter((item) => item.kind === 'product' && (item as FeedProduct).product_kind === filterParam)
+          : normalized;
 
-        // Community filter (products by product.community_id; services by vendor.community_id)
-        if (selected?.id) {
-          const vendorIds = Array.from(new Set(filteredItems.map((i) => i.vendor_id)));
-          let vMap = new Map<string, string | null>();
-          if (vendorIds.length) {
-            const { data: vendorRows, error: vErr } = await supabase
-              .from('vendors')
-              .select('id,community_id')
-              .in('id', vendorIds);
-            if (vErr) throw vErr;
-            vMap = new Map<string, string | null>(((vendorRows as any[]) || []).map((v) => [v.id, v.community_id]));
-          }
-          filteredItems = filteredItems.filter((it) => {
-            if (it.kind === 'product') return (it as FeedProduct).community_id === selected.id;
-            return (vMap.get(it.vendor_id) ?? null) === selected.id;
-          });
-        }
-        
-        setItems(filteredItems);
+        setItems(filtered);
       } catch (e: any) {
-        toast("Failed to load feed", { description: e.message || String(e) });
+        toast('Failed to load feed', { description: e.message || String(e) });
       } finally {
         setLoading(false);
       }
