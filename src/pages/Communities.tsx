@@ -308,15 +308,15 @@ export default function Communities() {
                     <CardDescription>{c.description}</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'buyer')} disabled={!user} className="w-full sm:w-auto">Join as Buyer</Button>
-                      <Button size="sm" onClick={() => handleJoin(c.id, 'vendor')} disabled={!user} className="w-full sm:w-auto">Join as Vendor</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'delivery')} disabled={!user} className="w-full sm:w-auto">Join as Rider</Button>
-                      <Button size="sm" variant="ghost" asChild className="w-full sm:w-auto">
-                        <Link to={`/communities/${c.id}`}>View details</Link>
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'buyer')} disabled={!user} className="flex-1 min-w-[100px] sm:flex-none">Join as Buyer</Button>
+                      <Button size="sm" onClick={() => handleJoin(c.id, 'vendor')} disabled={!user} className="flex-1 min-w-[100px] sm:flex-none">Join as Vendor</Button>
+                      <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'delivery')} disabled={!user} className="flex-1 min-w-[100px] sm:flex-none">Join as Rider</Button>
+                      <Button size="sm" variant="ghost" asChild className="flex-1 min-w-[80px] sm:flex-none">
+                        <Link to={`/communities/${c.id}`}>View</Link>
                       </Button>
                       {!user && (
-                        <Button size="sm" variant="ghost" asChild>
+                        <Button size="sm" variant="ghost" asChild className="flex-1 min-w-[80px] sm:flex-none">
                           <Link to="/auth">Sign in</Link>
                         </Button>
                       )}
