@@ -561,12 +561,12 @@ export default function VendorCalendar() {
           </p>
         </CardHeader>
         <CardContent>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 gap-4">
             <DateTimePicker
               value={timeOffStart}
               onChange={setTimeOffStart}
               label="Start Date & Time"
-              placeholder="Select start date and time"
+              placeholder="Pick a date"
               disabled={savingTimeOff}
             />
             
@@ -574,7 +574,7 @@ export default function VendorCalendar() {
               value={timeOffEnd}
               onChange={setTimeOffEnd}
               label="End Date & Time"
-              placeholder="Select end date and time"
+              placeholder="Pick a date"
               disabled={savingTimeOff}
             />
             
