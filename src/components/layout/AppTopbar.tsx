@@ -22,32 +22,34 @@ export default function AppTopbar() {
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center justify-between">
-        <div className="flex items-center">
-          <SidebarTrigger className="ml-0" />
+      <div className="container flex h-14 items-center justify-between px-4 min-w-0">
+        <div className="flex items-center min-w-0">
+          <SidebarTrigger className="ml-0 shrink-0" />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <ThemeToggle />
-          <CommunitySelector />
-          <Button variant="ghost" asChild>
-            <Link to="/cart" aria-label={`Cart (${count} items)`}>
+          <div className="hidden sm:block">
+            <CommunitySelector />
+          </div>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/cart" aria-label={`Cart (${count} items)`} className="shrink-0">
               <ShoppingCart className="h-5 w-5" />
               {count > 0 && <span className="ml-1 text-xs">{count}</span>}
             </Link>
           </Button>
           {!user ? (
-            <>
-              <Button variant="ghost" asChild><Link to="/auth">Sign in</Link></Button>
-              <Button variant="hero" asChild><Link to="/getting-started">Get Started</Link></Button>
-            </>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" asChild><Link to="/auth">Sign in</Link></Button>
+              <Button variant="hero" size="sm" asChild className="hidden sm:inline-flex"><Link to="/getting-started">Get Started</Link></Button>
+            </div>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="h-9 gap-2">
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback>{initials}</AvatarFallback>
+                <Button variant="outline" size="sm" className="h-8 gap-1 sm:gap-2 min-w-0">
+                  <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
+                    <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:inline text-sm">{username}</span>
+                  <span className="hidden sm:inline text-sm truncate max-w-[100px]">{username}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">

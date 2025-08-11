@@ -52,6 +52,7 @@ export default function MediaGallery({ images, videos, alt, aspect = "video", cl
                       alt={`${alt} ${idx + 1}`}
                       className="h-full w-full object-cover"
                       loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <video
@@ -86,7 +87,7 @@ export default function MediaGallery({ images, videos, alt, aspect = "video", cl
               aria-label={`Show ${s.type} ${idx + 1}`}
             >
               {s.type === "image" ? (
-                <img src={s.src} alt={`${alt} thumbnail ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" />
+                <img src={s.src} alt={`${alt} thumbnail ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
               ) : (
                 <div className="h-full w-full bg-black/60 flex items-center justify-center">
                   <Play className="h-5 w-5 text-primary" />

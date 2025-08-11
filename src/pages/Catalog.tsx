@@ -367,80 +367,95 @@ export default function Catalog() {
             </TabsList>
           </Tabs>
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-4">
-          <div className="flex-1 min-w-[200px] sm:min-w-[280px]">
+        <div className="mt-4 space-y-4">
+          {/* Search - Full width on mobile */}
+          <div className="w-full">
             <Label htmlFor="search" className="sr-only">Search</Label>
             <Input
               id="search"
               placeholder="Search products"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              className="w-full"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Label className="whitespace-nowrap text-sm">Near me</Label>
-            <Switch id="near" checked={useNearMe} onCheckedChange={setUseNearMe} />
-          </div>
-          <div className="flex items-center gap-3 w-full sm:w-80 min-w-0">
-            <Label className="whitespace-nowrap text-sm">Radius: {radiusKm}km</Label>
-            <Slider
-              value={[radiusKm]}
-              onValueChange={(v) => setRadiusKm(v[0] ?? 10)}
-              min={1}
-              max={50}
-              step={1}
-              disabled={!loc}
-            />
-            {!loc && <span className="text-xs text-muted-foreground">Enable location</span>}
-          </div>
-          <div className="flex items-center gap-2">
-            <Label className="whitespace-nowrap text-sm">Category</Label>
-            <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
-              <SelectTrigger className="w-56">
-                <SelectValue placeholder="All categories" />
-              </SelectTrigger>
-              <SelectContent className="z-50 bg-popover">
-                <SelectItem value="all">All</SelectItem>
-                {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <Label className="whitespace-nowrap text-sm">Delivery</Label>
-            <Select value={deliveryFilter} onValueChange={(v) => setDeliveryFilter(v as any)}>
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="Any method" />
-              </SelectTrigger>
-              <SelectContent className="z-50 bg-popover">
-                <SelectItem value="any">Any</SelectItem>
-                <SelectItem value="rider">Riders only</SelectItem>
-                <SelectItem value="parcel">EasyParcel ok</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <Label htmlFor="perishable" className="whitespace-nowrap text-sm">Perishable only</Label>
-            <Switch id="perishable" checked={perishableOnly} onCheckedChange={setPerishableOnly} />
-          </div>
-          <div className="flex items-center gap-2">
-            <Label htmlFor="open-now" className="whitespace-nowrap text-sm">Open now</Label>
-            <Switch id="open-now" checked={openNow} onCheckedChange={setOpenNow} />
-          </div>
-          <div className="flex items-center gap-2">
-            <Label className="whitespace-nowrap text-sm">Sort</Label>
-            <Select value={sort} onValueChange={(v) => setSort(v as any)}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Newest" />
-              </SelectTrigger>
-              <SelectContent className="z-50 bg-popover">
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                <SelectItem value="distance">Distance</SelectItem>
-              </SelectContent>
-            </Select>
+          
+          {/* Filter Controls - Stacked on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="flex items-center gap-2">
+              <Label className="whitespace-nowrap text-sm">Near me</Label>
+              <Switch id="near" checked={useNearMe} onCheckedChange={setUseNearMe} />
+            </div>
+            
+            <div className="col-span-full sm:col-span-1 lg:col-span-2">
+              <div className="flex items-center gap-3 w-full">
+                <Label className="whitespace-nowrap text-sm">Radius: {radiusKm}km</Label>
+                <Slider
+                  value={[radiusKm]}
+                  onValueChange={(v) => setRadiusKm(v[0] ?? 10)}
+                  min={1}
+                  max={50}
+                  step={1}
+                  disabled={!loc}
+                  className="flex-1 min-w-0"
+                />
+              </div>
+              {!loc && <span className="text-xs text-muted-foreground mt-1 block">Enable location</span>}
+            </div>
+            
+            <div className="flex items-center gap-2 min-w-0">
+              <Label className="whitespace-nowrap text-sm">Category</Label>
+              <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
+                <SelectTrigger className="w-full min-w-[140px]">
+                  <SelectValue placeholder="All categories" />
+                </SelectTrigger>
+                <SelectContent className="z-50 bg-popover">
+                  <SelectItem value="all">All</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2 min-w-0">
+              <Label className="whitespace-nowrap text-sm">Delivery</Label>
+              <Select value={deliveryFilter} onValueChange={(v) => setDeliveryFilter(v as any)}>
+                <SelectTrigger className="w-full min-w-[120px]">
+                  <SelectValue placeholder="Any method" />
+                </SelectTrigger>
+                <SelectContent className="z-50 bg-popover">
+                  <SelectItem value="any">Any</SelectItem>
+                  <SelectItem value="rider">Riders only</SelectItem>
+                  <SelectItem value="parcel">EasyParcel ok</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Label htmlFor="perishable" className="whitespace-nowrap text-sm">Perishable only</Label>
+              <Switch id="perishable" checked={perishableOnly} onCheckedChange={setPerishableOnly} />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Label htmlFor="open-now" className="whitespace-nowrap text-sm">Open now</Label>
+              <Switch id="open-now" checked={openNow} onCheckedChange={setOpenNow} />
+            </div>
+            
+            <div className="flex items-center gap-2 min-w-0">
+              <Label className="whitespace-nowrap text-sm">Sort</Label>
+              <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+                <SelectTrigger className="w-full min-w-[140px]">
+                  <SelectValue placeholder="Newest" />
+                </SelectTrigger>
+                <SelectContent className="z-50 bg-popover">
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                  <SelectItem value="distance">Distance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -449,7 +464,7 @@ export default function Catalog() {
         ) : products.length === 0 ? (
           <div className="mt-8 rounded-md border bg-card p-6 text-muted-foreground">No products yet.</div>
         ) : (
-          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {productsSorted.map((p: any) => {
               const discounted = memberPrice(p);
               const discPercent = effectiveDiscountPercent(p);

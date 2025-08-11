@@ -541,7 +541,7 @@ export default function UnifiedCatalog() {
               className="w-full"
             />
             
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Location Filter (Products only) */}
               {(activeTab === "all" || activeTab === "products") && (
                 <>
@@ -549,26 +549,29 @@ export default function UnifiedCatalog() {
                     <Label htmlFor="near">Near me</Label>
                     <Switch id="near" checked={useNearMe} onCheckedChange={setUseNearMe} />
                   </div>
-                  <div className="flex items-center gap-3 w-full sm:w-80 min-w-0">
-                    <Label className="whitespace-nowrap text-sm">Radius: {radiusKm}km</Label>
-                    <Slider
-                      value={[radiusKm]}
-                      onValueChange={(v) => setRadiusKm(v[0] ?? 10)}
-                      min={1}
-                      max={50}
-                      step={1}
-                      disabled={!loc}
-                    />
-                    {!loc && <span className="text-xs text-muted-foreground">Enable location</span>}
+                  <div className="col-span-full sm:col-span-1 lg:col-span-2">
+                    <div className="flex items-center gap-3 w-full">
+                      <Label className="whitespace-nowrap text-sm">Radius: {radiusKm}km</Label>
+                      <Slider
+                        value={[radiusKm]}
+                        onValueChange={(v) => setRadiusKm(v[0] ?? 10)}
+                        min={1}
+                        max={50}
+                        step={1}
+                        disabled={!loc}
+                        className="flex-1 min-w-0"
+                      />
+                    </div>
+                    {!loc && <span className="text-xs text-muted-foreground mt-1 block">Enable location</span>}
                   </div>
                 </>
               )}
               
               {/* Category Filter */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <Label className="whitespace-nowrap text-sm">Category</Label>
                 <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
-                  <SelectTrigger className="w-56">
+                  <SelectTrigger className="w-full min-w-[140px]">
                     <SelectValue placeholder="All categories" />
                   </SelectTrigger>
                   <SelectContent className="z-50 bg-popover">
@@ -581,10 +584,10 @@ export default function UnifiedCatalog() {
               </div>
 
               {/* Sort */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <Label className="whitespace-nowrap text-sm">Sort</Label>
                 <Select value={sort} onValueChange={(v) => setSort(v as any)}>
-                  <SelectTrigger className="w-44">
+                  <SelectTrigger className="w-full min-w-[120px]">
                     <SelectValue placeholder="Newest" />
                   </SelectTrigger>
                   <SelectContent className="z-50 bg-popover">
@@ -607,7 +610,7 @@ export default function UnifiedCatalog() {
               No items found. Try adjusting your filters.
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filtered.map((item) => {
                 const discounted = memberPrice(item);
                 const discPercent = effectiveDiscountPercent(item);

@@ -23,6 +23,7 @@ export default function ProductImage({
           alt={productName}
           className={className}
           loading="lazy"
+          decoding="async"
           onError={(e) => {
             // If image fails to load, hide it and show fallback sibling
             e.currentTarget.style.display = 'none';
