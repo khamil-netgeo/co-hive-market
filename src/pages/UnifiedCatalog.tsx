@@ -136,8 +136,7 @@ export default function UnifiedCatalog() {
     const params = new URLSearchParams(location.search);
     const prev = params.toString();
 
-    if (activeTab === 'products') params.set('type', 'products');
-    else if (activeTab === 'services') params.set('type', 'services');
+    if (activeTab === 'services') params.set('type', 'services');
     else params.delete('type');
 
     if (productKindFilter !== 'all') params.set('filter', productKindFilter);
