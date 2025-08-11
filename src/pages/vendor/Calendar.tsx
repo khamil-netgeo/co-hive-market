@@ -35,6 +35,16 @@ export default function VendorCalendar() {
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string | 'all'>('all');
 
+  // Deterministic service color mapping using design tokens
+  const servicePalette = ['--chart-1','--chart-2','--chart-3','--chart-4','--chart-5','--chart-6','--chart-7','--chart-8'] as const;
+  const serviceColorVar = (serviceId?: string) => {
+    if (!serviceId) return servicePalette[0];
+    const idx = services.findIndex((s) => s.id === serviceId);
+    const mapped = idx >= 0 ? servicePalette[idx % servicePalette.length] : servicePalette[0];
+    return mapped;
+  };
+
+
   const [searchParams, setSearchParams] = useSearchParams();
   const handleServiceChange = (value: string) => {
     setSelectedServiceId(value);
@@ -157,6 +167,19 @@ export default function VendorCalendar() {
   // Get days with bookings for calendar highlighting
   const bookedDays = useMemo(() => {
     return filteredBookings.map(b => b.scheduled_at ? new Date(b.scheduled_at) : null).filter(Boolean) as Date[];
+  }, [filteredBookings]);
+
+  // Build per-day unique service ids for colored dots
+  const dayServiceMap = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    filteredBookings.forEach((b) => {
+      if (!b.scheduled_at || !b.service_id) return;
+      const d = new Date(b.scheduled_at);
+      const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
+      if (!map[key]) map[key] = [];
+      if (!map[key].includes(b.service_id)) map[key].push(b.service_id);
+    });
+    return map;
   }, [filteredBookings]);
 
   const dayBookings = useMemo(() => {
@@ -415,16 +438,22 @@ export default function VendorCalendar() {
                   >
                     All ({bookings.length})
                   </Badge>
-                  {services.map((s) => (
+                  {services.map((s, i) => (
                     <Badge
                       key={s.id}
                       variant={selectedServiceId === s.id ? 'default' : 'secondary'}
-                      className="cursor-pointer"
+                      className="cursor-pointer flex items-center gap-2"
                       onClick={() => handleServiceChange(s.id)}
                     >
+                      <span
+                        aria-hidden
+                        className="inline-block w-2 h-2 rounded-full"
+                        style={{ backgroundColor: `hsl(var(${serviceColorVar(s.id)}))` }}
+                      />
                       {s.name} ({serviceMonthCounts[s.id] || 0})
                     </Badge>
                   ))}
+
                 </div>
               )}
             </div>
@@ -471,7 +500,7 @@ export default function VendorCalendar() {
                   
                   return (
                     <div key={booking.id} className="group">
-                      <div className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+                      <div className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors border-l-4" style={{ borderLeftColor: `hsl(var(${serviceColorVar(booking.service_id)}))` }}>
                         <div className="flex-shrink-0">
                           <div className={`p-2 rounded-full bg-background border ${statusInfo.color}`}>
                             <StatusIcon className="h-4 w-4"/>
