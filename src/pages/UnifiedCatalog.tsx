@@ -466,19 +466,22 @@ export default function UnifiedCatalog() {
   return (
     <>
       <ShopSubnav />
-      <main className="container px-2 py-4 sm:px-4 sm:py-6 md:py-8 min-w-0 overflow-hidden">
-        <div className="space-y-4 sm:space-y-6 w-full min-w-0">
-        <div className="space-y-4">
-          <Breadcrumbs items={breadcrumbItems} />
-          
-          <div className="flex flex-col gap-4">
-             <div className="min-w-0">
-               <h1 className="text-2xl sm:text-3xl font-semibold leading-tight">
+      <main className="w-full max-w-full min-w-0 overflow-x-hidden">
+        <div className="container px-3 py-4 sm:px-4 sm:py-6 md:py-8 w-full max-w-full min-w-0">
+        <div className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
+        <div className="space-y-3 sm:space-y-4 w-full max-w-full min-w-0">
+          <div className="w-full max-w-full min-w-0">
+            <Breadcrumbs items={breadcrumbItems} />
+          </div>
+           
+          <div className="w-full max-w-full min-w-0 space-y-3 sm:space-y-4">
+            <div className="w-full max-w-full min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold leading-tight break-words">
                 {productKindFilter === 'prepared_food' ? 'Food & Dining' :
                  productKindFilter === 'grocery' ? 'Groceries' :
                  activeTab === 'services' ? 'Services' : 'Shop'}
               </h1>
-              <p className="mt-2 text-sm sm:text-base text-muted-foreground leading-relaxed">
+              <p className="mt-2 text-sm sm:text-base text-muted-foreground leading-relaxed break-words">
                 {productKindFilter === 'prepared_food' ? 'Fresh food delivered fast. Order from local restaurants and food vendors.' :
                  productKindFilter === 'grocery' ? 'Fresh groceries and daily essentials. Shop from local vendors and farmers.' :
                  activeTab === 'services' ? 'Book services with local providers. Professional services and experiences.' :
@@ -487,180 +490,194 @@ export default function UnifiedCatalog() {
             </div>
 
             {/* Active Filters */}
-             {(productKindFilter !== 'all' || activeTab === 'services') && (
-               <div className="flex flex-wrap items-center gap-2 w-full min-w-0">
-                <span className="text-sm text-muted-foreground">Filters:</span>
-                {productKindFilter === 'prepared_food' && (
-                   <Badge variant="secondary" className="flex items-center gap-1 text-xs">
-                    <Coffee className="h-3 w-3" />
-                    Food & Dining
-                    <button onClick={clearFilters} className="ml-1 hover:text-destructive">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                )}
-                {productKindFilter === 'grocery' && (
-                   <Badge variant="secondary" className="flex items-center gap-1 text-xs">
-                    <ShoppingCart className="h-3 w-3" />
-                    Groceries
-                    <button onClick={clearFilters} className="ml-1 hover:text-destructive">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                )}
-                {activeTab === 'services' && (
-                  <Badge variant="secondary" className="flex items-center gap-1 text-xs">
-                    <Briefcase className="h-3 w-3" />
-                    Services
-                    <button onClick={() => navigate('/products')} className="ml-1 hover:text-destructive">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                )}
+            {(productKindFilter !== 'all' || activeTab === 'services') && (
+              <div className="w-full max-w-full min-w-0">
+                <div className="flex flex-wrap items-center gap-2 w-full max-w-full min-w-0">
+                  <span className="text-sm text-muted-foreground shrink-0">Filters:</span>
+                  {productKindFilter === 'prepared_food' && (
+                    <Badge variant="secondary" className="flex items-center gap-1 text-xs shrink-0">
+                      <Coffee className="h-3 w-3" />
+                      <span className="truncate">Food & Dining</span>
+                      <button onClick={clearFilters} className="ml-1 hover:text-destructive shrink-0">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {productKindFilter === 'grocery' && (
+                    <Badge variant="secondary" className="flex items-center gap-1 text-xs shrink-0">
+                      <ShoppingCart className="h-3 w-3" />
+                      <span className="truncate">Groceries</span>
+                      <button onClick={clearFilters} className="ml-1 hover:text-destructive shrink-0">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {activeTab === 'services' && (
+                    <Badge variant="secondary" className="flex items-center gap-1 text-xs shrink-0">
+                      <Briefcase className="h-3 w-3" />
+                      <span className="truncate">Services</span>
+                      <button onClick={() => navigate('/products')} className="ml-1 hover:text-destructive shrink-0">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                </div>
               </div>
             )}
 
             {/* Delivery Banner for Food/Grocery */}
             {(productKindFilter === 'prepared_food' || productKindFilter === 'grocery') && (
-              <DeliveryBanner 
-                productKind={productKindFilter}
-                perishable={productKindFilter === 'grocery'}
-                estimatedDeliveryTime={productKindFilter === 'prepared_food' ? "30-45 mins" : "1-2 hours"}
-              />
+              <div className="w-full max-w-full min-w-0">
+                <DeliveryBanner 
+                  productKind={productKindFilter}
+                  perishable={productKindFilter === 'grocery'}
+                  estimatedDeliveryTime={productKindFilter === 'prepared_food' ? "30-45 mins" : "1-2 hours"}
+                />
+              </div>
             )}
           </div>
         </div>
 
         {/* Filters */}
-        <div className="space-y-4">
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search products and services..."
-              aria-label="Search catalog"
-              className="w-full"
-            />
+        <div className="w-full max-w-full min-w-0 space-y-3 sm:space-y-4">
+            <div className="w-full max-w-full min-w-0">
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search products and services..."
+                aria-label="Search catalog"
+                className="w-full max-w-full"
+              />
+            </div>
             
-             <div className="w-full space-y-3 sm:space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="w-full max-w-full min-w-0">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4 w-full max-w-full">
               {/* Location Filter (Products only) */}
               {(activeTab === "all" || activeTab === "products") && (
                 <>
-                   <div className="flex items-center gap-2 min-w-0">
-                     <Label htmlFor="near" className="text-sm whitespace-nowrap">Near me</Label>
-                     <Switch id="near" checked={useNearMe} onCheckedChange={setUseNearMe} />
-                   </div>
-                   <div className="col-span-full sm:col-span-1 lg:col-span-2 w-full min-w-0">
-                     <div className="flex items-center gap-3 w-full min-w-0">
-                       <Label className="whitespace-nowrap text-sm">Radius: {radiusKm}km</Label>
-                       <Slider
-                         value={[radiusKm]}
-                         onValueChange={(v) => setRadiusKm(v[0] ?? 10)}
-                         min={1}
-                         max={50}
-                         step={1}
-                         disabled={!loc}
-                         className="flex-1 min-w-0"
-                       />
-                     </div>
-                     {!loc && <span className="text-xs text-muted-foreground mt-1 block">Enable location</span>}
-                   </div>
+                  <div className="flex items-center gap-2 w-full max-w-full min-w-0">
+                    <Label htmlFor="near" className="text-sm whitespace-nowrap shrink-0">Near me</Label>
+                    <Switch id="near" checked={useNearMe} onCheckedChange={setUseNearMe} />
+                  </div>
+                  <div className="w-full max-w-full min-w-0">
+                    <div className="flex items-center gap-2 w-full max-w-full min-w-0">
+                      <Label className="whitespace-nowrap text-sm shrink-0">Radius: {radiusKm}km</Label>
+                      <div className="flex-1 min-w-0 max-w-full">
+                        <Slider
+                          value={[radiusKm]}
+                          onValueChange={(v) => setRadiusKm(v[0] ?? 10)}
+                          min={1}
+                          max={50}
+                          step={1}
+                          disabled={!loc}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                    {!loc && <span className="text-xs text-muted-foreground mt-1 block">Enable location</span>}
+                  </div>
                 </>
               )}
               
-               {/* Category Filter */}
-               <div className="flex items-center gap-2 min-w-0">
-                 <Label className="whitespace-nowrap text-sm">Category</Label>
-                 <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
-                   <SelectTrigger className="w-full min-w-[120px] max-w-[160px]">
-                     <SelectValue placeholder="All categories" />
-                   </SelectTrigger>
-                   <SelectContent className="z-50 bg-popover">
-                     <SelectItem value="all">All</SelectItem>
-                     {categories.map((c) => (
-                       <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
-               </div>
+              {/* Category Filter */}
+              <div className="flex items-center gap-2 w-full max-w-full min-w-0">
+                <Label className="whitespace-nowrap text-sm shrink-0">Category</Label>
+                <div className="flex-1 min-w-0 max-w-full">
+                  <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="All categories" />
+                    </SelectTrigger>
+                    <SelectContent className="z-50 bg-popover">
+                      <SelectItem value="all">All</SelectItem>
+                      {categories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-               {/* Sort */}
-               <div className="flex items-center gap-2 min-w-0">
-                 <Label className="whitespace-nowrap text-sm">Sort</Label>
-                 <Select value={sort} onValueChange={(v) => setSort(v as any)}>
-                   <SelectTrigger className="w-full min-w-[100px] max-w-[140px]">
-                     <SelectValue placeholder="Newest" />
-                   </SelectTrigger>
-                   <SelectContent className="z-50 bg-popover">
-                     <SelectItem value="newest">Newest</SelectItem>
-                     <SelectItem value="price_asc">Low to High</SelectItem>
-                     <SelectItem value="price_desc">High to Low</SelectItem>
-                   </SelectContent>
-                 </Select>
-               </div>
-             </div>
-           </div>
+              {/* Sort */}
+              <div className="flex items-center gap-2 w-full max-w-full min-w-0">
+                <Label className="whitespace-nowrap text-sm shrink-0">Sort</Label>
+                <div className="flex-1 min-w-0 max-w-full">
+                  <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Newest" />
+                    </SelectTrigger>
+                    <SelectContent className="z-50 bg-popover">
+                      <SelectItem value="newest">Newest</SelectItem>
+                      <SelectItem value="price_asc">Low to High</SelectItem>
+                      <SelectItem value="price_desc">High to Low</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
           {/* Content */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <span className="text-muted-foreground">Loading...</span>
-            </div>
-          ) : !filtered.length ? (
-            <div className="rounded-md border bg-card p-6 text-muted-foreground">
-              No items found. Try adjusting your filters.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filtered.map((item) => {
-                const discounted = memberPrice(item);
-                const discPercent = effectiveDiscountPercent(item);
+          <div className="w-full max-w-full min-w-0">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <span className="text-muted-foreground">Loading...</span>
+              </div>
+            ) : !filtered.length ? (
+              <div className="rounded-md border bg-card p-4 sm:p-6 text-muted-foreground w-full max-w-full min-w-0">
+                <p className="break-words">No items found. Try adjusting your filters.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full max-w-full">
+                {filtered.map((item) => {
+                  const discounted = memberPrice(item);
+                  const discPercent = effectiveDiscountPercent(item);
 
-                return (
-                  <Link 
-                    key={`${item.type}-${item.id}`} 
-                    to={`/${item.type}/${item.id}`}
-                    className="block"
-                  >
-                    <Card className="hover:shadow-elegant transition-shadow cursor-pointer group h-full">
-                      <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                      <MediaGallery 
-                        images={item.image_urls || []}
-                        videos={item.type === 'product' && item.video_url ? [item.video_url] : []}
-                        alt={item.name}
-                        aspect="video"
-                        showThumbnails={false}
-                      />
-                      </div>
-                      
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            {item.type === 'product' ? (
-                              <Package className="h-4 w-4 text-muted-foreground" />
-                            ) : (
-                              <Briefcase className="h-4 w-4 text-muted-foreground" />
-                            )}
-                            <span className="line-clamp-1">{item.name}</span>
+                  return (
+                    <div key={`${item.type}-${item.id}`} className="w-full max-w-full min-w-0">
+                      <Link 
+                        to={`/${item.type}/${item.id}`}
+                        className="block w-full max-w-full min-w-0"
+                      >
+                        <Card className="hover:shadow-elegant transition-shadow cursor-pointer group h-full w-full max-w-full min-w-0">
+                          <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                          <MediaGallery 
+                            images={item.image_urls || []}
+                            videos={item.type === 'product' && item.video_url ? [item.video_url] : []}
+                            alt={item.name}
+                            aspect="video"
+                            showThumbnails={false}
+                          />
                           </div>
-                          {discounted != null && discPercent > 0 && (
-                            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary whitespace-nowrap">
-                              {discPercent}% off
-                            </span>
-                          )}
-                        </CardTitle>
-                        {item.subtitle && (
-                          <p className="text-sm text-muted-foreground line-clamp-1">{item.subtitle}</p>
-                        )}
-                      </CardHeader>
-                      
-                      <CardContent className="grid gap-3">
-                        {item.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
-                        )}
-                        
-                        {/* Type-specific info */}
-                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                          
+                          <CardHeader className="w-full max-w-full min-w-0">
+                            <CardTitle className="flex items-center justify-between gap-2 w-full max-w-full min-w-0">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                {item.type === 'product' ? (
+                                  <Package className="h-4 w-4 text-muted-foreground shrink-0" />
+                                ) : (
+                                  <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
+                                )}
+                                <span className="line-clamp-1 break-words min-w-0">{item.name}</span>
+                              </div>
+                              {discounted != null && discPercent > 0 && (
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary whitespace-nowrap shrink-0">
+                                  {discPercent}% off
+                                </span>
+                              )}
+                            </CardTitle>
+                            {item.subtitle && (
+                              <p className="text-sm text-muted-foreground line-clamp-1 break-words">{item.subtitle}</p>
+                            )}
+                          </CardHeader>
+                          
+                          <CardContent className="grid gap-3 w-full max-w-full min-w-0">
+                            {item.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2 break-words">{item.description}</p>
+                            )}
+                            
+                            {/* Type-specific info */}
+                            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground w-full max-w-full min-w-0">
                           {/* Delivery indicator for food/grocery */}
                           {item.type === 'product' && (item as any).product_kind === 'prepared_food' && (
                             <div className="flex items-center gap-1 text-green-600">
@@ -743,13 +760,15 @@ export default function UnifiedCatalog() {
                             </Button>
                           )}
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
-           )}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
         </div>
       </main>
