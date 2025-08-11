@@ -42,6 +42,8 @@ iframe, embed, object {
 @media (max-width: 767px) {
   .flex > * { min-width: 0; }
   .grid > * { min-width: 0; }
+  /* Ensure Tailwind container never exceeds viewport on mobile */
+  .container { max-width: 100vw !important; padding-left: 0.75rem; padding-right: 0.75rem; }
 }
 
 /* Improve mobile scrolling behavior */

@@ -9,7 +9,7 @@ const Layout = ({ children }: PropsWithChildren) => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <SidebarInset>
+        <SidebarInset className="min-w-0 w-full overflow-x-hidden">
           <AppTopbar />
           <main className="flex-1 min-w-0">
             {children ?? <Outlet />}
