@@ -27,6 +27,7 @@ export default function VendorCalendar() {
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [date, setDate] = useState<Date>(new Date());
   const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [timeOffBlocks, setTimeOffBlocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingTimeOff, setSavingTimeOff] = useState(false);
   const [timeOffStart, setTimeOffStart] = useState<Date | undefined>();
@@ -85,17 +86,33 @@ export default function VendorCalendar() {
     const load = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
+        
+        // Load bookings
+        const { data: bookingsData, error: bookingsError } = await supabase
           .from("service_bookings")
           .select("id, service_id, scheduled_at, end_at, status")
           .eq("vendor_id", vendorId)
           .gte("scheduled_at", monthStart.toISOString())
           .lte("scheduled_at", monthEnd.toISOString())
           .order("scheduled_at", { ascending: true });
-        if (error) throw error;
+        if (bookingsError) throw bookingsError;
+
+        // Load time-off blocks for the current month
+        const { data: timeOffData, error: timeOffError } = await supabase
+          .from("service_time_off")
+          .select("*")
+          .eq("vendor_id", vendorId)
+          .gte("start_at", monthStart.toISOString())
+          .lte("end_at", monthEnd.toISOString())
+          .order("start_at", { ascending: true });
+        if (timeOffError) {
+          console.error("Failed to load time off blocks:", timeOffError);
+        } else {
+          setTimeOffBlocks(timeOffData || []);
+        }
 
         // fetch names for distinct services for minimal calls
-        const serviceIds = Array.from(new Set((data || []).map((b: any) => b.service_id).filter(Boolean)));
+        const serviceIds = Array.from(new Set((bookingsData || []).map((b: any) => b.service_id).filter(Boolean)));
         let nameMap: Record<string, string> = {};
         if (serviceIds.length) {
           const { data: svcRows } = await supabase
@@ -104,7 +121,7 @@ export default function VendorCalendar() {
             .in("id", serviceIds);
           (svcRows || []).forEach((s: any) => (nameMap[s.id] = s.name));
         }
-        setBookings((data || []).map((b: any) => ({ ...b, service_name: nameMap[b.service_id] })));
+        setBookings((bookingsData || []).map((b: any) => ({ ...b, service_name: nameMap[b.service_id] })));
 
         // Load all services for this vendor (for filter)
         const { data: svcList } = await supabase
@@ -611,6 +628,59 @@ export default function VendorCalendar() {
               </Button>
             </div>
           </div>
+          
+          {/* Display existing time-off blocks */}
+          {timeOffBlocks.length > 0 && (
+            <div className="mt-6 pt-6 border-t">
+              <h4 className="font-medium mb-4 flex items-center gap-2">
+                <Clock className="h-4 w-4"/>
+                Blocked Time Periods ({timeOffBlocks.length})
+              </h4>
+              <div className="space-y-3">
+                {timeOffBlocks.map((block) => (
+                  <div key={block.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <CalendarIcon className="h-3 w-3"/>
+                          {new Date(block.start_at).toLocaleDateString()}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3"/>
+                          {new Date(block.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {' — '}
+                          {new Date(block.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                      {block.reason && (
+                        <p className="text-xs text-muted-foreground mt-1">{block.reason}</p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          const { error } = await supabase
+                            .from("service_time_off")
+                            .delete()
+                            .eq("id", block.id);
+                          if (error) throw error;
+                          toast("Time off block removed");
+                          refresh();
+                        } catch (e: any) {
+                          toast("Failed to remove time off", { description: e.message });
+                        }
+                      }}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <XCircle className="h-4 w-4"/>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </main>
