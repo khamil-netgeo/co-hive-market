@@ -19,8 +19,9 @@ export default function PaymentSuccess() {
   const { clear } = useCart();
   const [shippingMethod, setShippingMethod] = useState<string | null>(null);
   const [awbNo, setAwbNo] = useState<string | null>(null);
-const [epOrderNo, setEpOrderNo] = useState<string | null>(null);
+  const [epOrderNo, setEpOrderNo] = useState<string | null>(null);
   const [bookingEvent, setBookingEvent] = useState<{ title: string; start: Date; end: Date } | null>(null);
+  const [serviceBookingId, setServiceBookingId] = useState<string | null>(null);
   useEffect(() => {
     setSEO(
       "Payment Success | CoopMarket",
@@ -32,6 +33,7 @@ const [epOrderNo, setEpOrderNo] = useState<string | null>(null);
         const params = new URLSearchParams(window.location.search);
         const sessionId = params.get("session_id");
         const bookingId = params.get("booking_id");
+        if (bookingId) setServiceBookingId(bookingId);
         if (!sessionId) {
           setVerifying(false);
           return;
@@ -311,6 +313,26 @@ const [epOrderNo, setEpOrderNo] = useState<string | null>(null);
                   }}
                 >
                   Download .ics
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    if (!serviceBookingId) {
+                      toast("No booking to email");
+                      return;
+                    }
+                    try {
+                      const { error } = await supabase.functions.invoke("send-service-invites", {
+                        body: { booking_id: serviceBookingId, send_to: "both" },
+                      });
+                      if (error) throw error;
+                      toast("Invites sent", { description: "Calendar invites emailed to buyer and vendor." });
+                    } catch (e: any) {
+                      toast("Email error", { description: e.message || String(e) });
+                    }
+                  }}
+                >
+                  Email calendar invites
                 </Button>
               </>
             )}
