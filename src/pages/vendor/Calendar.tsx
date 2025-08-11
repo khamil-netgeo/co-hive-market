@@ -187,6 +187,23 @@ export default function VendorCalendar() {
     return filteredBookings.map(b => b.scheduled_at ? new Date(b.scheduled_at) : null).filter(Boolean) as Date[];
   }, [filteredBookings]);
 
+  // Get days with time-off blocks for calendar highlighting
+  const blockedDays = useMemo(() => {
+    const days: Date[] = [];
+    timeOffBlocks.forEach(block => {
+      const start = new Date(block.start_at);
+      const end = new Date(block.end_at);
+      const current = new Date(start);
+      
+      // Add each day in the time-off period
+      while (current <= end) {
+        days.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      }
+    });
+    return days;
+  }, [timeOffBlocks]);
+
   // Build per-day unique service ids for colored dots
   const dayServiceMap = useMemo(() => {
     const map: Record<string, string[]> = {};
@@ -423,13 +440,20 @@ export default function VendorCalendar() {
               onSelect={(d) => d && setDate(d)}
               className="p-0 pointer-events-auto"
               modifiers={{
-                booked: bookedDays
+                booked: bookedDays,
+                blocked: blockedDays
               }}
               modifiersStyles={{
                 booked: { 
                   backgroundColor: 'hsl(var(--primary))', 
                   color: 'hsl(var(--primary-foreground))',
                   fontWeight: 'bold'
+                },
+                blocked: {
+                  backgroundColor: 'hsl(var(--destructive))',
+                  color: 'hsl(var(--destructive-foreground))',
+                  fontWeight: 'bold',
+                  textDecoration: 'line-through'
                 }
               }}
               month={date}
@@ -441,9 +465,15 @@ export default function VendorCalendar() {
             
             {/* Legend */}
             <div className="space-y-2 pt-3 border-t">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="w-3 h-3 rounded-full bg-primary"></div>
-                <span>Days with bookings</span>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-primary"></div>
+                  <span>Days with bookings</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-destructive"></div>
+                  <span>Blocked time</span>
+                </div>
               </div>
               {services.length > 0 && (
                 <div className="flex flex-wrap gap-2">
