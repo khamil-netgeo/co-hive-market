@@ -92,7 +92,7 @@ export default function AppSidebar() {
   ];
 
   return (
-    <Sidebar collapsible="icon" className={collapsed ? "w-14" : "w-60"}>
+    <Sidebar collapsible="icon" className="border-r">
       <SidebarHeader>
         <Link to="/" className="inline-flex items-center gap-2 p-2 hover:bg-accent/50 rounded-md transition-colors">
           <div className="h-7 w-7 rounded-md" style={{ background: 'var(--gradient-primary)' }} aria-hidden />
@@ -109,40 +109,45 @@ export default function AppSidebar() {
           <SidebarGroup>
             <CollapsibleTrigger asChild>
               <SidebarGroupLabel className="cursor-pointer flex items-center justify-between hover:bg-muted/50 px-2 py-1 rounded">
-                {collapsed ? <ShoppingBag className="h-4 w-4" /> : <>Shop <ChevronDown className="h-4 w-4" /></>}
+                {collapsed ? (
+                  <ShoppingBag className="h-4 w-4" />
+                ) : (
+                  <>
+                    Shop 
+                    <ChevronDown className="h-4 w-4" />
+                  </>
+                )}
               </SidebarGroupLabel>
             </CollapsibleTrigger>
-            {!collapsed && (
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {shopItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
-                          <NavLink 
-                            to={item.url} 
-                            className={({ isActive }) => {
-                              // Custom active logic for shop items with query params
-                              const isShopActive = currentPath === "/products" && (
-                                (item.url === "/products" && !searchParams.get('filter') && !searchParams.get('type')) ||
-                                (item.url.includes('filter=prepared_food') && searchParams.get('filter') === 'prepared_food') ||
-                                (item.url.includes('filter=grocery') && searchParams.get('filter') === 'grocery') ||
-                                (item.url.includes('type=services') && searchParams.get('type') === 'services')
-                              );
-                              const feedActive = currentPath === "/feed" && item.url === "/feed";
-                              return getNavCls({ isActive: isShopActive || feedActive || isActive });
-                            }}
-                          >
-                            <item.icon className="mr-2 h-4 w-4" />
-                            <span>{item.title}</span>
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            )}
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {shopItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink 
+                          to={item.url} 
+                          className={({ isActive }) => {
+                            // Custom active logic for shop items with query params
+                            const isShopActive = currentPath === "/products" && (
+                              (item.url === "/products" && !searchParams.get('filter') && !searchParams.get('type')) ||
+                              (item.url.includes('filter=prepared_food') && searchParams.get('filter') === 'prepared_food') ||
+                              (item.url.includes('filter=grocery') && searchParams.get('filter') === 'grocery') ||
+                              (item.url.includes('type=services') && searchParams.get('type') === 'services')
+                            );
+                            const feedActive = currentPath === "/feed" && item.url === "/feed";
+                            return getNavCls({ isActive: isShopActive || feedActive || isActive });
+                          }}
+                        >
+                          <item.icon className="mr-2 h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
           </SidebarGroup>
         </Collapsible>
 
@@ -164,7 +169,7 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {user && isVendor && !collapsed && (
+        {user && isVendor && (
           <Collapsible open={openSection === 'vendor'} onOpenChange={(open) => setOpenSection(open ? 'vendor' : null)}>
             <SidebarGroup>
               <CollapsibleTrigger asChild>
@@ -193,7 +198,7 @@ export default function AppSidebar() {
           </Collapsible>
         )}
 
-        {user && isRider && !collapsed && (
+        {user && isRider && (
           <Collapsible open={openSection === 'rider'} onOpenChange={(open) => setOpenSection(open ? 'rider' : null)}>
             <SidebarGroup>
               <CollapsibleTrigger asChild>
@@ -222,7 +227,7 @@ export default function AppSidebar() {
           </Collapsible>
         )}
 
-        {user && isSuperadmin && !collapsed && (
+        {user && isSuperadmin && (
           <Collapsible open={openSection === 'superadmin'} onOpenChange={(open) => setOpenSection(open ? 'superadmin' : null)}>
             <SidebarGroup>
               <CollapsibleTrigger asChild>
