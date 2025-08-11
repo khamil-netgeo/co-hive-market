@@ -4,19 +4,20 @@ import { useState } from "react";
 
 interface ShareButtonsProps {
   title: string;
+  url?: string;
   className?: string;
 }
 
-export default function ShareButtons({ title, className }: ShareButtonsProps) {
+export default function ShareButtons({ title, url, className }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? window.location.href : "";
+  const shareUrl = url ?? (typeof window !== "undefined" ? window.location.href : "");
 
   const onShare = async () => {
     try {
       if (navigator.share) {
-        await navigator.share({ title, url });
+        await navigator.share({ title, url: shareUrl });
       } else {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(shareUrl);
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       }
@@ -25,7 +26,7 @@ export default function ShareButtons({ title, className }: ShareButtonsProps) {
 
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {}

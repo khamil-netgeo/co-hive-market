@@ -240,7 +240,7 @@ export default function InlineShopFeed() {
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <LikeButton targetType={it.kind === "product" ? "product" : "service"} targetId={it.id} />
-                      <ShareButtons title={it.name} />
+                      <ShareButtons title={it.name} url={(typeof window !== 'undefined' ? window.location.origin : '') + `/${it.kind === 'product' ? 'product' : 'service'}/${it.id}` } />
                     </div>
                   </div>
                 </article>

@@ -371,7 +371,7 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                     )}
                   </div>
                   <div className="flex-shrink-0 self-start">
-                    <ShareButtons title={product.name} />
+                    <ShareButtons title={product.name} url={(typeof window !== 'undefined' ? window.location.origin : '') + `/product/${product.id}` } />
                   </div>
                 </div>
 
