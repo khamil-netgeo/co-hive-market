@@ -64,14 +64,14 @@ const Hero = ({ onGetStarted }: HeroProps) => {
           {/* Quick Actions */}
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button variant="hero" size="lg" className="group hover-lift" asChild>
-              <Link to="/catalog">
+              <Link to="/products">
                 <ShoppingBag className="h-4 w-4" /> 
                 Browse Products
                 <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
             <Button variant="secondary" size="lg" className="hover-lift" asChild>
-              <Link to="/services">
+              <Link to="/products?type=services">
                 <Wrench className="h-4 w-4" /> Book Services
               </Link>
             </Button>

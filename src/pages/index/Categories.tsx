@@ -71,7 +71,7 @@ const Categories = ({ onGetStarted }: CategoriesProps) => (
           className="border-white/20 bg-white/10 text-white hover:bg-white/20"
           asChild
         >
-          <Link to="/catalog">Browse Marketplace</Link>
+          <Link to="/products">Browse Marketplace</Link>
         </Button>
       </div>
     </div>

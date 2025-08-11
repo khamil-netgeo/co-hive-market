@@ -12,7 +12,7 @@ const Explore = () => (
     
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2 grid-fade-in">
       <div className="feature-card animate-fade-in-up">
-        <Link to="/catalog" className="block" aria-label="Go to product catalog">
+        <Link to="/products" className="block" aria-label="Go to product catalog">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
             <ShoppingBag className="h-6 w-6 text-primary" />
           </div>
@@ -28,7 +28,7 @@ const Explore = () => (
       </div>
       
       <div className="feature-card animate-fade-in-up">
-        <Link to="/services" className="block" aria-label="Go to services">
+        <Link to="/products?type=services" className="block" aria-label="Go to services">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
             <Wrench className="h-6 w-6 text-primary" />
           </div>

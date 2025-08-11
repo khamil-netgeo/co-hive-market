@@ -95,13 +95,14 @@ export default function UnifiedCatalog() {
   // Sync URL -> state and initial defaults
   useEffect(() => {
     const path = location.pathname;
-    const typeParam = searchParams.get('type');
-    const filterParam = searchParams.get('filter') || searchParams.get('kind');
-    const qParam = searchParams.get('q') || "";
-    const sortParam = searchParams.get('sort') as any;
-    const nearParam = searchParams.get('near');
-    const radiusParam = searchParams.get('radius');
-    const catParam = searchParams.get('category');
+    const sp = new URLSearchParams(location.search);
+    const typeParam = sp.get('type');
+    const filterParam = sp.get('filter') || sp.get('kind');
+    const qParam = sp.get('q') || "";
+    const sortParam = sp.get('sort') as any;
+    const nearParam = sp.get('near');
+    const radiusParam = sp.get('radius');
+    const catParam = sp.get('category');
     
     if (typeParam === 'services') setActiveTab('services');
     else if (typeParam === 'products') setActiveTab('products');
@@ -128,11 +129,11 @@ export default function UnifiedCatalog() {
 
     if (catParam) setCategoryFilter(catParam);
     else setCategoryFilter('all');
-  }, [location.pathname, searchParams]);
+  }, [location.pathname, location.search]);
 
   // Sync state -> URL
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(location.search);
     const prev = params.toString();
 
     if (activeTab === 'products') params.set('type', 'products');
@@ -161,7 +162,7 @@ export default function UnifiedCatalog() {
     if (next !== prev) {
       setSearchParams(params, { replace: true });
     }
-  }, [activeTab, productKindFilter, query, sort, useNearMe, radiusKm, categoryFilter, setSearchParams, searchParams]);
+  }, [activeTab, productKindFilter, query, sort, useNearMe, radiusKm, categoryFilter, setSearchParams, location.search]);
 
   const load = async () => {
     setLoading(true);

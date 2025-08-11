@@ -175,7 +175,7 @@ const FeaturedListings = () => {
             <p className="mt-2 text-muted-foreground">Book trusted professionals in your area</p>
           </div>
           <Button variant="outline" asChild>
-            <Link to="/services">
+            <Link to="/products?type=services">
               View All <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
@@ -198,7 +198,7 @@ const FeaturedListings = () => {
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-primary">{loading ? "" : fmt(s.price_cents, s.currency)}</span>
                     <Button size="sm" asChild>
-                      <Link to="/services">Book Now</Link>
+                      <Link to="/products?type=services">Book Now</Link>
                     </Button>
                   </div>
                 </CardContent>
