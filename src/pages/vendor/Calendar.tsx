@@ -361,9 +361,9 @@ export default function VendorCalendar() {
       </div>
 
       {/* Main Content */}
-      <div className="grid lg:grid-cols-5 gap-8">
+      <div className="grid xl:grid-cols-7 lg:grid-cols-5 md:grid-cols-3 gap-8">
         {/* Calendar */}
-        <Card className="lg:col-span-2 hover:shadow-md transition-shadow">
+        <Card className="xl:col-span-3 lg:col-span-2 md:col-span-2 col-span-full hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarIcon className="h-5 w-5"/>
@@ -507,7 +507,7 @@ export default function VendorCalendar() {
         </Card>
 
         {/* Daily Schedule */}
-        <Card className="lg:col-span-3 hover:shadow-md transition-shadow">
+        <Card className="xl:col-span-4 lg:col-span-3 md:col-span-1 col-span-full hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
