@@ -17,6 +17,7 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3 pointer-events-auto w-full block", className)}
+      style={{ ...props?.style, ["--rdp-cell-size" as any]: "calc((100% - 0rem) / 7)" }}
       classNames={{
         months: "w-full flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
