@@ -5,6 +5,7 @@ import useIsRider from "@/hooks/useIsRider";
 import useIsVendor from "@/hooks/useIsVendor";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MessageSquare, LifeBuoy } from "lucide-react";
 
 const SiteHeader = () => {
   const { user, isAdmin, isSuperadmin, signOut } = useAuthRoles();
@@ -19,7 +20,7 @@ const SiteHeader = () => {
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="inline-flex items-center gap-2">
           <div className="h-7 w-7 rounded-md bg-gradient-primary" aria-hidden />
-          <span className="text-lg font-semibold text-gradient-brand">CoopMarket</span>
+          <span className="hidden sm:inline text-lg font-semibold text-gradient-brand">CoopMarket</span>
         </Link>
         <nav className="hidden gap-6 md:flex">
           <Link to="/products" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Products</Link>
@@ -45,6 +46,16 @@ const SiteHeader = () => {
           )}
         </nav>
         <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/chat" aria-label="Chat with vendors">
+              <MessageSquare className="h-5 w-5" />
+            </Link>
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/support" aria-label="Support">
+              <LifeBuoy className="h-5 w-5" />
+            </Link>
+          </Button>
           {!user ? (
             <>
               <Button variant="ghost" asChild><Link to="/auth">Sign in</Link></Button>

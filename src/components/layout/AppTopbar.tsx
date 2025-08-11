@@ -6,7 +6,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import useIsVendor from "@/hooks/useIsVendor";
 import useIsRider from "@/hooks/useIsRider";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, MessageSquare, LifeBuoy } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import CommunitySelector from "@/components/community/CommunitySelector";
@@ -27,9 +27,6 @@ export default function AppTopbar() {
           <SidebarTrigger className="ml-0 shrink-0" />
           <Link to="/" className="flex items-center gap-2 sm:hidden">
             <div className="h-6 w-6 rounded-md" style={{ background: 'var(--gradient-primary)' }} aria-hidden />
-            <span className="text-base font-semibold bg-gradient-to-r from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))] bg-clip-text text-transparent">
-              CoopMarket
-            </span>
           </Link>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -37,6 +34,16 @@ export default function AppTopbar() {
           <div className="hidden sm:block">
             <CommunitySelector />
           </div>
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/chat" aria-label="Chat with vendors" className="shrink-0">
+              <MessageSquare className="h-5 w-5" />
+            </Link>
+          </Button>
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/support" aria-label="Support" className="shrink-0">
+              <LifeBuoy className="h-5 w-5" />
+            </Link>
+          </Button>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/cart" aria-label={`Cart (${count} items)`} className="shrink-0">
               <ShoppingCart className="h-5 w-5" />
