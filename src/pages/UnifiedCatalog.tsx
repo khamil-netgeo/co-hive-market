@@ -19,6 +19,7 @@ import { Package, Briefcase, MapPin, Clock, Star, ShoppingCart, Calendar, X, Cof
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { useCommunity } from "@/context/CommunityContext";
+import InlineShopFeed from "@/components/feed/InlineShopFeed";
 
 // Unified item interface
 interface CatalogItem {
@@ -615,7 +616,11 @@ export default function UnifiedCatalog() {
               </div>
             </div>
           </div>
-        </div>
+
+          {/* Inline Shop Feed */}
+          <div className="mt-4 sm:mt-6 w-full max-w-full min-w-0">
+            <InlineShopFeed />
+          </div>
 
           {/* Content */}
           <div className="w-full max-w-full min-w-0">
@@ -771,6 +776,7 @@ export default function UnifiedCatalog() {
           </div>
         </div>
         </div>
+      </div>
       </main>
     </>
   );
