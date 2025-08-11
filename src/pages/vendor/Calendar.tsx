@@ -26,6 +26,7 @@ interface BookingRow {
 export default function VendorCalendar() {
   const [vendorId, setVendorId] = useState<string | null>(null);
   const [date, setDate] = useState<Date>(new Date());
+  const [viewMonth, setViewMonth] = useState<Date>(new Date());
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [timeOffBlocks, setTimeOffBlocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,8 +79,8 @@ export default function VendorCalendar() {
     const svc = searchParams.get('service');
     if (svc) setSelectedServiceId(svc);
   }, [searchParams]);
-  const monthStart = useMemo(() => new Date(date.getFullYear(), date.getMonth(), 1), [date]);
-  const monthEnd = useMemo(() => new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59), [date]);
+  const monthStart = useMemo(() => new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1), [viewMonth]);
+  const monthEnd = useMemo(() => new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0, 23, 59, 59), [viewMonth]);
 
   useEffect(() => {
     if (!vendorId) return;
@@ -159,7 +160,7 @@ export default function VendorCalendar() {
   }, [vendorId]);
 
   const refresh = async () => {
-    setDate(new Date(date));
+    setViewMonth(new Date(viewMonth));
   };
 
   // Helper function to get status styling
@@ -390,11 +391,11 @@ export default function VendorCalendar() {
             {/* Month/Year Navigation */}
             <div className="flex items-center gap-3 pb-3 border-b">
               <Select
-                value={date.getMonth().toString()}
+                value={viewMonth.getMonth().toString()}
                 onValueChange={(value) => {
-                  const newDate = new Date(date);
-                  newDate.setMonth(parseInt(value));
-                  setDate(newDate);
+                  const newMonth = new Date(viewMonth);
+                  newMonth.setMonth(parseInt(value));
+                  setViewMonth(newMonth);
                 }}
               >
                 <SelectTrigger className="w-auto min-w-[120px]">
@@ -410,11 +411,11 @@ export default function VendorCalendar() {
               </Select>
               
               <Select
-                value={date.getFullYear().toString()}
+                value={viewMonth.getFullYear().toString()}
                 onValueChange={(value) => {
-                  const newDate = new Date(date);
-                  newDate.setFullYear(parseInt(value));
-                  setDate(newDate);
+                  const newMonth = new Date(viewMonth);
+                  newMonth.setFullYear(parseInt(value));
+                  setViewMonth(newMonth);
                 }}
               >
                 <SelectTrigger className="w-auto min-w-[100px]">
@@ -456,8 +457,8 @@ export default function VendorCalendar() {
                   textDecoration: 'line-through'
                 }
               }}
-              month={date}
-              onMonthChange={setDate}
+              month={viewMonth}
+              onMonthChange={setViewMonth}
               components={{
                 Caption: () => null, // Hide default caption since we have custom selects
               }}
