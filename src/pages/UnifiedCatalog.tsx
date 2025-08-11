@@ -466,19 +466,19 @@ export default function UnifiedCatalog() {
   return (
     <>
       <ShopSubnav />
-      <main className="container px-4 py-6 md:py-8">
-        <div className="space-y-6">
+      <main className="container px-2 py-4 sm:px-4 sm:py-6 md:py-8 min-w-0 overflow-hidden">
+        <div className="space-y-4 sm:space-y-6 w-full min-w-0">
         <div className="space-y-4">
           <Breadcrumbs items={breadcrumbItems} />
           
           <div className="flex flex-col gap-4">
-            <div>
-              <h1 className="text-3xl font-semibold">
+             <div className="min-w-0">
+               <h1 className="text-2xl sm:text-3xl font-semibold leading-tight">
                 {productKindFilter === 'prepared_food' ? 'Food & Dining' :
                  productKindFilter === 'grocery' ? 'Groceries' :
                  activeTab === 'services' ? 'Services' : 'Shop'}
               </h1>
-              <p className="mt-2 max-w-prose text-muted-foreground">
+              <p className="mt-2 text-sm sm:text-base text-muted-foreground leading-relaxed">
                 {productKindFilter === 'prepared_food' ? 'Fresh food delivered fast. Order from local restaurants and food vendors.' :
                  productKindFilter === 'grocery' ? 'Fresh groceries and daily essentials. Shop from local vendors and farmers.' :
                  activeTab === 'services' ? 'Book services with local providers. Professional services and experiences.' :
@@ -487,11 +487,11 @@ export default function UnifiedCatalog() {
             </div>
 
             {/* Active Filters */}
-            {(productKindFilter !== 'all' || activeTab === 'services') && (
-              <div className="flex flex-wrap items-center gap-2">
+             {(productKindFilter !== 'all' || activeTab === 'services') && (
+               <div className="flex flex-wrap items-center gap-2 w-full min-w-0">
                 <span className="text-sm text-muted-foreground">Filters:</span>
                 {productKindFilter === 'prepared_food' && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                   <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                     <Coffee className="h-3 w-3" />
                     Food & Dining
                     <button onClick={clearFilters} className="ml-1 hover:text-destructive">
@@ -500,7 +500,7 @@ export default function UnifiedCatalog() {
                   </Badge>
                 )}
                 {productKindFilter === 'grocery' && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                   <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                     <ShoppingCart className="h-3 w-3" />
                     Groceries
                     <button onClick={clearFilters} className="ml-1 hover:text-destructive">
@@ -509,7 +509,7 @@ export default function UnifiedCatalog() {
                   </Badge>
                 )}
                 {activeTab === 'services' && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                  <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                     <Briefcase className="h-3 w-3" />
                     Services
                     <button onClick={() => navigate('/products')} className="ml-1 hover:text-destructive">
@@ -541,64 +541,65 @@ export default function UnifiedCatalog() {
               className="w-full"
             />
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+             <div className="w-full space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {/* Location Filter (Products only) */}
               {(activeTab === "all" || activeTab === "products") && (
                 <>
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="near">Near me</Label>
-                    <Switch id="near" checked={useNearMe} onCheckedChange={setUseNearMe} />
-                  </div>
-                  <div className="col-span-full sm:col-span-1 lg:col-span-2">
-                    <div className="flex items-center gap-3 w-full">
-                      <Label className="whitespace-nowrap text-sm">Radius: {radiusKm}km</Label>
-                      <Slider
-                        value={[radiusKm]}
-                        onValueChange={(v) => setRadiusKm(v[0] ?? 10)}
-                        min={1}
-                        max={50}
-                        step={1}
-                        disabled={!loc}
-                        className="flex-1 min-w-0"
-                      />
-                    </div>
-                    {!loc && <span className="text-xs text-muted-foreground mt-1 block">Enable location</span>}
-                  </div>
+                   <div className="flex items-center gap-2 min-w-0">
+                     <Label htmlFor="near" className="text-sm whitespace-nowrap">Near me</Label>
+                     <Switch id="near" checked={useNearMe} onCheckedChange={setUseNearMe} />
+                   </div>
+                   <div className="col-span-full sm:col-span-1 lg:col-span-2 w-full min-w-0">
+                     <div className="flex items-center gap-3 w-full min-w-0">
+                       <Label className="whitespace-nowrap text-sm">Radius: {radiusKm}km</Label>
+                       <Slider
+                         value={[radiusKm]}
+                         onValueChange={(v) => setRadiusKm(v[0] ?? 10)}
+                         min={1}
+                         max={50}
+                         step={1}
+                         disabled={!loc}
+                         className="flex-1 min-w-0"
+                       />
+                     </div>
+                     {!loc && <span className="text-xs text-muted-foreground mt-1 block">Enable location</span>}
+                   </div>
                 </>
               )}
               
-              {/* Category Filter */}
-              <div className="flex items-center gap-2 min-w-0">
-                <Label className="whitespace-nowrap text-sm">Category</Label>
-                <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
-                  <SelectTrigger className="w-full min-w-[140px]">
-                    <SelectValue placeholder="All categories" />
-                  </SelectTrigger>
-                  <SelectContent className="z-50 bg-popover">
-                    <SelectItem value="all">All</SelectItem>
-                    {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+               {/* Category Filter */}
+               <div className="flex items-center gap-2 min-w-0">
+                 <Label className="whitespace-nowrap text-sm">Category</Label>
+                 <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v)}>
+                   <SelectTrigger className="w-full min-w-[120px] max-w-[160px]">
+                     <SelectValue placeholder="All categories" />
+                   </SelectTrigger>
+                   <SelectContent className="z-50 bg-popover">
+                     <SelectItem value="all">All</SelectItem>
+                     {categories.map((c) => (
+                       <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
+               </div>
 
-              {/* Sort */}
-              <div className="flex items-center gap-2 min-w-0">
-                <Label className="whitespace-nowrap text-sm">Sort</Label>
-                <Select value={sort} onValueChange={(v) => setSort(v as any)}>
-                  <SelectTrigger className="w-full min-w-[120px]">
-                    <SelectValue placeholder="Newest" />
-                  </SelectTrigger>
-                  <SelectContent className="z-50 bg-popover">
-                    <SelectItem value="newest">Newest</SelectItem>
-                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+               {/* Sort */}
+               <div className="flex items-center gap-2 min-w-0">
+                 <Label className="whitespace-nowrap text-sm">Sort</Label>
+                 <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+                   <SelectTrigger className="w-full min-w-[100px] max-w-[140px]">
+                     <SelectValue placeholder="Newest" />
+                   </SelectTrigger>
+                   <SelectContent className="z-50 bg-popover">
+                     <SelectItem value="newest">Newest</SelectItem>
+                     <SelectItem value="price_asc">Low to High</SelectItem>
+                     <SelectItem value="price_desc">High to Low</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+             </div>
+           </div>
 
           {/* Content */}
           {loading ? (
@@ -748,7 +749,8 @@ export default function UnifiedCatalog() {
                 );
               })}
             </div>
-          )}
+           )}
+        </div>
         </div>
       </main>
     </>
