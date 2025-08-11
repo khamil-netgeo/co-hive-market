@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ArrowRight } from "lucide-react";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
@@ -299,21 +300,23 @@ export default function Communities() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
               {communities.map((c) => (
-                <Card key={c.id} className="hover:shadow-md transition-shadow">
+                <Card key={c.id} className="hover:shadow-lg hover:bg-accent/5 transition-all duration-200 cursor-pointer group">
                   <CardHeader>
                     <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <Link to={`/communities/${c.id}`} className="hover:underline">{c.name}</Link>
+                      <Link to={`/communities/${c.id}`} className="hover:underline group-hover:text-primary transition-colors">{c.name}</Link>
                       <Badge variant="outline" className="self-start sm:self-auto">{c.member_discount_percent}% discount</Badge>
                     </CardTitle>
-                    <CardDescription>{c.description}</CardDescription>
+                    <CardDescription className="group-hover:text-foreground transition-colors">{c.description}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
                       <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'buyer')} disabled={!user} className="flex-1 min-w-[100px] sm:flex-none">Join as Buyer</Button>
                       <Button size="sm" onClick={() => handleJoin(c.id, 'vendor')} disabled={!user} className="flex-1 min-w-[100px] sm:flex-none">Join as Vendor</Button>
                       <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'delivery')} disabled={!user} className="flex-1 min-w-[100px] sm:flex-none">Join as Rider</Button>
-                      <Button size="sm" variant="ghost" asChild className="flex-1 min-w-[80px] sm:flex-none">
-                        <Link to={`/communities/${c.id}`}>View</Link>
+                      <Button size="sm" variant="ghost" asChild className="flex-1 min-w-[120px] sm:flex-none group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                        <Link to={`/communities/${c.id}`} className="flex items-center gap-1">
+                          View details <ArrowRight className="h-3 w-3" />
+                        </Link>
                       </Button>
                       {!user && (
                         <Button size="sm" variant="ghost" asChild className="flex-1 min-w-[80px] sm:flex-none">
