@@ -1,6 +1,7 @@
-import { NavLink, useLocation, useSearchParams } from "react-router-dom";
+import { NavLink, useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import { ShoppingBag, Coffee, ShoppingCart, Briefcase, Store } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 const shopItems = [
   { title: "All Products", url: "/products", icon: ShoppingBag },
@@ -13,6 +14,7 @@ const shopItems = [
 export default function ShopSubnav() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
 
   const getIsActive = (item: typeof shopItems[0]) => {
@@ -33,10 +35,28 @@ export default function ShopSubnav() {
     return false;
   };
 
+  const activeItem = shopItems.find((i) => getIsActive(i)) ?? shopItems[0];
+  const onChange = (value: string) => navigate(value);
+
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-16 z-40 w-full">
       <div className="container px-3 sm:px-4">
-        <div className="flex items-center space-x-6 overflow-x-auto no-scrollbar py-3 w-full">
+        {/* Mobile: dropdown */}
+        <div className="md:hidden py-2">
+          <Select value={activeItem.url} onValueChange={onChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Browse" />
+            </SelectTrigger>
+            <SelectContent className="z-50 bg-popover">
+              {shopItems.map((item) => (
+                <SelectItem key={item.title} value={item.url}>{item.title}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Desktop: tabs */}
+        <div className="hidden md:flex items-center space-x-6 overflow-x-auto no-scrollbar py-3 w-full">
           {shopItems.map((item) => {
             const isActive = getIsActive(item);
             return (
