@@ -104,6 +104,8 @@ export default function UnifiedCatalog() {
     const radiusParam = sp.get('radius');
     const catParam = sp.get('category');
     
+    console.log('URL→State sync:', { path, typeParam, filterParam, activeTab, productKindFilter });
+    
     if (typeParam === 'services') setActiveTab('services');
     else if (typeParam === 'products') setActiveTab('products');
     else if (path.includes('/services')) setActiveTab('services');
@@ -135,6 +137,8 @@ export default function UnifiedCatalog() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const prev = params.toString();
+    
+    console.log('State→URL sync:', { activeTab, productKindFilter, prev });
 
     if (activeTab === 'services') params.set('type', 'services');
     else params.delete('type');
@@ -158,10 +162,11 @@ export default function UnifiedCatalog() {
     else params.delete('category');
 
     const next = params.toString();
+    console.log('URL change:', { prev, next, willChange: next !== prev });
     if (next !== prev) {
       setSearchParams(params, { replace: true });
     }
-  }, [activeTab, productKindFilter, query, sort, useNearMe, radiusKm, categoryFilter, setSearchParams, location.search]);
+  }, [activeTab, productKindFilter, query, sort, useNearMe, radiusKm, categoryFilter]);
 
   const load = async () => {
     setLoading(true);
