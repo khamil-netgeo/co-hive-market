@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AvatarUploader from "@/components/common/AvatarUploader";
 import KycUploader from "@/components/kyc/KycUploader";
 import KycRequirements from "@/components/kyc/KycRequirements";
+import PayoutSettingsCard from "@/components/payout/PayoutSettingsCard";
 
 const RiderProfile = () => {
   const { isRider, loading: riderLoading } = useIsRider();
@@ -66,6 +67,7 @@ const RiderProfile = () => {
           <AvatarUploader title="Profile Photo" />
           <KycUploader />
           <KycRequirements role="rider" />
+          <PayoutSettingsCard title="Payout Settings" />
           <RiderProfileForm />
         </div>
       </section>

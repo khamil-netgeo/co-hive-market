@@ -13,6 +13,7 @@ import { Image as ImageIcon, Save } from "lucide-react";
 import { setSEO } from "@/lib/seo";
 import KycUploader from "@/components/kyc/KycUploader";
 import KycRequirements from "@/components/kyc/KycRequirements";
+import PayoutSettingsCard from "@/components/payout/PayoutSettingsCard";
 
 interface OpeningDay {
   open: string;
@@ -385,6 +386,8 @@ export default function VendorSettings() {
           </CardContent>
         </Card>
       </div>
+
+      <PayoutSettingsCard title="Payout Settings" />
 
       <Card className="mt-6">
         <CardHeader>

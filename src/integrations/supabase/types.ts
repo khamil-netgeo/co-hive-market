@@ -1793,6 +1793,48 @@ export type Database = {
           },
         ]
       }
+      user_payout_profiles: {
+        Row: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_name: string | null
+          created_at: string
+          ewallet_id: string | null
+          ewallet_provider: string | null
+          id: string
+          method: string
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          created_at?: string
+          ewallet_id?: string | null
+          ewallet_provider?: string | null
+          id?: string
+          method?: string
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_name?: string | null
+          created_at?: string
+          ewallet_id?: string | null
+          ewallet_provider?: string | null
+          id?: string
+          method?: string
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

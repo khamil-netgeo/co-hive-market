@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { usePayoutProfile, formatPayoutDetails } from "@/hooks/usePayoutProfile";
 
 interface PayoutRow {
   id: string;
@@ -36,10 +37,19 @@ export default function RiderPayouts() {
   const [notes, setNotes] = useState("");
   const [loadingData, setLoadingData] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const { profile } = usePayoutProfile();
+  const MIN_PAYOUT_CENTS = 1000; // MYR 10.00 minimum
 
   useEffect(() => {
     setSEO("Rider Payouts — CoopMarket", "Request payouts and view your rider earnings.");
   }, []);
+
+  useEffect(() => {
+    if (!notes && profile) {
+      const auto = formatPayoutDetails(profile);
+      if (auto) setNotes(auto);
+    }
+  }, [profile]);
 
   useEffect(() => {
     if (!loading && user) loadAll();
@@ -68,7 +78,11 @@ export default function RiderPayouts() {
     }
   };
 
-  const canRequest = useMemo(() => !!balances && balances.available_cents > 0, [balances]);
+  const canRequest = useMemo(() => {
+    if (!balances) return false;
+    const requestedCents = Math.round(Number(amount) * 100);
+    return requestedCents > 0 && requestedCents <= (balances?.available_cents || 0) && requestedCents >= MIN_PAYOUT_CENTS;
+  }, [balances, amount]);
 
   const submit = async () => {
     if (!user || !balances) return;
@@ -79,6 +93,10 @@ export default function RiderPayouts() {
     }
     if (requestedCents > balances.available_cents) {
       toast("Too high", { description: "Amount exceeds available balance." });
+      return;
+    }
+    if (requestedCents < MIN_PAYOUT_CENTS) {
+      toast("Below minimum", { description: `Minimum request is ${fmt(MIN_PAYOUT_CENTS, balances.currency || "MYR")}.` });
       return;
     }
     try {
@@ -176,11 +194,24 @@ export default function RiderPayouts() {
                   <Input type="number" min={0} step="0.01" value={amount}
                     onChange={(e) => setAmount(parseFloat(e.target.value))}
                     placeholder="0.00" />
-                  <div className="text-xs text-muted-foreground mt-1">Max: {fmt(balances?.available_cents || 0, balances?.currency || "MYR")}</div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Button type="button" size="sm" variant="outline" onClick={() => setAmount(Number((((balances?.available_cents||0)/100)*0.25).toFixed(2)))}>25%</Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => setAmount(Number((((balances?.available_cents||0)/100)*0.5).toFixed(2)))}>50%</Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => setAmount(Number((((balances?.available_cents||0)/100)*0.75).toFixed(2)))}>75%</Button>
+                    <Button type="button" size="sm" variant="secondary" onClick={() => setAmount(Number((((balances?.available_cents||0)/100)*1).toFixed(2)))}>Max</Button>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">Max: {fmt(balances?.available_cents || 0, balances?.currency || "MYR")} · Min: {fmt(MIN_PAYOUT_CENTS, balances?.currency || "MYR")}</div>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm mb-1">Notes (bank details or instructions)</label>
-                  <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g., Bank XYZ, Acc 1234" />
+                  <label className="block text-sm mb-1">Payout destination</label>
+                  <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={formatPayoutDetails(profile) || "e.g., Bank XYZ, Acc 1234"} />
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {formatPayoutDetails(profile) ? (
+                      <>Using saved details · <Link to="/rider/profile" className="underline">Edit payout details</Link></>
+                    ) : (
+                      <>No saved payout details · <Link to="/rider/profile" className="underline">Add in Profile</Link></>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="mt-4">
