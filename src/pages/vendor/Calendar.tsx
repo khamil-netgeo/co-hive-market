@@ -362,9 +362,9 @@ export default function VendorCalendar() {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-5 xl:grid-cols-7 gap-8">
         {/* Calendar */}
-        <Card className="min-w-0 hover:shadow-md transition-shadow">
+        <Card className="col-span-full md:col-span-1 lg:col-span-2 xl:col-span-3 min-w-0 hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarIcon className="h-5 w-5"/>
@@ -379,7 +379,7 @@ export default function VendorCalendar() {
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="All services" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50 bg-popover">
                   <SelectItem value="all">All services</SelectItem>
                   {services.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
@@ -401,7 +401,7 @@ export default function VendorCalendar() {
                 <SelectTrigger className="w-auto min-w-[120px]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50 bg-popover">
                   {Array.from({ length: 12 }, (_, i) => (
                     <SelectItem key={i} value={i.toString()}>
                       {new Date(0, i).toLocaleDateString(undefined, { month: 'long' })}
@@ -421,7 +421,7 @@ export default function VendorCalendar() {
                 <SelectTrigger className="w-auto min-w-[100px]">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50 bg-popover">
                   {Array.from({ length: 10 }, (_, i) => {
                     const year = new Date().getFullYear() - 2 + i;
                     return (
@@ -508,7 +508,7 @@ export default function VendorCalendar() {
         </Card>
 
         {/* Daily Schedule */}
-        <Card className="min-w-0 hover:shadow-md transition-shadow">
+        <Card className="col-span-full md:col-span-1 lg:col-span-3 xl:col-span-4 min-w-0 hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
