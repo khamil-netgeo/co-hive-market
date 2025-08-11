@@ -20,6 +20,9 @@ import { Link, useNavigate, useSearchParams, useLocation } from "react-router-do
 import { Badge } from "@/components/ui/badge";
 import { useCommunity } from "@/context/CommunityContext";
 import InlineShopFeed from "@/components/feed/InlineShopFeed";
+import ReviewSummary from "@/components/reviews/ReviewSummary";
+import SkeletonGrid from "@/components/common/SkeletonGrid";
+import MiniCartButton from "@/components/cart/MiniCartButton";
 
 // Unified item interface
 interface CatalogItem {
@@ -64,7 +67,7 @@ export default function UnifiedCatalog() {
   // Filters
   const [activeTab, setActiveTab] = useState<"all" | "products" | "services">("all");
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<"newest" | "price_asc" | "price_desc">("newest");
+  const [sort, setSort] = useState<"newest" | "nearest" | "price_asc" | "price_desc">("newest");
   const [useNearMe, setUseNearMe] = useState(true);
   const [radiusKm, setRadiusKm] = useState(10);
   const [loc, setLoc] = useState<{ lat: number; lng: number } | null>(null);
@@ -300,6 +303,13 @@ export default function UnifiedCatalog() {
     // Sort
     if (sort === "price_asc") result.sort((a, b) => (a.price_cents || 0) - (b.price_cents || 0));
     else if (sort === "price_desc") result.sort((a, b) => (b.price_cents || 0) - (a.price_cents || 0));
+    else if (sort === "nearest" && loc) {
+      const dist = (it: CatalogItem) =>
+        it.type === 'product' && it.pickup_lat != null && it.pickup_lng != null
+          ? haversineKm(loc.lat, loc.lng, it.pickup_lat, it.pickup_lng)
+          : Number.POSITIVE_INFINITY;
+      result.sort((a, b) => dist(a) - dist(b));
+    }
 
     return result;
   }, [items, activeTab, query, categoryFilter, productKindFilter, itemCats, useNearMe, loc, radiusKm, sort, searchParams, selected?.id]);
@@ -617,6 +627,31 @@ export default function UnifiedCatalog() {
             </div>
           </div>
 
+          {/* Sticky summary bar */}
+          <div className="sticky top-14 z-20 -mx-3 sm:-mx-4 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+            <div className="container px-3 sm:px-4 py-2 flex items-center justify-between gap-3">
+              <span className="text-sm text-muted-foreground">{filtered.length} item{filtered.length === 1 ? "" : "s"}</span>
+              <div className="flex items-center gap-2">
+                {loc ? (
+                  <Button variant="ghost" size="sm" onClick={() => setUseNearMe(!useNearMe)} className={useNearMe ? "text-primary" : ""}>
+                    <MapPin className="h-4 w-4 mr-1" /> Near me
+                  </Button>
+                ) : null}
+                <Select value={sort} onValueChange={(v) => setSort(v as any)}>
+                  <SelectTrigger className="h-8 w-[150px]">
+                    <SelectValue placeholder="Sort" />
+                  </SelectTrigger>
+                  <SelectContent className="z-50 bg-popover">
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="nearest">Nearest</SelectItem>
+                    <SelectItem value="price_asc">Low to High</SelectItem>
+                    <SelectItem value="price_desc">High to Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
           {/* Inline Shop Feed */}
           <div className="mt-4 sm:mt-6 w-full max-w-full min-w-0">
             <InlineShopFeed />
@@ -625,9 +660,7 @@ export default function UnifiedCatalog() {
           {/* Content */}
           <div className="w-full max-w-full min-w-0">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <span className="text-muted-foreground">Loading...</span>
-              </div>
+              <SkeletonGrid count={12} />
             ) : !filtered.length ? (
               <div className="rounded-md border bg-card p-4 sm:p-6 text-muted-foreground w-full max-w-full min-w-0">
                 <p className="break-words">No items found. Try adjusting your filters.</p>
@@ -644,7 +677,7 @@ export default function UnifiedCatalog() {
                         to={`/${item.type}/${item.id}`}
                         className="block w-full max-w-full min-w-0"
                       >
-                        <Card className="hover:shadow-elegant transition-shadow cursor-pointer group h-full w-full max-w-full min-w-0">
+                        <Card className="relative hover:shadow-elegant transition-shadow cursor-pointer group h-full w-full max-w-full min-w-0">
                           <div className="aspect-video w-full overflow-hidden rounded-t-lg">
                           <MediaGallery 
                             images={item.image_urls || []}
@@ -654,6 +687,22 @@ export default function UnifiedCatalog() {
                             showThumbnails={false}
                           />
                           </div>
+                          {item.type === 'product' && (
+                            <Button
+                              variant="secondary"
+                              size="icon"
+                              aria-label="Quick add to cart"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                addToCart(item);
+                              }}
+                              className="absolute top-2 right-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <ShoppingCart className="h-4 w-4" />
+                            </Button>
+                          )}
+
                           
                           <CardHeader className="w-full max-w-full min-w-0">
                             <CardTitle className="flex items-center justify-between gap-2 w-full max-w-full min-w-0">
@@ -674,6 +723,7 @@ export default function UnifiedCatalog() {
                             {item.subtitle && (
                               <p className="text-sm text-muted-foreground line-clamp-1 break-words">{item.subtitle}</p>
                             )}
+                            <ReviewSummary targetType={item.type} targetId={item.id} className="mt-1" />
                           </CardHeader>
                           
                           <CardContent className="grid gap-3 w-full max-w-full min-w-0">
@@ -684,8 +734,8 @@ export default function UnifiedCatalog() {
                             {/* Type-specific info */}
                             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground w-full max-w-full min-w-0">
                           {/* Delivery indicator for food/grocery */}
-                          {item.type === 'product' && (item as any).product_kind === 'prepared_food' && (
-                            <div className="flex items-center gap-1 text-green-600">
+                           {item.type === 'product' && (item as any).product_kind === 'prepared_food' && (
+                            <div className="flex items-center gap-1 text-primary">
                               <Truck className="h-3 w-3" />
                               <span>Hot delivery</span>
                             </div>
@@ -778,6 +828,7 @@ export default function UnifiedCatalog() {
         </div>
       </div>
       </main>
+      <MiniCartButton />
     </>
   );
 }
