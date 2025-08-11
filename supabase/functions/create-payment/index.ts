@@ -13,7 +13,10 @@ serve(async (req) => {
   }
 
   try {
-    const origin = req.headers.get("origin") || "https://pxuqymgvmyuomafjgjuz.supabase.co";
+    const headerOrigin = req.headers.get("origin");
+    const referer = req.headers.get("referer");
+    let origin = headerOrigin || (referer ? new URL(referer).origin : "");
+    if (!origin) origin = "https://pxuqymgvmyuomafjgjuz.supabase.co";
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseAnon = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
@@ -32,14 +35,17 @@ serve(async (req) => {
       name = "One-Time Purchase",
       amount_cents,
       currency = "usd",
-      success_path = "/",
-      cancel_path = "/",
+      success_path = "/payment-success",
+      cancel_path = "/payment-canceled",
       product_id,
       vendor_id,
       community_id,
       // Optional delivery metadata
       delivery_method,
       scheduled_dropoff_at,
+      // Optional service/booking metadata
+      service_id,
+      booking_id,
     } = body ?? {};
 
     if (!amount_cents || typeof amount_cents !== "number" || amount_cents <= 0) {
@@ -61,6 +67,10 @@ serve(async (req) => {
       if (customers.data.length > 0) customerId = customers.data[0].id;
     }
 
+    // Build success/cancel URLs and ensure we append the session_id correctly
+    const successUrl = `${origin}${success_path}${success_path.includes("?") ? "&" : "?"}session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${origin}${cancel_path}`;
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : userEmail,
@@ -75,8 +85,8 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${origin}${success_path}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}${cancel_path}`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         name: String(name),
         amount_cents: String(Math.round(amount_cents)),
@@ -86,6 +96,8 @@ serve(async (req) => {
         community_id: community_id ? String(community_id) : undefined,
         delivery_method: delivery_method ? String(delivery_method) : undefined,
         scheduled_dropoff_at: scheduled_dropoff_at ? String(scheduled_dropoff_at) : undefined,
+        service_id: service_id ? String(service_id) : undefined,
+        booking_id: booking_id ? String(booking_id) : undefined,
       },
     });
 

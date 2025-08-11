@@ -479,6 +479,8 @@ export default function UnifiedCatalog() {
           cancel_path: "/payment-canceled",
           vendor_id: service.vendor_id,
           community_id: communityId,
+          service_id: service.id,
+          booking_id: bookingId,
         },
       });
       if (error) throw error;

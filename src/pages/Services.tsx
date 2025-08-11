@@ -179,6 +179,8 @@ const [serviceCats, setServiceCats] = useState<Record<string, string[]>>({});
           cancel_path: "/payment-canceled",
           vendor_id: svc.vendor_id,
           community_id: communityId,
+          service_id: svc.id,
+          booking_id: bookingId,
         },
       });
       if (error) throw error;

@@ -215,6 +215,8 @@ export default function ServiceDetail() {
           cancel_path: "/payment-canceled",
           vendor_id: service.vendor_id,
           community_id: vendor?.community_id,
+          service_id: service.id,
+          booking_id: bookingId,
         },
       });
 
