@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Calendar as CalendarIcon, Plus, RefreshCcw, Clock, MapPin, User, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 
@@ -28,8 +29,8 @@ export default function VendorCalendar() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingTimeOff, setSavingTimeOff] = useState(false);
-  const [timeOffStart, setTimeOffStart] = useState<string>("");
-  const [timeOffEnd, setTimeOffEnd] = useState<string>("");
+  const [timeOffStart, setTimeOffStart] = useState<Date | undefined>();
+  const [timeOffEnd, setTimeOffEnd] = useState<Date | undefined>();
   const [timeOffReason, setTimeOffReason] = useState<string>("");
 
   const [services, setServices] = useState<{ id: string; name: string }[]>([]);
@@ -210,16 +211,14 @@ export default function VendorCalendar() {
     }
     try {
       setSavingTimeOff(true);
-      const start = new Date(timeOffStart);
-      const end = new Date(timeOffEnd);
-      if (end <= start) throw new Error("End must be after start");
+      if (timeOffEnd <= timeOffStart) throw new Error("End must be after start");
       const { error } = await supabase
         .from("service_time_off")
-        .insert({ vendor_id: vendorId, start_at: start.toISOString(), end_at: end.toISOString(), reason: timeOffReason || null });
+        .insert({ vendor_id: vendorId, start_at: timeOffStart.toISOString(), end_at: timeOffEnd.toISOString(), reason: timeOffReason || null });
       if (error) throw error;
       toast("Time off added successfully!");
-      setTimeOffStart("");
-      setTimeOffEnd("");
+      setTimeOffStart(undefined);
+      setTimeOffEnd(undefined);
       setTimeOffReason("");
       refresh();
     } catch (e: any) {
@@ -563,27 +562,21 @@ export default function VendorCalendar() {
         </CardHeader>
         <CardContent>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="to-start" className="text-sm font-medium">Start Date & Time</Label>
-              <Input 
-                id="to-start" 
-                type="datetime-local" 
-                value={timeOffStart} 
-                onChange={(e) => setTimeOffStart(e.target.value)}
-                className="w-full"
-              />
-            </div>
+            <DateTimePicker
+              value={timeOffStart}
+              onChange={setTimeOffStart}
+              label="Start Date & Time"
+              placeholder="Select start date and time"
+              disabled={savingTimeOff}
+            />
             
-            <div className="space-y-2">
-              <Label htmlFor="to-end" className="text-sm font-medium">End Date & Time</Label>
-              <Input 
-                id="to-end" 
-                type="datetime-local" 
-                value={timeOffEnd} 
-                onChange={(e) => setTimeOffEnd(e.target.value)}
-                className="w-full"
-              />
-            </div>
+            <DateTimePicker
+              value={timeOffEnd}
+              onChange={setTimeOffEnd}
+              label="End Date & Time"
+              placeholder="Select end date and time"
+              disabled={savingTimeOff}
+            />
             
             <div className="space-y-2">
               <Label htmlFor="to-reason" className="text-sm font-medium">Reason (Optional)</Label>
@@ -593,6 +586,7 @@ export default function VendorCalendar() {
                 onChange={(e) => setTimeOffReason(e.target.value)} 
                 placeholder="e.g., Holiday, Personal time"
                 className="w-full"
+                disabled={savingTimeOff}
               />
             </div>
             
