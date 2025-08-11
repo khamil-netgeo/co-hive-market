@@ -1,7 +1,7 @@
 project_id = "pxuqymgvmyuomafjgjuz"
 
 [functions.create-payment]
-verify_jwt = false
+verify_jwt = true
 
 [functions.create-checkout]
 verify_jwt = true
@@ -46,7 +46,10 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.create-embedded-checkout]
-verify_jwt = false
+verify_jwt = true
 
 [functions.rebroadcast-delivery]
+verify_jwt = true
+
+[functions.log-audit]
 verify_jwt = true

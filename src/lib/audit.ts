@@ -10,11 +10,17 @@ export async function logAudit(
   metadata?: Record<string, any>
 ) {
   try {
-    await supabase.from("audit_logs").insert({
-      action,
-      entity_type: entity_type ?? null,
-      entity_id: entity_id ?? null,
-      metadata: metadata ?? {},
+    // Ensure user is authenticated; edge function requires admin/superadmin
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session) return;
+
+    await supabase.functions.invoke("log-audit", {
+      body: {
+        action,
+        entity_type: entity_type ?? null,
+        entity_id: entity_id ?? null,
+        metadata: metadata ?? {},
+      },
     });
   } catch (e) {
     // noop
