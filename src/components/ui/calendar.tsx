@@ -17,10 +17,10 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3 pointer-events-auto w-full block", className)}
-      style={{ ...props?.style, ["--rdp-cell-size" as any]: "calc((100% - 0rem) / 7)" }}
+      style={{ ...props?.style, ["--rdp-cell-size" as any]: "clamp(36px, calc((100% - 1rem) / 7), 52px)" }}
       classNames={{
         months: "w-full flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-        month: "space-y-4",
+        month: "w-full space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm md:text-base font-medium",
         nav: "space-x-1 flex items-center",
@@ -36,10 +36,10 @@ function Calendar({
           "text-muted-foreground text-center rounded-md p-1 font-normal text-[0.8rem]",
         row: "grid grid-cols-7 w-full mt-2",
         cell:
-          "p-0 relative aspect-square text-center text-sm md:text-base [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+          "grid place-items-center p-0 text-center text-sm md:text-base [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-full w-full p-0 font-normal rounded-md aria-selected:opacity-100"
+          "h-[var(--rdp-cell-size)] w-[var(--rdp-cell-size)] p-0 font-normal rounded-md aria-selected:opacity-100"
         ),
         day_range_end: "day-range-end",
         day_selected:
