@@ -34,9 +34,9 @@ export default function ShopSubnav() {
   };
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-16 z-40">
-      <div className="container px-4">
-        <div className="flex items-center space-x-6 overflow-x-auto no-scrollbar py-3 -mx-1 px-1">
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-16 z-40 w-full">
+      <div className="container px-3 sm:px-4">
+        <div className="flex items-center space-x-6 overflow-x-auto no-scrollbar py-3 w-full">
           {shopItems.map((item) => {
             const isActive = getIsActive(item);
             return (
@@ -50,8 +50,8 @@ export default function ShopSubnav() {
                     : "text-muted-foreground"
                 )}
               >
-                <item.icon className="h-4 w-4" />
-                <span>{item.title}</span>
+                <item.icon className="h-4 w-4 shrink-0" />
+                <span className="truncate">{item.title}</span>
               </NavLink>
             );
           })}
