@@ -23,6 +23,7 @@ import InlineShopFeed from "@/components/feed/InlineShopFeed";
 import ReviewSummary from "@/components/reviews/ReviewSummary";
 import SkeletonGrid from "@/components/common/SkeletonGrid";
 import MiniCartButton from "@/components/cart/MiniCartButton";
+import CatalogQuickView from "@/components/catalog/CatalogQuickView";
 
 // Unified item interface
 interface CatalogItem {
@@ -61,7 +62,7 @@ export default function UnifiedCatalog() {
   const [loading, setLoading] = useState(true);
   const cart = useCart();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   
   // Filters
@@ -91,29 +92,76 @@ export default function UnifiedCatalog() {
     );
   }, []);
 
-  // Set default tab and filters based on URL parameters
+  // Sync URL -> state and initial defaults
   useEffect(() => {
     const path = location.pathname;
     const typeParam = searchParams.get('type');
-    const filterParam = searchParams.get('filter');
+    const filterParam = searchParams.get('filter') || searchParams.get('kind');
+    const qParam = searchParams.get('q') || "";
+    const sortParam = searchParams.get('sort') as any;
+    const nearParam = searchParams.get('near');
+    const radiusParam = searchParams.get('radius');
+    const catParam = searchParams.get('category');
     
-    if (typeParam === 'services') {
-      setActiveTab('services');
-    } else if (path.includes('/services')) {
-      setActiveTab('services');
-    } else if (path.includes('/products') || filterParam) {
-      setActiveTab('products');
+    if (typeParam === 'services') setActiveTab('services');
+    else if (typeParam === 'products') setActiveTab('products');
+    else if (path.includes('/services')) setActiveTab('services');
+    else if (path.includes('/products') || filterParam) setActiveTab('products');
+    else setActiveTab('all');
+
+    if (filterParam === 'prepared_food' || filterParam === 'grocery') setProductKindFilter(filterParam);
+    else setProductKindFilter('all');
+
+    setQuery(qParam);
+
+    if (sortParam === 'nearest' || sortParam === 'price_asc' || sortParam === 'price_desc' || sortParam === 'newest') {
+      setSort(sortParam);
     } else {
-      setActiveTab('all');
+      setSort('newest');
     }
 
-    // Apply product_kind filter from URL
-    if (filterParam === 'prepared_food' || filterParam === 'grocery') {
-      setProductKindFilter(filterParam);
-    } else {
-      setProductKindFilter('all');
+    if (nearParam != null) setUseNearMe(nearParam === '1' || nearParam === 'true');
+    if (radiusParam) {
+      const r = parseInt(radiusParam, 10);
+      if (!Number.isNaN(r)) setRadiusKm(Math.min(50, Math.max(1, r)));
     }
+
+    if (catParam) setCategoryFilter(catParam);
+    else setCategoryFilter('all');
   }, [location.pathname, searchParams]);
+
+  // Sync state -> URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    const prev = params.toString();
+
+    if (activeTab === 'products') params.set('type', 'products');
+    else if (activeTab === 'services') params.set('type', 'services');
+    else params.delete('type');
+
+    if (productKindFilter !== 'all') params.set('filter', productKindFilter);
+    else params.delete('filter');
+
+    if (query.trim()) params.set('q', query.trim());
+    else params.delete('q');
+
+    if (sort !== 'newest') params.set('sort', sort);
+    else params.delete('sort');
+
+    if (useNearMe) params.set('near', '1');
+    else params.delete('near');
+
+    if (useNearMe && radiusKm !== 10) params.set('radius', String(radiusKm));
+    else params.delete('radius');
+
+    if (categoryFilter !== 'all') params.set('category', categoryFilter);
+    else params.delete('category');
+
+    const next = params.toString();
+    if (next !== prev) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [activeTab, productKindFilter, query, sort, useNearMe, radiusKm, categoryFilter, setSearchParams, searchParams]);
 
   const load = async () => {
     setLoading(true);
@@ -801,6 +849,11 @@ export default function UnifiedCatalog() {
                                 variant="outline" 
                                 size="sm"
                                 className="text-xs"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setSelectedItem(item);
+                                }}
                               >
                                 View details →
                               </Button>
@@ -810,6 +863,11 @@ export default function UnifiedCatalog() {
                               variant="outline" 
                               size="sm"
                               className="w-full text-xs"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelectedItem(item);
+                              }}
                             >
                               View & book →
                             </Button>
@@ -828,6 +886,17 @@ export default function UnifiedCatalog() {
         </div>
       </div>
       </main>
+      <CatalogQuickView
+        open={!!selectedItem}
+        onOpenChange={(o) => { if (!o) setSelectedItem(null); }}
+        item={selectedItem}
+        onAddToCart={(it) => addToCart(it as any)}
+        discountedCents={selectedItem ? memberPrice(selectedItem) : null}
+        discountPercent={selectedItem ? effectiveDiscountPercent(selectedItem) : 0}
+        distanceKm={selectedItem && selectedItem.type === 'product' && loc && selectedItem.pickup_lat != null && selectedItem.pickup_lng != null
+          ? haversineKm(loc.lat, loc.lng, selectedItem.pickup_lat, selectedItem.pickup_lng)
+          : null}
+      />
       <MiniCartButton />
     </>
   );
