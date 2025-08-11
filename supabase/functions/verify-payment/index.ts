@@ -76,31 +76,75 @@ serve(async (req) => {
       });
     }
 
-    // Extract order context from metadata; fallback to product lookup when possible
+    // Extract minimal metadata; never trust client for amount/currency
     const md = (session.metadata || {}) as Record<string, string | undefined>;
-    let vendor_id = md.vendor_id;
-    let community_id = md.community_id;
-    let amount_cents = md.amount_cents ? parseInt(md.amount_cents) : undefined;
-    let currency = md.currency ?? undefined;
 
-    if ((!vendor_id || !community_id || !amount_cents || !currency) && md.product_id) {
+    // Determine vendor and community from trusted sources (snapshot -> product/vendor lookup)
+    let vendor_id: string | undefined;
+    let community_id: string | undefined;
+
+    const snapshotId = md.snapshot_id as string | undefined;
+    const productId = md.product_id as string | undefined;
+
+    if (snapshotId) {
+      // Load snapshot and ensure it belongs to the authenticated user
+      const { data: snap, error: snapErr } = await service
+        .from("cart_snapshots")
+        .select("user_id, items, vendor_id")
+        .eq("id", snapshotId)
+        .maybeSingle();
+      if (snapErr) throw snapErr;
+      if (!snap || snap.user_id !== user.id) {
+        return new Response(JSON.stringify({ error: "Invalid snapshot" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      vendor_id = (snap as any).vendor_id || undefined;
+
+      if (!vendor_id) {
+        // Derive vendor/community from first product in snapshot
+        const items = ((snap as any).items as Array<any>) || [];
+        const firstPid = items[0]?.product_id as string | undefined;
+        if (firstPid) {
+          const { data: prod, error: pErr } = await service
+            .from("products")
+            .select("vendor_id, community_id")
+            .eq("id", firstPid)
+            .maybeSingle();
+          if (pErr) throw pErr;
+          vendor_id = (prod as any)?.vendor_id || undefined;
+          community_id = (prod as any)?.community_id || undefined;
+        }
+      }
+
+      if (vendor_id && !community_id) {
+        // Resolve community by vendor
+        const { data: vend } = await service
+          .from("vendors")
+          .select("community_id")
+          .eq("id", vendor_id)
+          .maybeSingle();
+        community_id = (vend as any)?.community_id || community_id;
+      }
+    } else if (productId) {
       const { data: product, error: pErr } = await service
         .from("products")
-        .select("vendor_id, community_id, price_cents, currency")
-        .eq("id", md.product_id)
+        .select("vendor_id, community_id")
+        .eq("id", productId)
         .maybeSingle();
       if (pErr) throw pErr;
-      if (product) {
-        vendor_id = vendor_id || product.vendor_id;
-        community_id = community_id || product.community_id;
-        amount_cents = amount_cents || product.price_cents;
-        currency = currency || product.currency;
-      }
+      vendor_id = (product as any)?.vendor_id || undefined;
+      community_id = (product as any)?.community_id || undefined;
     }
+
+    // Amount and currency must come from Stripe session
+    const amount_cents = typeof session.amount_total === "number" ? session.amount_total : 0;
+    const currency = (session.currency || "usd").toLowerCase();
 
     if (!vendor_id || !community_id || !amount_cents || !currency) {
       return new Response(
-        JSON.stringify({ error: "Missing order context (vendor/community/amount/currency)" }),
+        JSON.stringify({ error: "Missing order context (vendor/community) or invalid Stripe totals" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -181,27 +225,31 @@ serve(async (req) => {
     ]);
     if (ledgerErr) throw ledgerErr;
 
-    // Persist line items from cart snapshot, if available
+    // Persist line items from cart snapshot, if available (only if owned by buyer)
     try {
       const snapshotId = (md as any)?.snapshot_id as string | undefined;
       if (snapshotId) {
         const { data: snap } = await service
           .from("cart_snapshots")
-          .select("items")
+          .select("items, user_id")
           .eq("id", snapshotId)
           .maybeSingle();
-        const items = (snap as any)?.items as Array<any> | undefined;
-        if (Array.isArray(items) && items.length > 0) {
-          const rows = items.map((it) => ({
-            order_id: order.id,
-            product_id: String(it.product_id),
-            quantity: Math.max(1, Number(it.quantity || 1)),
-            unit_price_cents: Math.max(0, Math.round(Number(it.price_cents || 0))),
-          }));
-          await service.from("order_items").insert(rows as any);
+        if ((snap as any)?.user_id !== user.id) {
+          console.warn("Snapshot does not belong to buyer; skipping items insert");
+        } else {
+          const items = (snap as any)?.items as Array<any> | undefined;
+          if (Array.isArray(items) && items.length > 0) {
+            const rows = items.map((it) => ({
+              order_id: order.id,
+              product_id: String(it.product_id),
+              quantity: Math.max(1, Number(it.quantity || 1)),
+              unit_price_cents: Math.max(0, Math.round(Number(it.price_cents || 0))),
+            }));
+            await service.from("order_items").insert(rows as any);
+          }
         }
         // Best-effort cleanup (non-blocking)
-        (globalThis as any).EdgeRuntime?.waitUntil?.(
+        ;(globalThis as any).EdgeRuntime?.waitUntil?.(
           service.from("cart_snapshots").delete().eq("id", snapshotId)
         );
       }
