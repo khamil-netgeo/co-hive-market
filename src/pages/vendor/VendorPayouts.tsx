@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { usePayoutProfile, formatPayoutDetails } from "@/hooks/usePayoutProfile";
+import { usePayoutSettings } from "@/hooks/usePayoutSettings";
 
 interface Vendor { id: string; display_name: string }
 interface PayoutRow {
@@ -41,7 +42,8 @@ export default function VendorPayouts() {
   const [submitting, setSubmitting] = useState(false);
 
   const { profile, loading: payoutLoading } = usePayoutProfile();
-  const MIN_PAYOUT_CENTS = 1000; // MYR 10.00 minimum
+  const { getMinPayoutCents } = usePayoutSettings();
+  const MIN_PAYOUT_CENTS = getMinPayoutCents("vendor");
 
   useEffect(() => {
     setSEO("Vendor Payouts — CoopMarket", "Request payouts and see your available balance.");
@@ -55,7 +57,25 @@ export default function VendorPayouts() {
   }, [profile]);
 
   useEffect(() => {
-    if (!loading && user) loadAll();
+    if (!loading && user) {
+      loadAll();
+      
+      // Set up realtime subscription for payout updates
+      const payoutChannel = supabase
+        .channel('vendor-payout-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'payouts'
+        }, () => {
+          loadAll();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(payoutChannel);
+      };
+    }
   }, [loading, user]);
 
   const loadAll = async () => {

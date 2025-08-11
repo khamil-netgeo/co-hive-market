@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { usePayoutProfile, formatPayoutDetails } from "@/hooks/usePayoutProfile";
+import { usePayoutSettings } from "@/hooks/usePayoutSettings";
 
 interface PayoutRow {
   id: string;
@@ -38,7 +39,8 @@ export default function RiderPayouts() {
   const [loadingData, setLoadingData] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const { profile } = usePayoutProfile();
-  const MIN_PAYOUT_CENTS = 1000; // MYR 10.00 minimum
+  const { getMinPayoutCents } = usePayoutSettings();
+  const MIN_PAYOUT_CENTS = getMinPayoutCents("rider");
 
   useEffect(() => {
     setSEO("Rider Payouts — CoopMarket", "Request payouts and view your rider earnings.");
@@ -52,7 +54,25 @@ export default function RiderPayouts() {
   }, [profile]);
 
   useEffect(() => {
-    if (!loading && user) loadAll();
+    if (!loading && user) {
+      loadAll();
+      
+      // Set up realtime subscription for rider payout updates
+      const payoutChannel = supabase
+        .channel('rider-payout-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'rider_payouts'
+        }, () => {
+          loadAll();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(payoutChannel);
+      };
+    }
   }, [loading, user]);
 
   const loadAll = async () => {

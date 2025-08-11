@@ -1101,6 +1101,7 @@ export type Database = {
           notes: string | null
           paid_at: string | null
           paid_by: string | null
+          proof_path: string | null
           reference: string | null
           requested_by: string
           status: string
@@ -1118,6 +1119,7 @@ export type Database = {
           notes?: string | null
           paid_at?: string | null
           paid_by?: string | null
+          proof_path?: string | null
           reference?: string | null
           requested_by: string
           status?: string
@@ -1135,6 +1137,7 @@ export type Database = {
           notes?: string | null
           paid_at?: string | null
           paid_by?: string | null
+          proof_path?: string | null
           reference?: string | null
           requested_by?: string
           status?: string
