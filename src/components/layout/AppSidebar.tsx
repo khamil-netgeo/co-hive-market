@@ -34,15 +34,12 @@ const shopItems = [
 ];
 
 const vendorItems = [
-  { title: "Overview", url: "/vendor/dashboard", icon: LayoutGrid },
-  { title: "Creator Studio", url: "/vendor/creator", icon: Megaphone },
-  { title: "Listings", url: "/vendor/listings", icon: Briefcase },
-  { title: "Products", url: "/vendor/products", icon: Package },
-  { title: "Services", url: "/vendor/services", icon: Briefcase },
+  { title: "Dashboard", url: "/vendor/dashboard", icon: LayoutGrid },
+  { title: "Manage Listings", url: "/vendor/listings", icon: Package },
   { title: "Orders", url: "/vendor/orders", icon: ListOrdered },
   { title: "Analytics", url: "/vendor/analytics", icon: BarChart3 },
   { title: "Payouts", url: "/vendor/payouts", icon: Wallet },
-  { title: "Store Settings", url: "/vendor/store-settings", icon: Settings },
+  { title: "Settings", url: "/vendor/settings", icon: Settings },
 ];
 
 const riderItems = [

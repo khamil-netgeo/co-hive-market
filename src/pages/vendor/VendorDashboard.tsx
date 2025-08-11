@@ -1,396 +1,376 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Package, Edit, Trash2, Eye, Briefcase } from "lucide-react";
-import { setSEO } from "@/lib/seo";
-import useAuthRoles from "@/hooks/useAuthRoles";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
-import ProductImage from "@/components/product/ProductImage";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { setSEO } from "@/lib/seo";
+import { Package, ListOrdered, BarChart3, Wallet, Plus, Eye, Pencil } from "lucide-react";
+import MediaGallery from "@/components/common/MediaGallery";
 
 interface Product {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   price_cents: number;
-  currency: string;
   status: string;
-  created_at: string;
   image_urls?: string[] | null;
-  video_url?: string | null;
 }
 
 interface Service {
   id: string;
   name: string;
+  subtitle?: string | null;
   description: string | null;
   price_cents: number;
-  currency: string;
   status: string;
-  created_at: string;
+  image_urls?: string[] | null;
 }
 
 interface Vendor {
   id: string;
-  display_name: string;
+  display_name: string | null;
   community_id: string;
 }
 
-const VendorDashboard = () => {
-  const { user, loading } = useAuthRoles();
-  const navigate = useNavigate();
+export default function VendorDashboard() {
+  const { user } = useAuthRoles();
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setSEO(
-      "Vendor Dashboard — CoopMarket",
-      "Manage your products and services in the community marketplace."
-    );
-    
-    if (user && !loading) {
+    setSEO("Vendor Dashboard — Overview", "Manage your listings and track performance");
+  }, []);
+
+  useEffect(() => {
+    if (user?.id) {
       fetchVendorData();
     }
-  }, [user, loading]);
+  }, [user?.id]);
 
   const fetchVendorData = async () => {
-    if (!user) return;
-
     try {
-      // Get vendor profile
       const { data: vendorData, error: vendorError } = await supabase
         .from("vendors")
-        .select("*")
-        .eq("user_id", user.id)
+        .select("id, display_name, community_id")
+        .eq("user_id", user?.id)
         .maybeSingle();
 
       if (vendorError) throw vendorError;
-
+      
       if (!vendorData) {
-        toast.error("You don't have a vendor profile. Please join as a vendor first.");
-        navigate("/getting-started");
+        toast.error("No vendor profile found. Please complete vendor onboarding.");
         return;
       }
 
-      setVendor(vendorData);
+      setVendor(vendorData as Vendor);
 
-      // Get vendor's products
-      const { data: productsData, error: productsError } = await supabase
-        .from("products")
-        .select("*")
-        .eq("vendor_id", vendorData.id)
-        .order("created_at", { ascending: false });
+      // Fetch products and services in parallel
+      const [productsRes, servicesRes] = await Promise.all([
+        supabase
+          .from("products")
+          .select("id, name, description, price_cents, status, image_urls")
+          .eq("vendor_id", vendorData.id)
+          .order("created_at", { ascending: false })
+          .limit(6),
+        supabase
+          .from("vendor_services")
+          .select("id, name, subtitle, description, price_cents, status, image_urls")
+          .eq("vendor_id", vendorData.id)
+          .order("created_at", { ascending: false })
+          .limit(6),
+      ]);
 
-      if (productsError) throw productsError;
-      setProducts(productsData || []);
+      if (productsRes.error) throw productsRes.error;
+      if (servicesRes.error) throw servicesRes.error;
 
-      // Get vendor's services
-      const { data: servicesData, error: servicesError } = await supabase
-        .from("vendor_services")
-        .select("*")
-        .eq("vendor_id", vendorData.id)
-        .order("created_at", { ascending: false });
-      if (servicesError) throw servicesError;
-      setServices(servicesData || []);
-    } catch (error) {
+      setProducts(productsRes.data as Product[]);
+      setServices(servicesRes.data as Service[]);
+    } catch (error: any) {
       console.error("Error fetching vendor data:", error);
       toast.error("Failed to load vendor data");
     } finally {
-      setLoadingData(false);
+      setLoading(false);
     }
   };
 
-  const handleDeleteProduct = async (productId: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-
-    try {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", productId);
-
-      if (error) throw error;
-
-      setProducts(products.filter(p => p.id !== productId));
-      toast.success("Product deleted successfully");
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      toast.error("Failed to delete product");
-    }
-  };
-
-  const formatPrice = (cents: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+  const formatPrice = (cents: number, currency = "MYR") => {
+    return new Intl.NumberFormat("en-MY", {
+      style: "currency",
       currency: currency.toUpperCase(),
     }).format(cents / 100);
   };
 
-  if (loading || loadingData) {
+  if (!user) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading...</div>
-      </div>
+      <main className="container py-8">
+        <p>Please log in to access the vendor dashboard.</p>
+      </main>
     );
   }
 
-  if (!user) {
-    navigate("/auth");
-    return null;
+  if (loading) {
+    return (
+      <main className="container py-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-muted rounded w-1/3"></div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-32 bg-muted rounded"></div>
+            ))}
+          </div>
+        </div>
+      </main>
+    );
   }
 
   if (!vendor) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <main className="container py-8">
         <Card>
-          <CardHeader>
-            <CardTitle>No Vendor Profile Found</CardTitle>
-            <CardDescription>
-              You need to join as a vendor to access this dashboard.
-            </CardDescription>
+          <CardContent className="py-8 text-center">
+            <h2 className="text-xl font-semibold mb-2">No Vendor Profile Found</h2>
+            <p className="text-muted-foreground mb-4">
+              You need to complete vendor onboarding to access the dashboard.
+            </p>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
+  const activeProducts = products.filter((p) => p.status === "active").length;
+  const activeServices = services.filter((s) => s.status === "active").length;
+
+  return (
+    <main className="container py-8 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gradient-brand">Vendor Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back, {vendor.display_name || "Vendor"}!
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button asChild variant="tiktok">
+            <Link to="/vendor/products/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Link>
+          </Button>
+          <Button asChild variant="hero">
+            <Link to="/vendor/services/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Service
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Overview */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <Button asChild>
-              <Link to="/getting-started">Join as Vendor</Link>
+            <div className="text-2xl font-bold">{products.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {activeProducts} active
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Services</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{services.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {activeServices} active
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Quick Links</CardTitle>
+            <ListOrdered className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button variant="outline" size="sm" asChild className="w-full justify-start">
+              <Link to="/vendor/orders">View Orders</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Performance</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button variant="outline" size="sm" asChild className="w-full justify-start">
+              <Link to="/vendor/analytics">View Analytics</Link>
             </Button>
           </CardContent>
         </Card>
       </div>
-    );
-  }
 
-  return (
-    <div className="container mx-auto px-4 py-6">
-
-      <div className="flex flex-col sm:flex-row gap-2 justify-end mt-4 mb-6">
-        <Button asChild className="w-full sm:w-auto">
-          <Link to="/vendor/products/new" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Product
-          </Link>
-        </Button>
-        <Button variant="secondary" asChild className="w-full sm:w-auto">
-          <Link to="/vendor/services/new" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Service
-          </Link>
-        </Button>
-        <Button variant="outline" asChild className="w-full sm:w-auto">
-          <Link to="/vendor/orders" className="flex items-center gap-2">
-            Manage Orders
-          </Link>
-        </Button>
-        <Button variant="outline" asChild className="w-full sm:w-auto">
-          <Link to="/vendor/analytics" className="flex items-center gap-2">
-            View Analytics
-          </Link>
-        </Button>
-        <Button variant="outline" asChild className="w-full sm:w-auto">
-          <Link to="/vendor/services" className="flex items-center gap-2">
-            Manage Services
-          </Link>
-        </Button>
-        <Button variant="outline" asChild className="w-full sm:w-auto">
-          <Link to="/vendor/payouts" className="flex items-center gap-2">
-            Payouts
-          </Link>
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Package className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{products.length}</p>
-                <p className="text-sm text-muted-foreground">Total Products</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <Eye className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {products.filter(p => p.status === 'active').length}
-                </p>
-                <p className="text-sm text-muted-foreground">Active Products</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-orange-500/10">
-                <Briefcase className="h-6 w-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{services.length}</p>
-                <p className="text-sm text-muted-foreground">Total Services</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <Briefcase className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{services.filter(s => s.status === 'active').length}</p>
-                <p className="text-sm text-muted-foreground">Active Services</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Products</CardTitle>
-          <CardDescription>
-            Manage your product listings and inventory
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {products.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+      {/* Recent Products */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Recent Products</h2>
+          <Button variant="outline" asChild>
+            <Link to="/vendor/listings?type=products">View All</Link>
+          </Button>
+        </div>
+        
+        {products.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No products yet</h3>
               <p className="text-muted-foreground mb-4">
-                Start by creating your first product listing
+                Start by adding your first product to begin selling.
               </p>
               <Button asChild>
-                <Link to="/vendor/products/new">Create Product</Link>
+                <Link to="/vendor/products/new">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Product
+                </Link>
               </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex flex-col sm:flex-row items-start gap-4 p-4 border rounded-lg"
-                >
-                  <div className="w-full sm:w-24 h-24 flex-shrink-0">
-                    <ProductImage 
-                      imageUrls={product.image_urls} 
-                      productName={product.name}
-                      className="w-full h-24 object-cover rounded-md"
-                      fallbackClassName="w-full h-24 bg-muted rounded-md flex items-center justify-center"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                      <h3 className="font-semibold truncate">{product.name}</h3>
-                      <Badge 
-                        variant={product.status === 'active' ? 'default' : 'secondary'}
-                        className="self-start sm:self-auto"
-                      >
-                        {product.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                      {product.description}
-                    </p>
-                    <p className="font-semibold text-primary">
-                      {formatPrice(product.price_cents, product.currency)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button variant="outline" size="sm" asChild className="flex-1 sm:flex-none">
-                      <Link to={`/vendor/products/${product.id}/edit`}>
-                        <Edit className="h-4 w-4" />
-                        <span className="ml-1 sm:hidden">Edit</span>
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="text-destructive hover:text-destructive flex-1 sm:flex-none"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="ml-1 sm:hidden">Delete</span>
-                    </Button>
-                  </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {products.map((product) => (
+              <Card key={product.id} className="overflow-hidden">
+                <div className="aspect-video">
+                  <MediaGallery 
+                    images={product.image_urls || []} 
+                    videos={[]} 
+                    alt={product.name} 
+                    aspect="video" 
+                    showThumbnails={false} 
+                  />
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base line-clamp-1">{product.name}</CardTitle>
+                    <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
+                      {product.status}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between">
+                    <div className="font-semibold">
+                      {formatPrice(product.price_cents)}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/vendor/products/${product.id}/edit`}>
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/product/${product.id}`}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Your Services</CardTitle>
-          <CardDescription>
-            Manage your service offerings
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {services.length === 0 ? (
-            <div className="text-center py-12">
-              <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+      {/* Recent Services */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Recent Services</h2>
+          <Button variant="outline" asChild>
+            <Link to="/vendor/listings?type=services">View All</Link>
+          </Button>
+        </div>
+        
+        {services.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No services yet</h3>
               <p className="text-muted-foreground mb-4">
-                Start by creating your first service
+                Start by adding your first service to expand your offerings.
               </p>
               <Button asChild>
-                <Link to="/vendor/services/new">Create Service</Link>
+                <Link to="/vendor/services/new">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Service
+                </Link>
               </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {services.map((s) => (
-                <div
-                  key={s.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold">{s.name}</h3>
-                      <Badge 
-                        variant={s.status === 'active' ? 'default' : 'secondary'}
-                      >
-                        {s.status}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {s.description}
-                    </p>
-                    <p className="font-semibold text-primary">
-                      {formatPrice(s.price_cents, s.currency)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/vendor/services`}>Manage</Link>
-                    </Button>
-                  </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {services.map((service) => (
+              <Card key={service.id} className="overflow-hidden">
+                <div className="aspect-video">
+                  <MediaGallery 
+                    images={service.image_urls || []} 
+                    videos={[]} 
+                    alt={service.name} 
+                    aspect="video" 
+                    showThumbnails={false} 
+                  />
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base line-clamp-1">{service.name}</CardTitle>
+                    <Badge variant={service.status === 'active' ? 'default' : 'secondary'}>
+                      {service.status}
+                    </Badge>
+                  </div>
+                  {service.subtitle && (
+                    <p className="text-sm text-muted-foreground line-clamp-1">
+                      {service.subtitle}
+                    </p>
+                  )}
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between">
+                    <div className="font-semibold">
+                      {formatPrice(service.price_cents)}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/vendor/services/${service.id}/edit`}>
+                          <Pencil className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to={`/service/${service.id}`}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
   );
-};
-
-export default VendorDashboard;
+}

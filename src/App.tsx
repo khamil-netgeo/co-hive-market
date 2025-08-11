@@ -55,7 +55,7 @@ import VendorServices from "./pages/vendor/Services";
 import VendorProducts from "./pages/vendor/VendorProducts";
 import ServiceForm from "./pages/vendor/ServiceForm";
 import Cart from "./pages/Cart";
-import StoreSettings from "./pages/vendor/StoreSettings";
+import VendorSettings from "./pages/vendor/VendorSettings";
 import Checkout from "./pages/Checkout";
 import DeliveryDetails from "./pages/DeliveryDetails";
 import RiderDashboard from "./pages/rider/Dashboard";
@@ -129,7 +129,7 @@ const App = () => (
               <Route path="/vendor/orders/:orderId" element={<OrderDetail />} />
               <Route path="/vendor/analytics" element={<VendorAnalytics />} />
               <Route path="/vendor/payouts" element={<VendorPayouts />} />
-              <Route path="/vendor/store-settings" element={<StoreSettings />} />
+              <Route path="/vendor/settings" element={<VendorSettings />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-canceled" element={<PaymentCanceled />} />
               <Route

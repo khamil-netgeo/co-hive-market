@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import VendorSubnav from "@/components/vendor/VendorSubnav";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { setSEO } from "@/lib/seo";
@@ -127,7 +127,6 @@ export default function CreatorStudio() {
 
   return (
     <main className="min-h-[60vh]">
-      <VendorSubnav />
       <section className="container px-4 py-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>

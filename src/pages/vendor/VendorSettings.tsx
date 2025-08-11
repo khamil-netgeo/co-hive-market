@@ -25,7 +25,7 @@ type OpeningHours = Record<string, OpeningDay>;
 const defaultDay: OpeningDay = { open: "09:00", close: "18:00", closed: false };
 const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 
-export default function StoreSettings() {
+export default function VendorSettings() {
   const { user } = useAuthRoles();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
