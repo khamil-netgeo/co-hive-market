@@ -362,7 +362,7 @@ export default function VendorCalendar() {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Calendar */}
         <Card className="min-w-0 hover:shadow-md transition-shadow">
           <CardHeader>
@@ -389,7 +389,7 @@ export default function VendorCalendar() {
             </div>
 
             {/* Month/Year Navigation */}
-            <div className="flex items-center gap-3 pb-3 border-b">
+            <div className="flex flex-wrap items-center gap-3 pb-3 border-b">
               <Select
                 value={viewMonth.getMonth().toString()}
                 onValueChange={(value) => {
@@ -439,7 +439,7 @@ export default function VendorCalendar() {
               mode="single"
               selected={date}
               onSelect={(d) => d && setDate(d)}
-              className="p-0 pointer-events-auto"
+              className="p-0 pointer-events-auto w-full"
               modifiers={{
                 booked: bookedDays,
                 blocked: blockedDays
