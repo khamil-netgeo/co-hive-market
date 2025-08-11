@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar as CalendarIcon, Plus, RefreshCcw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Calendar as CalendarIcon, Plus, RefreshCcw, Clock, MapPin, User, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 
@@ -101,9 +103,28 @@ export default function VendorCalendar() {
   }, [vendorId]);
 
   const refresh = async () => {
-    // trigger re-fetch by nudging date state
     setDate(new Date(date));
   };
+
+  // Helper function to get status styling
+  const getStatusStyle = (status: string | null) => {
+    switch (status?.toLowerCase()) {
+      case 'paid':
+      case 'confirmed':
+        return { variant: "default" as const, icon: CheckCircle2, color: "text-green-600" };
+      case 'scheduled':
+        return { variant: "secondary" as const, icon: Clock, color: "text-blue-600" };
+      case 'cancelled':
+        return { variant: "destructive" as const, icon: XCircle, color: "text-red-600" };
+      default:
+        return { variant: "outline" as const, icon: AlertCircle, color: "text-orange-600" };
+    }
+  };
+
+  // Get days with bookings for calendar highlighting
+  const bookedDays = useMemo(() => {
+    return bookings.map(b => b.scheduled_at ? new Date(b.scheduled_at) : null).filter(Boolean) as Date[];
+  }, [bookings]);
 
   const dayBookings = useMemo(() => {
     const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -130,7 +151,7 @@ export default function VendorCalendar() {
         .from("service_time_off")
         .insert({ vendor_id: vendorId, start_at: start.toISOString(), end_at: end.toISOString(), reason: timeOffReason || null });
       if (error) throw error;
-      toast("Time off added");
+      toast("Time off added successfully!");
       setTimeOffStart("");
       setTimeOffEnd("");
       setTimeOffReason("");
@@ -142,88 +163,297 @@ export default function VendorCalendar() {
     }
   };
 
+  const bookingStats = useMemo(() => {
+    const today = new Date();
+    const todayBookings = bookings.filter(b => 
+      b.scheduled_at && new Date(b.scheduled_at).toDateString() === today.toDateString()
+    );
+    const upcomingBookings = bookings.filter(b => 
+      b.scheduled_at && new Date(b.scheduled_at) > today
+    );
+    const confirmedBookings = bookings.filter(b => 
+      b.status && ['paid', 'confirmed', 'scheduled'].includes(b.status.toLowerCase())
+    );
+    
+    return {
+      today: todayBookings.length,
+      upcoming: upcomingBookings.length,
+      confirmed: confirmedBookings.length,
+      total: bookings.length
+    };
+  }, [bookings]);
+
   return (
-    <main className="container py-10">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-2xl font-semibold flex items-center gap-2"><CalendarIcon className="h-5 w-5"/>Vendor Calendar</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={refresh}><RefreshCcw className="h-4 w-4 mr-2"/>Refresh</Button>
+    <main className="container py-8 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <CalendarIcon className="h-6 w-6 text-primary"/>
+            </div>
+            Calendar Management
+          </h1>
+          <p className="text-muted-foreground mt-1">Manage your service bookings and availability</p>
         </div>
+        <Button variant="outline" onClick={refresh} className="gap-2">
+          <RefreshCcw className="h-4 w-4"/>
+          Refresh
+        </Button>
       </div>
 
-      <section className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-blue-50 dark:bg-blue-950">
+                <Clock className="h-4 w-4 text-blue-600"/>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Today</p>
+                <p className="text-2xl font-bold">{bookingStats.today}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-green-50 dark:bg-green-950">
+                <CheckCircle2 className="h-4 w-4 text-green-600"/>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Confirmed</p>
+                <p className="text-2xl font-bold">{bookingStats.confirmed}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-purple-50 dark:bg-purple-950">
+                <CalendarIcon className="h-4 w-4 text-purple-600"/>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Upcoming</p>
+                <p className="text-2xl font-bold">{bookingStats.upcoming}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-orange-50 dark:bg-orange-950">
+                <User className="h-4 w-4 text-orange-600"/>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-2xl font-bold">{bookingStats.total}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      <div className="grid lg:grid-cols-5 gap-8">
+        {/* Calendar */}
+        <Card className="lg:col-span-2 hover:shadow-md transition-shadow">
           <CardHeader>
-            <CardTitle>Month</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5"/>
+              Calendar View
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Calendar
               mode="single"
               selected={date}
               onSelect={(d) => d && setDate(d)}
-              className="p-3 pointer-events-auto"
+              className="p-3 pointer-events-auto rounded-md border"
+              modifiers={{
+                booked: bookedDays
+              }}
+              modifiersStyles={{
+                booked: { 
+                  backgroundColor: 'hsl(var(--primary))', 
+                  color: 'hsl(var(--primary-foreground))',
+                  fontWeight: 'bold'
+                }
+              }}
             />
+            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="w-3 h-3 rounded-full bg-primary"></div>
+              <span>Days with bookings</span>
+            </div>
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-muted-foreground">Loading…</div>
-              ) : dayBookings.length === 0 ? (
-                <div className="text-muted-foreground">No bookings.</div>
-              ) : (
-                <ul className="space-y-3">
-                  {dayBookings.map((b) => (
-                    <li key={b.id} className="rounded-md border p-3 flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">{b.service_name || 'Service'}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {b.scheduled_at ? new Date(b.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--'}
-                          {b.end_at ? ` — ${new Date(b.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
+        {/* Daily Schedule */}
+        <Card className="lg:col-span-3 hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5"/>
+                {date.toLocaleDateString(undefined, { 
+                  weekday: 'long',
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </div>
+              {dayBookings.length > 0 && (
+                <Badge variant="secondary">{dayBookings.length} booking{dayBookings.length !== 1 ? 's' : ''}</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  Loading bookings...
+                </div>
+              </div>
+            ) : dayBookings.length === 0 ? (
+              <div className="text-center p-8">
+                <CalendarIcon className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4"/>
+                <h3 className="font-medium text-muted-foreground">No bookings today</h3>
+                <p className="text-sm text-muted-foreground">Your schedule is clear for this day.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {dayBookings.map((booking, index) => {
+                  const statusInfo = getStatusStyle(booking.status);
+                  const StatusIcon = statusInfo.icon;
+                  
+                  return (
+                    <div key={booking.id} className="group">
+                      <div className="flex items-center gap-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors">
+                        <div className="flex-shrink-0">
+                          <div className={`p-2 rounded-full bg-background border ${statusInfo.color}`}>
+                            <StatusIcon className="h-4 w-4"/>
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium truncate">{booking.service_name || 'Service'}</h4>
+                            <Badge variant={statusInfo.variant} className="text-xs">
+                              {booking.status || 'pending'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3"/>
+                              {booking.scheduled_at ? new Date(booking.scheduled_at).toLocaleTimeString([], { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                              }) : '--'}
+                              {booking.end_at && (
+                                <span>
+                                  {' — '}
+                                  {new Date(booking.end_at).toLocaleTimeString([], { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <span className="text-xs px-2 py-1 rounded bg-accent text-accent-foreground">{b.status || 'pending'}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
+                      
+                      {index < dayBookings.length - 1 && (
+                        <div className="flex justify-center my-2">
+                          <div className="w-px h-4 bg-border"></div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Plus className="h-4 w-4"/>Add Time Off</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid sm:grid-cols-3 gap-3">
-                <div>
-                  <Label htmlFor="to-start">Start</Label>
-                  <Input id="to-start" type="datetime-local" value={timeOffStart} onChange={(e) => setTimeOffStart(e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="to-end">End</Label>
-                  <Input id="to-end" type="datetime-local" value={timeOffEnd} onChange={(e) => setTimeOffEnd(e.target.value)} />
-                </div>
-                <div>
-                  <Label htmlFor="to-reason">Reason (optional)</Label>
-                  <Input id="to-reason" value={timeOffReason} onChange={(e) => setTimeOffReason(e.target.value)} placeholder="E.g. holiday" />
-                </div>
-              </div>
-              <div className="mt-4">
-                <Button onClick={submitTimeOff} disabled={savingTimeOff || !vendorId}>Save time off</Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">Time-off prevents new bookings in the selected period.</p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      {/* Time Off Section */}
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5"/>
+            Block Time Off
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Schedule unavailable periods to prevent new bookings during those times.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="to-start" className="text-sm font-medium">Start Date & Time</Label>
+              <Input 
+                id="to-start" 
+                type="datetime-local" 
+                value={timeOffStart} 
+                onChange={(e) => setTimeOffStart(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="to-end" className="text-sm font-medium">End Date & Time</Label>
+              <Input 
+                id="to-end" 
+                type="datetime-local" 
+                value={timeOffEnd} 
+                onChange={(e) => setTimeOffEnd(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="to-reason" className="text-sm font-medium">Reason (Optional)</Label>
+              <Input 
+                id="to-reason" 
+                value={timeOffReason} 
+                onChange={(e) => setTimeOffReason(e.target.value)} 
+                placeholder="e.g., Holiday, Personal time"
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">&nbsp;</Label>
+              <Button 
+                onClick={submitTimeOff} 
+                disabled={savingTimeOff || !vendorId || !timeOffStart || !timeOffEnd}
+                className="w-full gap-2"
+              >
+                {savingTimeOff ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4"/>
+                    Block Time
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </main>
   );
 }
