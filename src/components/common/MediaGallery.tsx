@@ -59,6 +59,7 @@ export default function MediaGallery({ images, videos, alt, aspect = "video", cl
                       controls
                       preload="metadata"
                       className="h-full w-full object-cover"
+                      playsInline
                     />
                   )}
                 </div>
