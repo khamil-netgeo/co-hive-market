@@ -936,7 +936,7 @@ const ProductForm = () => {
                         control={form.control}
                         name="best_before"
                         render={({ field }) => (
-                          <FormItem className="flex flex-col">
+                          <FormItem className="flex flex-col gap-2">
                             <FormLabel>Best Before Date (optional)</FormLabel>
                             <Popover>
                               <PopoverTrigger asChild>
@@ -967,6 +967,19 @@ const ProductForm = () => {
                                 />
                               </PopoverContent>
                             </Popover>
+                            <div className="flex items-center gap-2">
+                              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                              <Input
+                                type="date"
+                                value={field.value ? format(field.value, "yyyy-MM-dd") : ""}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  field.onChange(v ? new Date(v + "T00:00:00") : undefined);
+                                }}
+                                placeholder="YYYY-MM-DD"
+                                className="w-full sm:w-[240px]"
+                              />
+                            </div>
                             <FormDescription>This will be displayed in the product description</FormDescription>
                             <FormMessage />
                           </FormItem>

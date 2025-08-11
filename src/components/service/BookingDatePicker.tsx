@@ -34,7 +34,7 @@ export default function BookingDatePicker({ value, onChange }: BookingDatePicker
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -58,6 +58,21 @@ export default function BookingDatePicker({ value, onChange }: BookingDatePicker
           />
         </PopoverContent>
       </Popover>
+
+      <div className="flex items-center gap-2">
+        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+        <Input
+          type="date"
+          value={date ? format(date, "yyyy-MM-dd") : ""}
+          onChange={(e) => {
+            const v = e.target.value;
+            const d = v ? new Date(v + "T00:00:00") : undefined;
+            setDate(d);
+            merge(d, time);
+          }}
+          placeholder="YYYY-MM-DD"
+        />
+      </div>
 
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4 text-muted-foreground" />
