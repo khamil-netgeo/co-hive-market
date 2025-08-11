@@ -362,9 +362,9 @@ export default function VendorCalendar() {
       </div>
 
       {/* Main Content */}
-      <div className="grid xl:grid-cols-7 lg:grid-cols-5 md:grid-cols-3 gap-8">
+      <div className="grid md:grid-cols-2 lg:grid-cols-5 xl:grid-cols-7 gap-8">
         {/* Calendar */}
-        <Card className="xl:col-span-3 lg:col-span-2 md:col-span-2 col-span-full hover:shadow-md transition-shadow">
+        <Card className="col-span-full md:col-span-1 lg:col-span-2 xl:col-span-3 min-w-0 hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarIcon className="h-5 w-5"/>
@@ -508,17 +508,20 @@ export default function VendorCalendar() {
         </Card>
 
         {/* Daily Schedule */}
-        <Card className="xl:col-span-4 lg:col-span-3 md:col-span-1 col-span-full hover:shadow-md transition-shadow">
+        <Card className="col-span-full md:col-span-1 lg:col-span-3 xl:col-span-4 min-w-0 hover:shadow-md transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <Clock className="h-5 w-5"/>
-                {date.toLocaleDateString(undefined, { 
-                  weekday: 'long',
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
+                <span className="hidden lg:inline">
+                  {date.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </span>
+                <span className="hidden md:inline lg:hidden">
+                  {date.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                </span>
+                <span className="inline md:hidden">
+                  {date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                </span>
               </div>
               {dayBookings.length > 0 && (
                 <Badge variant="secondary">{dayBookings.length} booking{dayBookings.length !== 1 ? 's' : ''}</Badge>
