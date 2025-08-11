@@ -65,6 +65,7 @@ import RiderProfile from "./pages/rider/Profile";
 import RiderPayouts from "./pages/rider/Payouts";
 import VendorListings from "./pages/vendor/Listings";
 import CreatorStudio from "./pages/vendor/CreatorStudio";
+import VendorCalendar from "./pages/vendor/Calendar";
 import { CartProvider } from "@/hooks/useCart";
 import ChatPage from "./pages/Chat";
 import SupportPage from "./pages/Support";
@@ -128,6 +129,7 @@ const App = () => (
               <Route path="/vendor/orders" element={<VendorOrders />} />
               <Route path="/vendor/orders/:orderId" element={<OrderDetail />} />
               <Route path="/vendor/analytics" element={<VendorAnalytics />} />
+              <Route path="/vendor/calendar" element={<VendorCalendar />} />
               <Route path="/vendor/payouts" element={<VendorPayouts />} />
               <Route path="/vendor/settings" element={<VendorSettings />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />

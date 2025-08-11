@@ -7,6 +7,7 @@ import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
 import { trackEasyParcel } from "@/lib/shipping";
+import { buildICS, downloadICS, googleCalendarUrl } from "@/lib/calendar";
 export default function PaymentSuccess() {
   const [verifying, setVerifying] = useState(true);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -18,7 +19,8 @@ export default function PaymentSuccess() {
   const { clear } = useCart();
   const [shippingMethod, setShippingMethod] = useState<string | null>(null);
   const [awbNo, setAwbNo] = useState<string | null>(null);
-  const [epOrderNo, setEpOrderNo] = useState<string | null>(null);
+const [epOrderNo, setEpOrderNo] = useState<string | null>(null);
+  const [bookingEvent, setBookingEvent] = useState<{ title: string; start: Date; end: Date } | null>(null);
   useEffect(() => {
     setSEO(
       "Payment Success | CoopMarket",
@@ -49,12 +51,33 @@ export default function PaymentSuccess() {
         setAwbNo(awb);
         setEpOrderNo(epNo);
 
-        // If this payment was for a service booking, mark it paid
+        // If this payment was for a service booking, mark it paid and build calendar event
         if (bookingId) {
           await supabase
             .from("service_bookings")
             .update({ status: "paid", stripe_session_id: sessionId })
             .eq("id", bookingId);
+
+          const { data: bk, error: bErr } = await supabase
+            .from("service_bookings")
+            .select("id, service_id, scheduled_at, end_at, duration_minutes")
+            .eq("id", bookingId)
+            .maybeSingle();
+          if (!bErr && bk && bk.scheduled_at) {
+            // Fetch service name
+            const { data: svc } = await supabase
+              .from("vendor_services")
+              .select("name")
+              .eq("id", (bk as any).service_id)
+              .maybeSingle();
+            const start = new Date(bk.scheduled_at as string);
+            const end = new Date((bk.end_at as string) || start.getTime() + ((bk.duration_minutes || 60) * 60 * 1000));
+            setBookingEvent({
+              title: `Service: ${svc?.name || 'Booking'}`,
+              start,
+              end,
+            });
+          }
         }
         toast("Payment verified", { description: sm === 'easyparcel' ? "Shipment will be handled by courier." : "Your transaction has been confirmed. Rider assignment will follow shortly." });
         clear();
@@ -256,6 +279,40 @@ export default function PaymentSuccess() {
               <Button onClick={manualRebroadcast} disabled={!deliveryId || rebroadcasting} variant="outline">
                 {rebroadcasting ? "Searching riders…" : "Find rider again"}
               </Button>
+            )}
+            {bookingEvent && (
+              <>
+                <Button asChild variant="outline">
+                  <a
+                    href={googleCalendarUrl({
+                      title: bookingEvent.title,
+                      description: 'Booked via CoopMarket',
+                      start: bookingEvent.start,
+                      end: bookingEvent.end,
+                      url: window.location.origin + '/orders',
+                    })}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Add to Google Calendar
+                  </a>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const ics = buildICS({
+                      title: bookingEvent.title,
+                      description: 'Booked via CoopMarket',
+                      start: bookingEvent.start,
+                      end: bookingEvent.end,
+                      url: window.location.origin + '/orders',
+                    });
+                    downloadICS('service-booking.ics', ics);
+                  }}
+                >
+                  Download .ics
+                </Button>
+              </>
             )}
           </div>
         </CardContent>
