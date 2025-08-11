@@ -96,9 +96,13 @@ export default function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className={collapsed ? "w-14" : "w-60"}>
       <SidebarHeader>
-        <Link to="/" className="inline-flex items-center gap-2 p-2">
-          <div className="h-7 w-7 rounded-md bg-gradient-primary" aria-hidden />
-          {!collapsed && <span className="text-lg font-semibold text-gradient-brand">CoopMarket</span>}
+        <Link to="/" className="inline-flex items-center gap-2 p-2 hover:bg-accent/50 rounded-md transition-colors">
+          <div className="h-7 w-7 rounded-md" style={{ background: 'var(--gradient-primary)' }} aria-hidden />
+          {!collapsed && (
+            <span className="text-lg font-semibold bg-gradient-to-r from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))] bg-clip-text text-transparent">
+              CoopMarket
+            </span>
+          )}
         </Link>
       </SidebarHeader>
       <SidebarContent>

@@ -23,8 +23,14 @@ export default function AppTopbar() {
   return (
     <header className="sticky top-0 z-30 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between px-4 min-w-0">
-        <div className="flex items-center min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
           <SidebarTrigger className="ml-0 shrink-0" />
+          <Link to="/" className="flex items-center gap-2 sm:hidden">
+            <div className="h-6 w-6 rounded-md" style={{ background: 'var(--gradient-primary)' }} aria-hidden />
+            <span className="text-base font-semibold bg-gradient-to-r from-[hsl(var(--brand-1))] to-[hsl(var(--brand-2))] bg-clip-text text-transparent">
+              CoopMarket
+            </span>
+          </Link>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <ThemeToggle />
