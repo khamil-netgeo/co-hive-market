@@ -1554,11 +1554,73 @@ export type Database = {
           },
         ]
       }
+      service_availability_rules: {
+        Row: {
+          capacity: number
+          created_at: string
+          day_of_week: number | null
+          end_time: string
+          id: string
+          service_id: string | null
+          start_time: string
+          timezone: string
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+          vendor_id: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          day_of_week?: number | null
+          end_time: string
+          id?: string
+          service_id?: string | null
+          start_time: string
+          timezone?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+          vendor_id: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          day_of_week?: number | null
+          end_time?: string
+          id?: string
+          service_id?: string | null
+          start_time?: string
+          timezone?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_sar_service"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_sar_vendor"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_bookings: {
         Row: {
           buyer_user_id: string
           created_at: string
           currency: string
+          duration_minutes: number | null
+          end_at: string | null
           id: string
           notes: string | null
           scheduled_at: string | null
@@ -1567,11 +1629,14 @@ export type Database = {
           stripe_session_id: string | null
           total_amount_cents: number
           updated_at: string
+          vendor_id: string | null
         }
         Insert: {
           buyer_user_id: string
           created_at?: string
           currency?: string
+          duration_minutes?: number | null
+          end_at?: string | null
           id?: string
           notes?: string | null
           scheduled_at?: string | null
@@ -1580,11 +1645,14 @@ export type Database = {
           stripe_session_id?: string | null
           total_amount_cents: number
           updated_at?: string
+          vendor_id?: string | null
         }
         Update: {
           buyer_user_id?: string
           created_at?: string
           currency?: string
+          duration_minutes?: number | null
+          end_at?: string | null
           id?: string
           notes?: string | null
           scheduled_at?: string | null
@@ -1593,6 +1661,7 @@ export type Database = {
           stripe_session_id?: string | null
           total_amount_cents?: number
           updated_at?: string
+          vendor_id?: string | null
         }
         Relationships: []
       }
@@ -1625,6 +1694,54 @@ export type Database = {
             columns: ["service_id"]
             isOneToOne: false
             referencedRelation: "vendor_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_time_off: {
+        Row: {
+          created_at: string
+          end_at: string
+          id: string
+          reason: string | null
+          service_id: string | null
+          start_at: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_at: string
+          id?: string
+          reason?: string | null
+          service_id?: string | null
+          start_at: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          end_at?: string
+          id?: string
+          reason?: string | null
+          service_id?: string | null
+          start_at?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_sto_service"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_sto_vendor"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
