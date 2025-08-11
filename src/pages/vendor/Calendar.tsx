@@ -11,6 +11,7 @@ import { Calendar as CalendarIcon, Plus, RefreshCcw, Clock, MapPin, User, CheckC
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 interface BookingRow {
   id: string;
@@ -31,6 +32,20 @@ export default function VendorCalendar() {
   const [timeOffEnd, setTimeOffEnd] = useState<string>("");
   const [timeOffReason, setTimeOffReason] = useState<string>("");
 
+  const [services, setServices] = useState<{ id: string; name: string }[]>([]);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | 'all'>('all');
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const handleServiceChange = (value: string) => {
+    setSelectedServiceId(value);
+    const params = new URLSearchParams(searchParams);
+    if (value === 'all') {
+      params.delete('service');
+    } else {
+      params.set('service', value);
+    }
+    setSearchParams(params);
+  };
   useEffect(() => {
     setSEO("Vendor Calendar | CoopMarket", "Manage your service bookings and time-off.");
     const bootstrap = async () => {
@@ -47,6 +62,10 @@ export default function VendorCalendar() {
     bootstrap();
   }, []);
 
+  useEffect(() => {
+    const svc = searchParams.get('service');
+    if (svc) setSelectedServiceId(svc);
+  }, [searchParams]);
   const monthStart = useMemo(() => new Date(date.getFullYear(), date.getMonth(), 1), [date]);
   const monthEnd = useMemo(() => new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59), [date]);
 
@@ -75,6 +94,14 @@ export default function VendorCalendar() {
           (svcRows || []).forEach((s: any) => (nameMap[s.id] = s.name));
         }
         setBookings((data || []).map((b: any) => ({ ...b, service_name: nameMap[b.service_id] })));
+
+        // Load all services for this vendor (for filter)
+        const { data: svcList } = await supabase
+          .from('vendor_services')
+          .select('id,name')
+          .eq('vendor_id', vendorId)
+          .order('name', { ascending: true });
+        setServices(svcList || []);
       } catch (e: any) {
         toast("Failed to load calendar", { description: e.message || String(e) });
       } finally {
@@ -122,20 +149,35 @@ export default function VendorCalendar() {
     }
   };
 
+  // Filter bookings by selected service
+  const filteredBookings = useMemo(() => {
+    return selectedServiceId === 'all' ? bookings : bookings.filter(b => b.service_id === selectedServiceId);
+  }, [bookings, selectedServiceId]);
+
   // Get days with bookings for calendar highlighting
   const bookedDays = useMemo(() => {
-    return bookings.map(b => b.scheduled_at ? new Date(b.scheduled_at) : null).filter(Boolean) as Date[];
-  }, [bookings]);
+    return filteredBookings.map(b => b.scheduled_at ? new Date(b.scheduled_at) : null).filter(Boolean) as Date[];
+  }, [filteredBookings]);
 
   const dayBookings = useMemo(() => {
     const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
-    return bookings.filter((b) => {
+    return filteredBookings.filter((b) => {
       if (!b.scheduled_at) return false;
       const t = new Date(b.scheduled_at).getTime();
       return t >= startOfDay.getTime() && t <= endOfDay.getTime();
     }).sort((a, b) => (new Date(a.scheduled_at || 0).getTime() - new Date(b.scheduled_at || 0).getTime()));
-  }, [bookings, date]);
+  }, [filteredBookings, date]);
+
+  // Count bookings per service for current month (for legend)
+  const serviceMonthCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    bookings.forEach((b) => {
+      if (!b.service_id) return;
+      counts[b.service_id] = (counts[b.service_id] || 0) + 1;
+    });
+    return counts;
+  }, [bookings]);
 
   const submitTimeOff = async () => {
     if (!vendorId) return;
@@ -166,13 +208,13 @@ export default function VendorCalendar() {
 
   const bookingStats = useMemo(() => {
     const today = new Date();
-    const todayBookings = bookings.filter(b => 
+    const todayBookings = filteredBookings.filter(b => 
       b.scheduled_at && new Date(b.scheduled_at).toDateString() === today.toDateString()
     );
-    const upcomingBookings = bookings.filter(b => 
+    const upcomingBookings = filteredBookings.filter(b => 
       b.scheduled_at && new Date(b.scheduled_at) > today
     );
-    const confirmedBookings = bookings.filter(b => 
+    const confirmedBookings = filteredBookings.filter(b => 
       b.status && ['paid', 'confirmed', 'scheduled'].includes(b.status.toLowerCase())
     );
     
@@ -180,9 +222,9 @@ export default function VendorCalendar() {
       today: todayBookings.length,
       upcoming: upcomingBookings.length,
       confirmed: confirmedBookings.length,
-      total: bookings.length
+      total: filteredBookings.length
     };
-  }, [bookings]);
+  }, [filteredBookings]);
 
   return (
     <main className="container py-8 space-y-8">
@@ -273,6 +315,22 @@ export default function VendorCalendar() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Service Filter */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <Label className="text-sm font-medium min-w-[80px]">Service</Label>
+              <Select value={selectedServiceId} onValueChange={handleServiceChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All services" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All services</SelectItem>
+                  {services.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Month/Year Navigation */}
             <div className="flex items-center gap-3 pb-3 border-b">
               <Select
@@ -343,9 +401,32 @@ export default function VendorCalendar() {
             />
             
             {/* Legend */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground pt-3 border-t">
-              <div className="w-3 h-3 rounded-full bg-primary"></div>
-              <span>Days with bookings</span>
+            <div className="space-y-2 pt-3 border-t">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="w-3 h-3 rounded-full bg-primary"></div>
+                <span>Days with bookings</span>
+              </div>
+              {services.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  <Badge
+                    variant={selectedServiceId === 'all' ? 'default' : 'outline'}
+                    className="cursor-pointer"
+                    onClick={() => handleServiceChange('all')}
+                  >
+                    All ({bookings.length})
+                  </Badge>
+                  {services.map((s) => (
+                    <Badge
+                      key={s.id}
+                      variant={selectedServiceId === s.id ? 'default' : 'secondary'}
+                      className="cursor-pointer"
+                      onClick={() => handleServiceChange(s.id)}
+                    >
+                      {s.name} ({serviceMonthCounts[s.id] || 0})
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
