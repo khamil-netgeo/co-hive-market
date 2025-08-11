@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calendar as CalendarIcon, Plus, RefreshCcw, Clock, MapPin, User, CheckCircle2, AlertCircle, XCircle } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface BookingRow {
@@ -271,12 +272,59 @@ export default function VendorCalendar() {
               Calendar View
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* Month/Year Navigation */}
+            <div className="flex items-center gap-3 pb-3 border-b">
+              <Select
+                value={date.getMonth().toString()}
+                onValueChange={(value) => {
+                  const newDate = new Date(date);
+                  newDate.setMonth(parseInt(value));
+                  setDate(newDate);
+                }}
+              >
+                <SelectTrigger className="w-auto min-w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <SelectItem key={i} value={i.toString()}>
+                      {new Date(0, i).toLocaleDateString(undefined, { month: 'long' })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select
+                value={date.getFullYear().toString()}
+                onValueChange={(value) => {
+                  const newDate = new Date(date);
+                  newDate.setFullYear(parseInt(value));
+                  setDate(newDate);
+                }}
+              >
+                <SelectTrigger className="w-auto min-w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const year = new Date().getFullYear() - 2 + i;
+                    return (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Calendar Grid */}
             <Calendar
               mode="single"
               selected={date}
               onSelect={(d) => d && setDate(d)}
-              className="p-3 pointer-events-auto rounded-md border"
+              className="p-0 pointer-events-auto"
               modifiers={{
                 booked: bookedDays
               }}
@@ -287,8 +335,15 @@ export default function VendorCalendar() {
                   fontWeight: 'bold'
                 }
               }}
+              month={date}
+              onMonthChange={setDate}
+              components={{
+                Caption: () => null, // Hide default caption since we have custom selects
+              }}
             />
-            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+            
+            {/* Legend */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground pt-3 border-t">
               <div className="w-3 h-3 rounded-full bg-primary"></div>
               <span>Days with bookings</span>
             </div>
