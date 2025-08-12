@@ -31,6 +31,9 @@ export default function CommunityManage() {
   const [memberDiscount, setMemberDiscount] = useState<number>(10);
   const [coopFee, setCoopFee] = useState<number>(2);
   const [communityFee, setCommunityFee] = useState<number>(3);
+  const [fundTotal, setFundTotal] = useState<number>(0);
+  const [membershipTotal, setMembershipTotal] = useState<number>(0);
+  const [recentTxns, setRecentTxns] = useState<{ id: string; amount_cents: number; created_at: string; user_id: string | null; type: string }[]>([]);
 
   const canManage = useMemo(() => {
     return !!(isAdmin || isSuperadmin || membership?.member_type === 'manager');
@@ -91,6 +94,25 @@ export default function CommunityManage() {
         const nextCounts: Record<MemberType, number> = { buyer: 0, vendor: 0, delivery: 0, manager: 0 };
         results.forEach(([t, c]) => { nextCounts[t] = c; });
         setCounts(nextCounts);
+
+        // Fund transactions and membership payments
+        const { data: fundRows, error: fErr } = await (supabase as any)
+          .from("community_fund_txns")
+          .select("id, amount_cents, created_at, type, user_id")
+          .eq("community_id", id)
+          .order("created_at", { ascending: false })
+          .limit(50);
+        if (fErr) throw fErr;
+        const contributions = ((fundRows as any[]) || []).filter((r) => r.type === 'contribution');
+        setFundTotal(contributions.reduce((sum, r) => sum + (r.amount_cents || 0), 0));
+        setRecentTxns(contributions.slice(0, 10) as any);
+
+        const { data: mPays, error: mpErr } = await (supabase as any)
+          .from("community_membership_payments")
+          .select("amount_cents")
+          .eq("community_id", id);
+        if (mpErr) throw mpErr;
+        setMembershipTotal(((mPays as any[]) || []).reduce((sum, r) => sum + (r.amount_cents || 0), 0));
       } catch (e: any) {
         toast("Unable to load community", { description: e?.message || String(e) });
       } finally {
@@ -212,12 +234,34 @@ export default function CommunityManage() {
             <CardTitle>Overview</CardTitle>
             <CardDescription>Membership</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">Buyers: {counts.buyer}</Badge>
               <Badge variant="outline">Vendors: {counts.vendor}</Badge>
               <Badge variant="outline">Riders: {counts.delivery}</Badge>
               <Badge variant="outline">Managers: {counts.manager}</Badge>
+            </div>
+            <div className="grid gap-3">
+              <div className="text-sm text-muted-foreground">Totals (lifetime)</div>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary">Contributions: RM {(fundTotal/100).toFixed(2)}</Badge>
+                <Badge variant="secondary">Memberships: RM {(membershipTotal/100).toFixed(2)}</Badge>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Recent contributions</div>
+                {recentTxns.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No contributions yet.</p>
+                ) : (
+                  <div className="space-y-1">
+                    {recentTxns.slice(0,5).map((t) => (
+                      <div key={t.id} className="flex justify-between text-xs border rounded p-2">
+                        <span className="font-mono">{new Date(t.created_at).toLocaleString()}</span>
+                        <span>RM {(t.amount_cents/100).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

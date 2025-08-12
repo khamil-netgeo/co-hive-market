@@ -10,7 +10,7 @@ import { useCommunity } from "@/context/CommunityContext";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
 
-interface Community { id: string; name: string; description: string | null; member_discount_percent: number; coop_fee_percent: number; community_fee_percent: number }
+interface Community { id: string; name: string; description: string | null; member_discount_percent: number; coop_fee_percent: number; community_fee_percent: number; membership_fee_cents?: number }
 
 type MemberType = 'buyer' | 'vendor' | 'delivery' | 'manager';
 
@@ -29,7 +29,7 @@ export default function CommunityDetail() {
       try {
         const { data, error } = await supabase
           .from("communities")
-          .select("id,name,description,member_discount_percent,coop_fee_percent,community_fee_percent")
+          .select("id,name,description,member_discount_percent,coop_fee_percent,community_fee_percent,membership_fee_cents")
           .eq("id", id)
           .maybeSingle();
         if (error) throw error;
@@ -141,6 +141,23 @@ export default function CommunityDetail() {
     }
   };
 
+  const handlePayMembership = async () => {
+    if (!id) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("community-contribute", {
+        body: { community_id: id, purpose: "membership" },
+      });
+      if (error) throw error;
+      if ((data as any)?.url) {
+        window.open((data as any).url as string, "_blank");
+      } else {
+        toast("Unable to start checkout");
+      }
+    } catch (e: any) {
+      toast("Payment error", { description: e?.message || String(e) });
+    }
+  };
+
   if (loading) {
     return (
       <main className="container py-8">
@@ -180,7 +197,13 @@ export default function CommunityDetail() {
               <Badge variant="outline">Coop fee: {community.coop_fee_percent}%</Badge>
               <Badge variant="outline">Community fee: {community.community_fee_percent}%</Badge>
             </div>
-              <div className="flex gap-2">
+            {(community as any).membership_fee_cents > 0 && (
+              <div className="flex items-center gap-3">
+                <Badge variant="outline">Membership fee: RM {(((community as any).membership_fee_cents || 0)/100).toFixed(2)}</Badge>
+                <Button size="sm" onClick={handlePayMembership}>Pay membership</Button>
+              </div>
+            )}
+            <div className="flex gap-2">
                 {!membership ? (
                   <>
                     <Button size="sm" variant="outline" onClick={() => handleJoin('buyer')}>Join as Buyer</Button>
