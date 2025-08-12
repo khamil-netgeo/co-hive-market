@@ -154,6 +154,55 @@ export default function CommunityManage() {
     });
   }, [community]);
 
+  // Realtime updates for fund ledger and membership payments
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`community-manage-${id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'community_fund_txns', filter: `community_id=eq.${id}` },
+        (payload) => {
+          const r = (payload as any).new as any;
+          // Update ledger rows (prepend latest)
+          setLedgerRows((prev) => [
+            {
+              id: r.id,
+              amount_cents: r.amount_cents,
+              created_at: r.created_at,
+              type: r.type,
+              user_id: r.user_id,
+              notes: r.notes,
+            },
+            ...prev,
+          ].slice(0, 50));
+
+          if (r.type === 'contribution') {
+            setFundTotal((s) => s + (r.amount_cents || 0));
+            setRecentTxns((prev) => [
+              { id: r.id, amount_cents: r.amount_cents, created_at: r.created_at, user_id: r.user_id, type: r.type },
+              ...prev,
+            ].slice(0, 10));
+          } else if (r.type === 'distribution') {
+            setDistTotal((s) => s + (r.amount_cents || 0));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'community_membership_payments', filter: `community_id=eq.${id}` },
+        (payload) => {
+          const r = (payload as any).new as any;
+          setMembershipTotal((s) => s + (r.amount_cents || 0));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
   const handleSave = async () => {
     if (!id || !(isAdmin || isSuperadmin)) {
       toast("Only admins can update settings");
