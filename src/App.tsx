@@ -76,6 +76,7 @@ import RequestReturn from "./pages/RequestReturn";
 import RequestCancellation from "./pages/RequestCancellation";
 import VendorReturnRequests from "./pages/vendor/ReturnRequests";
 import VendorCancellationRequests from "./pages/vendor/CancellationRequests";
+import StoreFront from "./pages/StoreFront";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -147,6 +148,7 @@ const App = () => (
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/community-payment-success" element={<CommunityPaymentSuccess />} />
               <Route path="/payment-canceled" element={<PaymentCanceled />} />
+              <Route path="/store/:vendorId" element={<StoreFront />} />
               <Route
                 path="/admin"
                 element={
