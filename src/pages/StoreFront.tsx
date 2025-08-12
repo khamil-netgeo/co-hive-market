@@ -44,6 +44,18 @@ interface ServiceItem extends BaseItem {
 
 type StoreItem = ProductItem | ServiceItem;
 
+interface Voucher {
+  id: string;
+  title: string | null;
+  code: string;
+  discount_type: any;
+  discount_value: number;
+  start_at: string | null;
+  end_at: string | null;
+  min_order_amount_cents: number;
+  free_shipping: boolean;
+}
+
 const fmtPrice = (cents: number, currency: string) => {
   const amount = cents / 100;
   const code = currency?.toUpperCase?.() || "USD";
@@ -60,6 +72,7 @@ export default function StoreFront() {
 
   const [vendor, setVendor] = useState<VendorProfile | null>(null);
   const [items, setItems] = useState<StoreItem[]>([]);
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<"popular" | "new" | "price_asc" | "price_desc">("popular");
 
@@ -121,6 +134,19 @@ export default function StoreFront() {
         ...((svcRes.data || []).map(s => ({ ...s, type: "service" as const })) as ServiceItem[]),
       ];
       setItems(mapped);
+
+      // Active vouchers
+      const nowIso = new Date().toISOString();
+      const { data: vchs, error: vchErr } = await supabase
+        .from("vouchers")
+        .select("id,title,code,discount_type,discount_value,end_at,start_at,min_order_amount_cents,free_shipping,status")
+        .eq("vendor_id", vid)
+        .eq("status", "active")
+        .or(`end_at.is.null,end_at.gte.${nowIso}`);
+      if (vchErr) throw vchErr;
+      const active = (vchs || []).filter((v: any) => !v.start_at || v.start_at <= nowIso);
+      setVouchers(active as Voucher[]);
+
     } catch (e: any) {
       toast.error("Unable to load store", { description: e.message || String(e) });
       navigate("/products");
@@ -205,6 +231,24 @@ export default function StoreFront() {
         </CardContent>
       </Card>
     );
+  };
+
+  const timeLeft = (end: string | null) => {
+    if (!end) return null;
+    const ms = new Date(end).getTime() - Date.now();
+    if (ms <= 0) return "Ended";
+    const m = Math.floor(ms / 60000);
+    const d = Math.floor(m / 1440);
+    const h = Math.floor((m % 1440) / 60);
+    const mm = m % 60;
+    return d > 0 ? `${d}d ${h}h` : `${h}h ${mm}m`;
+  };
+
+  const copyCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      toast.success("Voucher copied", { description: code });
+    } catch {}
   };
 
   return (

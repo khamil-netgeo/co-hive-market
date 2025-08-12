@@ -423,6 +423,7 @@ export default function ServiceDetail() {
               } : undefined}
               onBookNow={bookService}
               onContactVendor={() => toast.info('Contact feature coming soon')}
+              onVisitStore={() => navigate(`/store/${vendor?.id}`)}
             />
           </div>
         </div>

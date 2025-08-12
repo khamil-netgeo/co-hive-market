@@ -26,13 +26,15 @@ interface ServiceDetailsCardProps {
   };
   onBookNow?: () => void;
   onContactVendor?: () => void;
+  onVisitStore?: () => void;
 }
 
 export default function ServiceDetailsCard({
   service,
   vendor,
   onBookNow,
-  onContactVendor
+  onContactVendor,
+  onVisitStore
 }: ServiceDetailsCardProps) {
   
   const formatAvailability = (preset?: string | null) => {
@@ -200,11 +202,16 @@ export default function ServiceDetailsCard({
               </div>
             )}
 
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={onContactVendor}>
+            <div className="flex gap-2 flex-wrap">
+              {onVisitStore && (
+                <Button variant="outline" className="flex-1 min-w-[140px]" onClick={onVisitStore}>
+                  Visit Store
+                </Button>
+              )}
+              <Button variant="outline" className="flex-1 min-w-[140px]" onClick={onContactVendor}>
                 Contact Provider
               </Button>
-              <Button variant="hero" className="flex-1" onClick={onBookNow}>
+              <Button variant="hero" className="flex-1 min-w-[140px]" onClick={onBookNow}>
                 Book Service
               </Button>
             </div>
