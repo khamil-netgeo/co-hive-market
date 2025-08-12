@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import { Minus, Plus, ShoppingCart, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
+import { supabase } from "@/integrations/supabase/client";
 export default function CartDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const cart = useCart();
   const navigate = useNavigate();
@@ -71,8 +71,13 @@ export default function CartDrawer({ open, onOpenChange }: { open: boolean; onOp
           <div className="flex items-center gap-2">
             <Button
               className="flex-1"
-              onClick={() => {
+              onClick={async () => {
                 onOpenChange(false);
+                const { data: session } = await supabase.auth.getSession();
+                if (!session.session) {
+                  navigate("/auth", { state: { redirect: "/checkout" } });
+                  return;
+                }
                 navigate("/checkout");
               }}
               disabled={cart.items.length === 0}

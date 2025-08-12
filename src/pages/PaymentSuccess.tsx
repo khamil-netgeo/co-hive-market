@@ -22,6 +22,8 @@ export default function PaymentSuccess() {
   const [epOrderNo, setEpOrderNo] = useState<string | null>(null);
   const [bookingEvent, setBookingEvent] = useState<{ title: string; start: Date; end: Date } | null>(null);
   const [serviceBookingId, setServiceBookingId] = useState<string | null>(null);
+  const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [lastSessionId, setLastSessionId] = useState<string | null>(null);
   useEffect(() => {
     setSEO(
       "Payment Success | CoopMarket",
@@ -33,8 +35,10 @@ export default function PaymentSuccess() {
         const params = new URLSearchParams(window.location.search);
         const sessionId = params.get("session_id");
         const bookingId = params.get("booking_id");
+        setLastSessionId(sessionId);
         if (bookingId) setServiceBookingId(bookingId);
         if (!sessionId) {
+          setVerifyError("Missing payment session. If you completed payment, check Orders.");
           setVerifying(false);
           return;
         }
@@ -209,6 +213,33 @@ export default function PaymentSuccess() {
       toast("Couldn’t rebroadcast", { description: e.message || String(e) });
     } finally {
       setRebroadcasting(false);
+    }
+  };
+
+  const retryVerification = async () => {
+    if (!lastSessionId) return;
+    try {
+      setVerifying(true);
+      setVerifyError(null);
+      const { data, error } = await supabase.functions.invoke("verify-payment", {
+        body: { session_id: lastSessionId },
+      });
+      if (error) throw error;
+      const oid = (data as any)?.order?.id ?? (data as any)?.order_id;
+      if (oid) setOrderId(String(oid));
+      const sm = (data as any)?.order?.shipping_method || null;
+      const awb = (data as any)?.order?.easyparcel_awb_no || null;
+      const epNo = (data as any)?.order?.easyparcel_order_no || null;
+      setShippingMethod(sm);
+      setAwbNo(awb);
+      setEpOrderNo(epNo);
+      toast("Payment verified", { description: sm === 'easyparcel' ? "Shipment will be handled by courier." : "Your transaction has been confirmed. Rider assignment will follow shortly." });
+      clear();
+    } catch (e: any) {
+      setVerifyError(e.message || String(e));
+      toast("Verification issue", { description: e.message || String(e) });
+    } finally {
+      setVerifying(false);
     }
   };
 

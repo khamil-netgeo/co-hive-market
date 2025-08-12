@@ -57,13 +57,51 @@ export default function Checkout() {
       }
       initOnceRef.current = true;
       try {
-        // Ensure we have drop-off coordinates before creating the payment session
-        const { data: userData } = await supabase.auth.getUser();
-        if (userData.user) {
+        // Require sign-in regardless of entry point
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session) {
+          toast("Sign in required", { description: "Please sign in to continue to checkout." });
+          navigate("/auth", { state: { redirect: "/checkout" } });
+          return;
+        }
+
+        // Determine delivery method using user preference and product constraints first
+        const firstId = cart.items[0]?.product_id as string | undefined;
+        let deliveryMethod: 'rider' | 'easyparcel' = 'rider';
+        let nearbyRiders = false;
+        if (firstId) {
+          const { data: prod } = await supabase
+            .from('products')
+            .select('product_kind, perishable, allow_easyparcel, allow_rider_delivery, pickup_lat, pickup_lng')
+            .eq('id', firstId)
+            .maybeSingle();
+
+          if (prod?.pickup_lat && prod?.pickup_lng) {
+            const { data: riders } = await supabase.rpc('find_nearby_riders', {
+              pickup_lat: prod.pickup_lat,
+              pickup_lng: prod.pickup_lng,
+              max_distance_km: 10
+            });
+            nearbyRiders = (riders?.length || 0) > 0;
+          }
+
+          deliveryMethod = determineDeliveryMethod(
+            preference,
+            prod?.product_kind,
+            prod?.perishable,
+            prod?.allow_easyparcel,
+            prod?.allow_rider_delivery,
+            nearbyRiders
+          );
+        }
+
+        // Only require full address for rider delivery (drop-off coords, etc.)
+        if (deliveryMethod === 'rider') {
+          const userId = sessionData.session.user.id;
           const { data: prof } = await supabase
             .from("profiles")
             .select("latitude,longitude,address_line1,city,postcode,phone")
-            .eq("id", userData.user.id)
+            .eq("id", userId)
             .maybeSingle();
           const missing = !prof || !prof.latitude || !prof.longitude || !prof.address_line1 || !prof.city || !prof.postcode || !prof.phone;
           if (missing) {
@@ -92,38 +130,6 @@ export default function Checkout() {
         const stripe = await loadStripe(pk);
         if (!stripe) throw new Error("Failed to load Stripe.js");
 
-        // Determine delivery method using user preference and product constraints
-        const firstId = cart.items[0]?.product_id as string | undefined;
-        let deliveryMethod: 'rider' | 'easyparcel' = 'rider';
-        
-        if (firstId) {
-          const { data: prod } = await supabase
-            .from('products')
-            .select('product_kind, perishable, allow_easyparcel, allow_rider_delivery, pickup_lat, pickup_lng')
-            .eq('id', firstId)
-            .maybeSingle();
-
-          // Check if riders are available nearby (simplified check)
-          let nearbyRiders = false;
-          if (prod?.pickup_lat && prod?.pickup_lng) {
-            const { data: riders } = await supabase.rpc('find_nearby_riders', {
-              pickup_lat: prod.pickup_lat,
-              pickup_lng: prod.pickup_lng,
-              max_distance_km: 10
-            });
-            nearbyRiders = (riders?.length || 0) > 0;
-          }
-
-          deliveryMethod = determineDeliveryMethod(
-            preference,
-            prod?.product_kind,
-            prod?.perishable,
-            prod?.allow_easyparcel,
-            prod?.allow_rider_delivery,
-            nearbyRiders
-          );
-        }
-
         // Compute total weight in grams from products; default 500g each if unknown
         const ids = cart.items.map(i => i.product_id);
         let totalWeightGrams = 0;
@@ -140,15 +146,15 @@ export default function Checkout() {
           }
         }
 
-
         // Snapshot the cart to persist line items for order creation
         let snapshotId: string | null = null;
         try {
-          if (userData.user) {
+          const userId = sessionData.session.user.id;
+          if (userId) {
             const { data: snap } = await supabase
               .from("cart_snapshots")
               .insert({
-                user_id: userData.user.id,
+                user_id: userId,
                 vendor_id: cart.vendor_id,
                 currency: cart.currency,
                 items: cart.items,
@@ -173,6 +179,7 @@ export default function Checkout() {
             delivery_method: deliveryMethod,
             total_weight_grams: totalWeightGrams,
             snapshot_id: snapshotId,
+            shipping_cents: shippingCents,
           },
         });
         if (error) {
