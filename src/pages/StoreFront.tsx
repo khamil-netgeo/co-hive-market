@@ -203,32 +203,62 @@ export default function StoreFront() {
   const FlashCard = ({ it }: { it: StoreItem }) => {
     const lowStock = it.type === "product" && typeof (it as ProductItem).stock_qty === "number" && (it as ProductItem).stock_qty! <= 5;
     return (
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden group hover:shadow-lg transition-all duration-300 border-0 bg-gradient-to-br from-card to-card/50 backdrop-blur-sm">
         <CardContent className="p-0">
-          <div className="relative">
-            <ProductImage imageUrls={it.image_urls || []} productName={it.name} className="w-full h-40 object-cover" />
-            <div className="absolute top-2 left-2 flex gap-2">
-              <Badge variant="secondary" className="bg-primary/10 text-primary">
+          <div className="relative overflow-hidden">
+            <ProductImage 
+              imageUrls={it.image_urls || []} 
+              productName={it.name} 
+              className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute top-3 left-3 flex gap-2">
+              <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg backdrop-blur-sm">
                 <Flame className="h-3 w-3 mr-1" /> Hot
               </Badge>
               {lowStock && (
-                <Badge variant="secondary" className="bg-destructive/10 text-destructive">Only {(it as ProductItem).stock_qty} left</Badge>
+                <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg">
+                  Only {(it as ProductItem).stock_qty} left
+                </Badge>
               )}
             </div>
-          </div>
-          <div className="p-3 space-y-1">
-            <p className="line-clamp-2 text-sm">{it.name}</p>
-            <p className="font-semibold">{fmtPrice(it.price_cents, it.currency)}</p>
-            <div className="flex items-center justify-between pt-2">
-              <Button size="sm" variant="hero" onClick={() => quickAdd(it)} className="h-8">
-                {it.type === "product" ? (<><ShoppingCart className="h-4 w-4 mr-1"/> Add</>) : (<><ArrowRight className="h-4 w-4 mr-1"/> View</>)}
-              </Button>
-              {it.video_url && (
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => navigate(it.type === "product" ? `/product/${it.id}` : `/service/${it.id}`)} aria-label="Watch video">
-                  <PlayCircle className="h-4 w-4" />
+            {it.video_url && (
+              <div className="absolute top-3 right-3">
+                <Button 
+                  size="icon" 
+                  variant="secondary" 
+                  className="h-8 w-8 bg-black/50 backdrop-blur-sm hover:bg-black/70 border-0" 
+                  onClick={() => navigate(it.type === "product" ? `/product/${it.id}` : `/service/${it.id}`)} 
+                  aria-label="Watch video"
+                >
+                  <PlayCircle className="h-4 w-4 text-white" />
                 </Button>
-              )}
+              </div>
+            )}
+          </div>
+          <div className="p-4 space-y-3">
+            <div className="space-y-1">
+              <h3 className="line-clamp-2 text-sm font-medium text-foreground leading-tight">{it.name}</h3>
+              <p className="text-lg font-bold text-primary">{fmtPrice(it.price_cents, it.currency)}</p>
             </div>
+            <Button 
+              size="sm" 
+              variant={it.type === "product" ? "default" : "secondary"}
+              onClick={() => quickAdd(it)} 
+              className="w-full h-9 font-medium transition-all duration-200 hover:scale-105"
+            >
+              {it.type === "product" ? (
+                <>
+                  <ShoppingCart className="h-4 w-4 mr-2" /> 
+                  Add
+                </>
+              ) : (
+                <>
+                  <ArrowRight className="h-4 w-4 mr-2" /> 
+                  View
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -288,30 +318,41 @@ export default function StoreFront() {
         </div>
       </section>
 
-      {/* Flash Sale */}
+      {/* Flash Picks - Enhanced */}
       {!!sorted.length && (
-        <section className="mt-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold flex items-center gap-2"><Flame className="h-5 w-5 text-primary"/> Flash Picks</h2>
+        <section className="mt-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500">
+                <Flame className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                Flash Picks
+              </h2>
+            </div>
             <div className="flex items-center gap-2">
-              <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="h-9 rounded-md border bg-background px-3 text-sm">
-                <option value="popular">Popular</option>
-                <option value="new">Newest</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
+              <select 
+                value={sort} 
+                onChange={(e) => setSort(e.target.value as any)} 
+                className="h-10 rounded-lg border bg-background px-4 text-sm font-medium shadow-sm hover:shadow-md transition-shadow"
+              >
+                <option value="popular">🔥 Popular</option>
+                <option value="new">✨ Newest</option>
+                <option value="price_asc">💰 Price: Low to High</option>
+                <option value="price_desc">💎 Price: High to Low</option>
               </select>
             </div>
           </div>
-          <Carousel>
-            <CarouselContent>
+          <Carousel className="w-full">
+            <CarouselContent className="-ml-2 md:-ml-4">
               {sorted.slice(0, 12).map((it) => (
-                <CarouselItem key={`${it.type}-${it.id}`} className="basis-2/3 sm:basis-1/3 md:basis-1/4 lg:basis-1/6 pr-2">
+                <CarouselItem key={`${it.type}-${it.id}`} className="pl-2 md:pl-4 basis-4/5 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5">
                   <FlashCard it={it} />
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            <CarouselPrevious className="hidden sm:flex -left-4 lg:-left-6" />
+            <CarouselNext className="hidden sm:flex -right-4 lg:-right-6" />
           </Carousel>
         </section>
       )}
