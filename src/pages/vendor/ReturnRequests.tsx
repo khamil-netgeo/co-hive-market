@@ -26,7 +26,7 @@ export default function VendorReturnRequests() {
       title: "Return Requests — Vendor",
       description: "Manage incoming return requests from your customers.",
       type: "article",
-      canonical: window.location.href,
+      url: window.location.href,
     });
   }, []);
 
@@ -43,7 +43,7 @@ export default function VendorReturnRequests() {
         const ids = (vendors || []).map((v: any) => v.id);
         setVendorIds(ids);
         if (ids.length === 0) { setRows([]); return; }
-        const { data: list, error: qErr } = await supabase
+        const { data: list, error: qErr } = await (supabase as any)
           .from("order_return_requests")
           .select("id, order_id, status, reason, created_at")
           .in("vendor_id", ids)
@@ -61,7 +61,7 @@ export default function VendorReturnRequests() {
 
   const onUpdate = async (id: string, status: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("order_return_requests")
         .update({ status })
         .eq("id", id);

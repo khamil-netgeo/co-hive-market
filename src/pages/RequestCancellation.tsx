@@ -21,7 +21,7 @@ export default function RequestCancellation() {
       title: "Request Cancellation — CoopMarket",
       description: "Ask to cancel an order that hasn’t shipped yet.",
       type: "article",
-      canonical: window.location.href,
+      url: window.location.href,
     });
   }, []);
 
@@ -60,7 +60,7 @@ export default function RequestCancellation() {
       setSubmitting(true);
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) { navigate("/auth"); return; }
-      const { error } = await supabase.from("order_cancel_requests").insert({
+      const { error } = await (supabase as any).from("order_cancel_requests").insert({
         order_id: orderId,
         buyer_user_id: auth.user.id,
         vendor_id: vendorId,

@@ -25,7 +25,7 @@ export default function VendorCancellationRequests() {
       title: "Cancellation Requests — Vendor",
       description: "Manage customer order cancellation requests.",
       type: "article",
-      canonical: window.location.href,
+      url: window.location.href,
     });
   }, []);
 
@@ -41,7 +41,7 @@ export default function VendorCancellationRequests() {
         if (error) throw error;
         const ids = (vendors || []).map((v: any) => v.id);
         if (ids.length === 0) { setRows([]); setLoading(false); return; }
-        const { data: list, error: qErr } = await supabase
+        const { data: list, error: qErr } = await (supabase as any)
           .from("order_cancel_requests")
           .select("id, order_id, status, reason, created_at")
           .in("vendor_id", ids)
@@ -59,7 +59,7 @@ export default function VendorCancellationRequests() {
 
   const onUpdate = async (id: string, status: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("order_cancel_requests")
         .update({ status })
         .eq("id", id);

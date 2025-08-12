@@ -23,7 +23,7 @@ export default function RequestReturn() {
       title: "Request Return — CoopMarket",
       description: "Submit a return request for your recent order.",
       type: "article",
-      canonical: window.location.href,
+      url: window.location.href,
     });
   }, []);
 
@@ -69,7 +69,7 @@ export default function RequestReturn() {
         navigate("/auth");
         return;
       }
-      const { error } = await supabase.from("order_return_requests").insert({
+      const { error } = await (supabase as any).from("order_return_requests").insert({
         order_id: orderId,
         buyer_user_id: auth.user.id,
         vendor_id: vendorId,
