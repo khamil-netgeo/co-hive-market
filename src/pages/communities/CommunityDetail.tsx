@@ -213,6 +213,7 @@ export default function CommunityDetail() {
           <CardContent className="flex flex-col gap-2">
             <Button asChild variant="outline"><Link to="/products">Browse Catalog</Link></Button>
             <Button asChild variant="outline"><Link to={`/communities/${id}/feed`}>Community Feed</Link></Button>
+            <Button asChild><Link to={`/communities/${id}/contribute`}>Contribute</Link></Button>
           </CardContent>
         </Card>
       </div>

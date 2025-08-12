@@ -53,3 +53,9 @@ verify_jwt = true
 
 [functions.log-audit]
 verify_jwt = true
+
+[functions.community-contribute]
+verify_jwt = true
+
+[functions.community-payment-confirm]
+verify_jwt = true
