@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import CommunityMembershipPayments from "./components/CommunityMembershipPayments";
+import CommunityRecordDistribution from "./components/CommunityRecordDistribution";
+import CommunityFundLedger from "./components/CommunityFundLedger";
 
 interface Community { id: string; name: string; description: string | null; member_discount_percent: number; coop_fee_percent: number; community_fee_percent: number }
 
@@ -363,68 +365,17 @@ export default function CommunityManage() {
       </section>
 
       <section className="mt-6 grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Record Distribution</CardTitle>
-            <CardDescription>Deduct funds for grants or community expenses</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid gap-2">
-              <Label htmlFor="dist-amount">Amount (RM)</Label>
-              <Input id="dist-amount" type="number" min={1} step={1} value={distAmount} onChange={(e)=>setDistAmount(e.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="dist-notes">Notes</Label>
-              <Textarea id="dist-notes" rows={3} value={distNotes} onChange={(e)=>setDistNotes(e.target.value)} placeholder="Purpose / recipient / reference" />
-            </div>
-            <Button onClick={handleCreateDistribution} disabled={distLoading || !distAmount}>
-              {distLoading ? 'Recording…' : 'Record Distribution'}
-            </Button>
-            <p className="text-xs text-muted-foreground">Net fund available: RM {((fundTotal - distTotal)/100).toFixed(2)}</p>
-          </CardContent>
-        </Card>
+        <CommunityRecordDistribution
+          distAmount={distAmount}
+          setDistAmount={setDistAmount}
+          distNotes={distNotes}
+          setDistNotes={setDistNotes}
+          distLoading={distLoading}
+          onSubmit={handleCreateDistribution}
+          netFundRm={(fundTotal - distTotal) / 100}
+        />
 
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <CardTitle>Fund Ledger</CardTitle>
-                <CardDescription>Contributions and distributions</CardDescription>
-              </div>
-              <Button variant="outline" onClick={exportLedgerCsv}>Export CSV</Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {ledgerRows.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No ledger entries yet.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead className="text-right">Amount (RM)</TableHead>
-                      <TableHead>User</TableHead>
-                      <TableHead>Notes</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {ledgerRows.slice(0, 20).map((r) => (
-                      <TableRow key={r.id}>
-                        <TableCell className="font-mono text-xs">{new Date(r.created_at).toLocaleString()}</TableCell>
-                        <TableCell>{r.type}</TableCell>
-                        <TableCell className="text-right">{(r.amount_cents/100).toFixed(2)}</TableCell>
-                        <TableCell className="font-mono text-xs">{r.user_id || ''}</TableCell>
-                        <TableCell className="max-w-[18rem] truncate" title={r.notes}>{r.notes}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <CommunityFundLedger rows={ledgerRows} onExport={exportLedgerCsv} />
       </section>
 
       <section className="mt-6">
