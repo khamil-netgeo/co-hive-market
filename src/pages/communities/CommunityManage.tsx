@@ -31,9 +31,16 @@ export default function CommunityManage() {
   const [memberDiscount, setMemberDiscount] = useState<number>(10);
   const [coopFee, setCoopFee] = useState<number>(2);
   const [communityFee, setCommunityFee] = useState<number>(3);
+  const [membershipFeeCents, setMembershipFeeCents] = useState<number>(0);
+
   const [fundTotal, setFundTotal] = useState<number>(0);
+  const [distTotal, setDistTotal] = useState<number>(0);
   const [membershipTotal, setMembershipTotal] = useState<number>(0);
   const [recentTxns, setRecentTxns] = useState<{ id: string; amount_cents: number; created_at: string; user_id: string | null; type: string }[]>([]);
+
+  const [distAmount, setDistAmount] = useState<string>("");
+  const [distNotes, setDistNotes] = useState<string>("");
+  const [distLoading, setDistLoading] = useState(false);
 
   const canManage = useMemo(() => {
     return !!(isAdmin || isSuperadmin || membership?.member_type === 'manager');
@@ -46,7 +53,7 @@ export default function CommunityManage() {
       try {
         const { data: c, error: cErr } = await supabase
           .from("communities")
-          .select("id,name,description,member_discount_percent,coop_fee_percent,community_fee_percent")
+          .select("id,name,description,member_discount_percent,coop_fee_percent,community_fee_percent,membership_fee_cents")
           .eq("id", id)
           .maybeSingle();
         if (cErr) throw cErr;
@@ -55,6 +62,7 @@ export default function CommunityManage() {
           setMemberDiscount((c as any).member_discount_percent);
           setCoopFee((c as any).coop_fee_percent);
           setCommunityFee((c as any).community_fee_percent);
+          setMembershipFeeCents((c as any).membership_fee_cents ?? 0);
         }
 
         // Membership for current user
@@ -106,6 +114,8 @@ export default function CommunityManage() {
         const contributions = ((fundRows as any[]) || []).filter((r) => r.type === 'contribution');
         setFundTotal(contributions.reduce((sum, r) => sum + (r.amount_cents || 0), 0));
         setRecentTxns(contributions.slice(0, 10) as any);
+        const distributions = ((fundRows as any[]) || []).filter((r) => r.type === 'distribution');
+        setDistTotal(distributions.reduce((sum, r) => sum + (r.amount_cents || 0), 0));
 
         const { data: mPays, error: mpErr } = await (supabase as any)
           .from("community_membership_payments")
@@ -149,6 +159,7 @@ export default function CommunityManage() {
           member_discount_percent: memberDiscount,
           coop_fee_percent: coopFee,
           community_fee_percent: communityFee,
+          membership_fee_cents: membershipFeeCents,
         })
         .eq("id", id);
       if (error) throw error;
@@ -223,6 +234,18 @@ export default function CommunityManage() {
               <Label htmlFor="cmf">Community Fee %</Label>
               <Input id="cmf" type="number" min={0} max={100} value={communityFee} onChange={(e) => setCommunityFee(Number(e.target.value))} disabled={!(isAdmin || isSuperadmin)} />
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="mfee">Membership Fee (RM)</Label>
+              <Input
+                id="mfee"
+                type="number"
+                min={0}
+                step={1}
+                value={Math.floor(membershipFeeCents / 100)}
+                onChange={(e) => setMembershipFeeCents(Math.max(0, Math.round(Number(e.target.value) * 100)))}
+                disabled={!(isAdmin || isSuperadmin)}
+              />
+            </div>
             <div className="md:col-span-3">
               <Button onClick={handleSave} disabled={!(isAdmin || isSuperadmin)}>Save</Button>
             </div>
@@ -246,6 +269,8 @@ export default function CommunityManage() {
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary">Contributions: RM {(fundTotal/100).toFixed(2)}</Badge>
                 <Badge variant="secondary">Memberships: RM {(membershipTotal/100).toFixed(2)}</Badge>
+                <Badge variant="secondary">Distributions: RM {(distTotal/100).toFixed(2)}</Badge>
+                <Badge>Net fund: RM {((fundTotal - distTotal)/100).toFixed(2)}</Badge>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground mb-1">Recent contributions</div>
