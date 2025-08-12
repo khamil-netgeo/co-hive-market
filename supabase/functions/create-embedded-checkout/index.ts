@@ -42,6 +42,7 @@ serve(async (req) => {
       scheduled_dropoff_at,
       total_weight_grams,
       snapshot_id,
+      shipping_cents,
     } = body ?? {};
 
     if (!amount_cents || typeof amount_cents !== "number" || amount_cents <= 0) {
@@ -106,6 +107,7 @@ serve(async (req) => {
         scheduled_dropoff_at: scheduled_dropoff_at ? String(scheduled_dropoff_at) : undefined,
         total_weight_grams: total_weight_grams ? String(total_weight_grams) : undefined,
         snapshot_id: snapshot_id ? String(snapshot_id) : undefined,
+        shipping_cents: typeof shipping_cents === 'number' ? String(Math.round(shipping_cents)) : undefined,
       },
     };
 

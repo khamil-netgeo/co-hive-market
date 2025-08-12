@@ -181,6 +181,14 @@ serve(async (req) => {
 
     if (oErr) throw oErr;
 
+    // Optionally persist shipping amount if provided in metadata (ignore if column missing)
+    try {
+      const shippingCents = md.shipping_cents ? Math.round(Number(md.shipping_cents)) : 0;
+      if (shippingCents > 0) {
+        await service.from("orders").update({ shipping_cents: shippingCents }).eq("id", order.id);
+      }
+    } catch (_) {}
+
     // Compute and record ledger splits (vendor/community/coop)
     const { data: communityCfg, error: cfgErr } = await service
       .from("communities")
