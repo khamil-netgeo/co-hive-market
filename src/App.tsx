@@ -72,7 +72,10 @@ import SupportPage from "./pages/Support";
 import Contribute from "./pages/communities/Contribute";
 import CommunityPaymentSuccess from "./pages/CommunityPaymentSuccess";
 import CommunityMembers from "./pages/communities/CommunityMembers";
-
+import RequestReturn from "./pages/RequestReturn";
+import RequestCancellation from "./pages/RequestCancellation";
+import VendorReturnRequests from "./pages/vendor/ReturnRequests";
+import VendorCancellationRequests from "./pages/vendor/CancellationRequests";
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -104,6 +107,8 @@ const App = () => (
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/orders/:id" element={<OrderTracker />} />
+              <Route path="/orders/:id/return" element={<RequestReturn />} />
+              <Route path="/orders/:id/cancel" element={<RequestCancellation />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/communities" element={<Communities />} />
               <Route path="/communities/:id" element={<CommunityDetail />} />
@@ -137,6 +142,8 @@ const App = () => (
               <Route path="/vendor/calendar" element={<VendorCalendar />} />
               <Route path="/vendor/payouts" element={<VendorPayouts />} />
               <Route path="/vendor/settings" element={<VendorSettings />} />
+              <Route path="/vendor/returns" element={<VendorReturnRequests />} />
+              <Route path="/vendor/cancellations" element={<VendorCancellationRequests />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/community-payment-success" element={<CommunityPaymentSuccess />} />
               <Route path="/payment-canceled" element={<PaymentCanceled />} />
