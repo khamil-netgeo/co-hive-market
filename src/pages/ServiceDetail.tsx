@@ -15,6 +15,7 @@ import ServiceDetailsCard from "@/components/service/ServiceDetailsCard";
 import ReviewSummary from "@/components/reviews/ReviewSummary";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
+import { useVendorFollow } from "@/hooks/useVendorFollow";
 
 interface Service {
   id: string;
@@ -56,6 +57,7 @@ export default function ServiceDetail() {
   // Booking state
   const [scheduledDateTime, setScheduledDateTime] = useState("");
   const [notes, setNotes] = useState("");
+  const { isFollowing, followersCount, toggle, loading: followLoading } = useVendorFollow(service?.vendor_id);
 
   useEffect(() => {
     if (!id) {
@@ -332,6 +334,17 @@ export default function ServiceDetail() {
               </h1>
               {service.subtitle && (
                 <p className="text-lg text-muted-foreground">{service.subtitle}</p>
+              )}
+              {service.vendor_id && (
+                <div className="mt-2 flex items-center gap-3">
+                  <Button size="sm" variant={isFollowing ? "secondary" : "outline"} onClick={toggle} disabled={followLoading}>
+                    {isFollowing ? "Following" : "Follow"}
+                  </Button>
+                  <span className="text-sm text-muted-foreground">{followersCount} followers</span>
+                  <Button size="sm" variant="ghost" asChild>
+                    <Link to={`/store/${service.vendor_id}`}>Visit store</Link>
+                  </Button>
+                </div>
               )}
             </div>
 

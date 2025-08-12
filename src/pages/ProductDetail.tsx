@@ -20,6 +20,7 @@ import ReviewSummary from "@/components/reviews/ReviewSummary";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { Input } from "@/components/ui/input";
+import { useVendorFollow } from "@/hooks/useVendorFollow";
 
 interface Product {
   id: string;
@@ -60,6 +61,7 @@ const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | 
 const [deliveryOption, setDeliveryOption] = useState<'asap' | 'schedule'>('asap');
 const [scheduledAt, setScheduledAt] = useState<string>('');
 const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'pickup'>('rider');
+  const { isFollowing, followersCount, toggle, loading: followLoading } = useVendorFollow(product?.vendor_id);
 
   useEffect(() => {
     if (!id) {
@@ -571,6 +573,12 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                       >
                         Visit store
                       </Link>
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant={isFollowing ? "secondary" : "outline"} onClick={toggle} disabled={followLoading || !product.vendor_id}>
+                          {isFollowing ? "Following" : "Follow"}
+                        </Button>
+                        <span className="text-xs text-muted-foreground">{followersCount} followers</span>
+                      </div>
                     </div>
                     {vendor?.member_discount_override_percent != null && vendor.member_discount_override_percent > 0 && (
                       <div className="flex items-center gap-2 text-xs sm:text-sm p-2 bg-primary/10 rounded-lg">

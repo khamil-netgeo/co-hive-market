@@ -10,6 +10,7 @@ import ProductImage from "@/components/product/ProductImage";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { Star, Flame, Clock, ShoppingCart, PlayCircle, Store, ArrowRight } from "lucide-react";
+import { useVendorFollow } from "@/hooks/useVendorFollow";
 
 interface VendorProfile {
   id: string;
@@ -75,6 +76,7 @@ export default function StoreFront() {
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<"popular" | "new" | "price_asc" | "price_desc">("popular");
+  const { isFollowing, followersCount, toggle, loading: followLoading } = useVendorFollow(vendorId);
 
   useEffect(() => {
     if (!vendorId) return;
@@ -269,6 +271,12 @@ export default function StoreFront() {
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <Badge variant="secondary" className="text-xs"><Star className="h-3 w-3 mr-1"/> Top Seller</Badge>
               <Badge variant="secondary" className="text-xs"><Clock className="h-3 w-3 mr-1"/> Fast shipping</Badge>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <Button size="sm" variant={isFollowing ? "secondary" : "outline"} onClick={toggle} disabled={followLoading}>
+                {isFollowing ? "Following" : "Follow"}
+              </Button>
+              <span className="text-xs text-muted-foreground">{followersCount} followers</span>
             </div>
           </div>
           <div className="hidden sm:flex gap-2">
