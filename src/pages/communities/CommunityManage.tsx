@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import CommunityMembershipPayments from "./components/CommunityMembershipPayments";
 
 interface Community { id: string; name: string; description: string | null; member_discount_percent: number; coop_fee_percent: number; community_fee_percent: number }
 
@@ -424,6 +425,10 @@ export default function CommunityManage() {
             )}
           </CardContent>
         </Card>
+      </section>
+
+      <section className="mt-6">
+        <CommunityMembershipPayments communityId={community.id} />
       </section>
 
       <section className="mt-6">
