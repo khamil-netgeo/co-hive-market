@@ -83,6 +83,7 @@ serve(async (req) => {
     const params: any = {
       mode: "payment",
       ui_mode: "embedded",
+      allow_promotion_codes: true,
       customer: customerId,
       customer_email: customerId ? undefined : userEmail,
       line_items: [

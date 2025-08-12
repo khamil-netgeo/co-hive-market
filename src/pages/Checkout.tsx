@@ -202,8 +202,34 @@ export default function Checkout() {
         if (containerRef.current) checkout.mount(containerRef.current);
         setMounting(false);
       } catch (e: any) {
-        toast("Checkout error", { description: e.message || String(e) });
-        setMounting(false);
+        // Fallback to hosted Stripe Checkout if Embedded fails
+        try {
+          const { data: fallback, error: fbErr } = await supabase.functions.invoke("create-payment", {
+            body: {
+              name: `Cart purchase (${cart.count} item${cart.count > 1 ? "s" : ""})`,
+              amount_cents: totalCents,
+              currency: cart.currency,
+              success_path: "/payment-success",
+              cancel_path: "/payment-canceled",
+              vendor_id: cart.vendor_id,
+              community_id: cart.community_id,
+              product_id: cart.items[0]?.product_id,
+              delivery_method: "embedded_fallback",
+              shipping_cents: shippingCents,
+            },
+          });
+          if (fbErr) throw fbErr;
+          const url = (fallback as any)?.url;
+          if (url) {
+            window.open(url, "_blank");
+            setMounting(false);
+            return;
+          }
+          throw new Error("Hosted checkout unavailable");
+        } catch (err: any) {
+          toast("Checkout error", { description: (e?.message || String(e)) + (err?.message ? ` — Fallback: ${err.message}` : "") });
+          setMounting(false);
+        }
       }
     })();
   }, [cart.items.length]);

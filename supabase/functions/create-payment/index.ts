@@ -43,6 +43,7 @@ serve(async (req) => {
       // Optional delivery metadata
       delivery_method,
       scheduled_dropoff_at,
+      shipping_cents,
       // Optional service/booking metadata
       service_id,
       booking_id,
@@ -74,6 +75,7 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : userEmail,
+      allow_promotion_codes: true,
       line_items: [
         {
           price_data: {
@@ -98,6 +100,7 @@ serve(async (req) => {
         scheduled_dropoff_at: scheduled_dropoff_at ? String(scheduled_dropoff_at) : undefined,
         service_id: service_id ? String(service_id) : undefined,
         booking_id: booking_id ? String(booking_id) : undefined,
+        shipping_cents: typeof shipping_cents === 'number' ? String(Math.round(shipping_cents)) : undefined,
       },
     });
 

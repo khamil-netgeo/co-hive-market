@@ -19,6 +19,7 @@ import ProductSpecificationsCard from "@/components/product/ProductSpecification
 import ReviewSummary from "@/components/reviews/ReviewSummary";
 import ReviewList from "@/components/reviews/ReviewList";
 import ReviewForm from "@/components/reviews/ReviewForm";
+import { Input } from "@/components/ui/input";
 
 interface Product {
   id: string;

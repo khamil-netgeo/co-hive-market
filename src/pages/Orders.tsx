@@ -14,6 +14,7 @@ interface OrderRow {
   created_at: string;
   status: string;
   total_amount_cents: number;
+  shipping_cents?: number | null;
   currency: string;
 }
 
