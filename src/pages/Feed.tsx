@@ -9,6 +9,8 @@ import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { useCommunity } from "@/context/CommunityContext";
 import LikeButton from "@/components/feed/LikeButton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFollowedVendors } from "@/hooks/useFollowedVendors";
 
 // TikTok-style vertical shopping feed (products + services)
 // Mobile-first, full-screen, swipeable interface
@@ -55,7 +57,14 @@ export default function Feed() {
   const navigate = useNavigate();
   const { add } = useCart();
   const [searchParams] = useSearchParams();
-  const { selected } = useCommunity();
+const { selected } = useCommunity();
+
+  const [mode, setMode] = useState<"for_you" | "following">("for_you");
+  const { ids: followedIds } = useFollowedVendors();
+  const displayedItems = useMemo(
+    () => (mode === "for_you" ? items : items.filter((it) => followedIds.includes(it.vendor_id))),
+    [items, mode, followedIds]
+  );
 
   useEffect(() => {
     setSEOAdvanced({
@@ -260,7 +269,7 @@ export default function Feed() {
         el.pause();
       }
     });
-  }, [active, items.length]);
+  }, [active, displayedItems.length]);
 
   // Observe visibility to set active index (smooth autoplay)
   useEffect(() => {
@@ -281,7 +290,7 @@ export default function Feed() {
 
     videoRefs.current.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [items.length]);
+  }, [displayedItems.length]);
 
   // Prefetch next video for smoother playback
   useEffect(() => {
@@ -325,11 +334,11 @@ export default function Feed() {
       // Fire and forget
       void logWatch(prevItem, watched, prevStart);
     }
-    // Start timing new
-    const current = items[active] ?? null;
+  // Start timing new
+    const current = displayedItems[active] ?? null;
     activeItemRef.current = current;
     activeStartRef.current = now;
-  }, [active, items]);
+  }, [active, displayedItems]);
 
   // Flush on unload/visibility hidden
   useEffect(() => {
@@ -464,7 +473,7 @@ export default function Feed() {
         </div>
       );
     }
-    if (!items.length) {
+    if (!displayedItems.length) {
       return (
         <div className="h-[100svh] flex flex-col items-center justify-center gap-2">
           <h1 className="text-xl font-semibold">No clips yet</h1>
@@ -478,7 +487,7 @@ export default function Feed() {
     return (
       <Carousel orientation="vertical" opts={{ loop: false }} className="h-[100svh]">
         <CarouselContent className="h-[100svh]">
-          {items.map((it, idx) => (
+          {displayedItems.map((it, idx) => (
             <CarouselItem key={`${it.kind}-${it.id}`} className="h-[100svh] relative">
               <div className="absolute inset-0">
                 <video
@@ -501,10 +510,18 @@ export default function Feed() {
         </CarouselContent>
       </Carousel>
     );
-  }, [items, loading, active]);
+  }, [displayedItems, loading, active]);
 
   return (
     <main role="main" className="relative">
+      <div className="pointer-events-auto absolute top-3 left-1/2 -translate-x-1/2 z-10">
+        <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
+          <TabsList className="grid grid-cols-2">
+            <TabsTrigger value="for_you">For You</TabsTrigger>
+            <TabsTrigger value="following" disabled={!followedIds.length}>Following</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
       {content}
     </main>
   );
