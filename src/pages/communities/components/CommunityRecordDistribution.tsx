@@ -42,6 +42,13 @@ export default function CommunityRecordDistribution({
             inputMode="numeric"
             pattern="[0-9]*"
           />
+          {(() => {
+            const n = parseFloat(distAmount || '0') || 0;
+            if (!distAmount) return null;
+            if (n <= 0) return <p className="text-xs text-destructive">Enter an amount greater than 0</p>;
+            if (n > netFundRm) return <p className="text-xs text-destructive">Amount exceeds available net fund</p>;
+            return null;
+          })()}
         </div>
         <div className="grid gap-2">
           <Label htmlFor="dist-notes">Notes</Label>
@@ -52,8 +59,19 @@ export default function CommunityRecordDistribution({
             onChange={(e) => setDistNotes(e.target.value)}
             placeholder="Purpose / recipient / reference"
           />
+          {distNotes.trim().length === 0 && (
+            <p className="text-xs text-muted-foreground">Please add a short note for transparency.</p>
+          )}
         </div>
-        <Button onClick={onSubmit} disabled={distLoading || !distAmount}>
+        <Button
+          onClick={onSubmit}
+          disabled={(() => {
+            const n = parseFloat(distAmount || '0') || 0;
+            return (
+              distLoading || !distAmount || n <= 0 || n > netFundRm || distNotes.trim().length === 0
+            );
+          })()}
+        >
           {distLoading ? "Recording…" : "Record Distribution"}
         </Button>
         <p className="text-xs text-muted-foreground">

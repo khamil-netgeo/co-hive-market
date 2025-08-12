@@ -71,6 +71,7 @@ import ChatPage from "./pages/Chat";
 import SupportPage from "./pages/Support";
 import Contribute from "./pages/communities/Contribute";
 import CommunityPaymentSuccess from "./pages/CommunityPaymentSuccess";
+import CommunityMembers from "./pages/communities/CommunityMembers";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +109,7 @@ const App = () => (
               <Route path="/communities/:id" element={<CommunityDetail />} />
               <Route path="/communities/:id/feed" element={<CommunityFeed />} />
               <Route path="/communities/:id/manage" element={<CommunityManage />} />
+              <Route path="/communities/:id/members" element={<CommunityMembers />} />
               <Route path="/communities/:id/contribute" element={<Contribute />} />
               <Route path="/riders" element={<Riders />} />
               <Route path="/rider" element={<RiderDashboard />} />

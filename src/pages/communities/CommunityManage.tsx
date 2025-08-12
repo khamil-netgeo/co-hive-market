@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import CommunityMembershipPayments from "./components/CommunityMembershipPayments";
 import CommunityRecordDistribution from "./components/CommunityRecordDistribution";
 import CommunityFundLedger from "./components/CommunityFundLedger";
+import CommunityJoinRequests from "./components/CommunityJoinRequests";
 
 interface Community { id: string; name: string; description: string | null; member_discount_percent: number; coop_fee_percent: number; community_fee_percent: number }
 
@@ -333,6 +334,7 @@ export default function CommunityManage() {
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline"><Link to={`/communities/${id}`}>View public page</Link></Button>
+          <Button asChild variant="outline"><Link to={`/communities/${id}/members`}>Members directory</Link></Button>
         </div>
       </header>
 
@@ -411,6 +413,10 @@ export default function CommunityManage() {
             </div>
           </CardContent>
         </Card>
+      </section>
+
+      <section className="mt-6">
+        <CommunityJoinRequests communityId={community.id} />
       </section>
 
       <section className="mt-6 grid gap-6 md:grid-cols-3">
