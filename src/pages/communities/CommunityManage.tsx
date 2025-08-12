@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 
 interface Community { id: string; name: string; description: string | null; member_discount_percent: number; coop_fee_percent: number; community_fee_percent: number }
@@ -37,6 +39,7 @@ export default function CommunityManage() {
   const [distTotal, setDistTotal] = useState<number>(0);
   const [membershipTotal, setMembershipTotal] = useState<number>(0);
   const [recentTxns, setRecentTxns] = useState<{ id: string; amount_cents: number; created_at: string; user_id: string | null; type: string }[]>([]);
+  const [ledgerRows, setLedgerRows] = useState<{ id: string; amount_cents: number; created_at: string; type: string; user_id: string | null; notes?: string }[]>([]);
 
   const [distAmount, setDistAmount] = useState<string>("");
   const [distNotes, setDistNotes] = useState<string>("");
@@ -106,11 +109,12 @@ export default function CommunityManage() {
         // Fund transactions and membership payments
         const { data: fundRows, error: fErr } = await (supabase as any)
           .from("community_fund_txns")
-          .select("id, amount_cents, created_at, type, user_id")
+          .select("id, amount_cents, created_at, type, user_id, notes")
           .eq("community_id", id)
           .order("created_at", { ascending: false })
           .limit(50);
         if (fErr) throw fErr;
+        setLedgerRows(((fundRows as any[]) || []) as any);
         const contributions = ((fundRows as any[]) || []).filter((r) => r.type === 'contribution');
         setFundTotal(contributions.reduce((sum, r) => sum + (r.amount_cents || 0), 0));
         setRecentTxns(contributions.slice(0, 10) as any);
@@ -169,6 +173,71 @@ export default function CommunityManage() {
     }
   };
 
+  const handleCreateDistribution = async () => {
+    if (!id) return;
+    const value = parseFloat(distAmount);
+    if (!value || value <= 0) {
+      toast("Enter a valid amount");
+      return;
+    }
+    setDistLoading(true);
+    try {
+      const cents = Math.round(value * 100);
+      const { error } = await (supabase as any)
+        .from("community_fund_txns")
+        .insert({
+          community_id: id,
+          user_id: user?.id || null,
+          type: 'distribution',
+          amount_cents: cents,
+          currency: 'myr',
+          notes: distNotes || null,
+        });
+      if (error) throw error;
+      toast.success("Distribution recorded");
+      setDistAmount("");
+      setDistNotes("");
+
+      const { data: fundRows, error: fErr } = await (supabase as any)
+        .from("community_fund_txns")
+        .select("id, amount_cents, created_at, type, user_id, notes")
+        .eq("community_id", id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (fErr) throw fErr;
+      setLedgerRows(((fundRows as any[]) || []) as any);
+      const contributions = ((fundRows as any[]) || []).filter((r) => r.type === 'contribution');
+      setFundTotal(contributions.reduce((sum, r) => sum + (r.amount_cents || 0), 0));
+      const distributions = ((fundRows as any[]) || []).filter((r) => r.type === 'distribution');
+      setDistTotal(distributions.reduce((sum, r) => sum + (r.amount_cents || 0), 0));
+    } catch (e: any) {
+      toast("Failed to record distribution", { description: e?.message || String(e) });
+    } finally {
+      setDistLoading(false);
+    }
+  };
+
+  const exportLedgerCsv = () => {
+    const header = ["date","type","amount_rm","user_id","notes"].join(",");
+    const lines = ledgerRows.map(r => {
+      const cells = [
+        new Date(r.created_at).toISOString(),
+        r.type,
+        (r.amount_cents/100).toFixed(2),
+        r.user_id || "",
+        (r.notes || "").replace(/\"/g,'""')
+      ];
+      return cells.map(c => `"${String(c)}"`).join(",");
+    });
+    const csv = [header, ...lines].join("\n");
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `community_fund_ledger_${id}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   if (loading) {
     return (
       <main className="container py-8">
@@ -288,6 +357,71 @@ export default function CommunityManage() {
                 )}
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <section className="mt-6 grid gap-6 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Record Distribution</CardTitle>
+            <CardDescription>Deduct funds for grants or community expenses</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid gap-2">
+              <Label htmlFor="dist-amount">Amount (RM)</Label>
+              <Input id="dist-amount" type="number" min={1} step={1} value={distAmount} onChange={(e)=>setDistAmount(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="dist-notes">Notes</Label>
+              <Textarea id="dist-notes" rows={3} value={distNotes} onChange={(e)=>setDistNotes(e.target.value)} placeholder="Purpose / recipient / reference" />
+            </div>
+            <Button onClick={handleCreateDistribution} disabled={distLoading || !distAmount}>
+              {distLoading ? 'Recording…' : 'Record Distribution'}
+            </Button>
+            <p className="text-xs text-muted-foreground">Net fund available: RM {((fundTotal - distTotal)/100).toFixed(2)}</p>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <CardTitle>Fund Ledger</CardTitle>
+                <CardDescription>Contributions and distributions</CardDescription>
+              </div>
+              <Button variant="outline" onClick={exportLedgerCsv}>Export CSV</Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {ledgerRows.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No ledger entries yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="text-right">Amount (RM)</TableHead>
+                      <TableHead>User</TableHead>
+                      <TableHead>Notes</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {ledgerRows.slice(0, 20).map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="font-mono text-xs">{new Date(r.created_at).toLocaleString()}</TableCell>
+                        <TableCell>{r.type}</TableCell>
+                        <TableCell className="text-right">{(r.amount_cents/100).toFixed(2)}</TableCell>
+                        <TableCell className="font-mono text-xs">{r.user_id || ''}</TableCell>
+                        <TableCell className="max-w-[18rem] truncate" title={r.notes}>{r.notes}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </section>
