@@ -565,10 +565,10 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                     <div className="flex flex-col gap-2">
                       <span className="text-xs sm:text-sm text-muted-foreground">Sold by</span>
                       <Link 
-                        to={`/catalog?vendor=${product.vendor_id}`} 
+                        to={`/store/${product.vendor_id}`} 
                         className="text-primary hover:underline underline-offset-2 font-medium text-xs sm:text-sm min-h-[40px] flex items-center bg-background border rounded-lg px-3 py-2"
                       >
-                        View store profile
+                        Visit store
                       </Link>
                     </div>
                     {vendor?.member_discount_override_percent != null && vendor.member_discount_override_percent > 0 && (

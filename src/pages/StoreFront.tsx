@@ -308,6 +308,36 @@ export default function StoreFront() {
         </section>
       )}
 
+      {/* Shop Vouchers */}
+      {vouchers.length > 0 && (
+        <section className="mt-4">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-base font-semibold">Shop vouchers</h2>
+          </div>
+          <div className="flex gap-3 overflow-x-auto no-scrollbar py-1">
+            {vouchers.map((v) => (
+              <Card key={v.id} className="min-w-[220px]">
+                <CardContent className="p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-sm truncate">{v.title || (v.discount_type === 'percent' ? `${v.discount_value}% OFF` : `Save ${fmtPrice(v.discount_value * 100, 'MYR')}`)}</span>
+                    {v.end_at && (
+                      <Badge variant="secondary" className="text-2xs">Ends in {timeLeft(v.end_at)}</Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs text-muted-foreground">Code: {v.code}</span>
+                    <Button size="sm" variant="outline" className="h-8" onClick={() => copyCode(v.code)}>Copy</Button>
+                  </div>
+                  {v.free_shipping && (
+                    <div className="text-2xs text-primary">Free shipping</div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Grid */}
       <section className="mt-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
