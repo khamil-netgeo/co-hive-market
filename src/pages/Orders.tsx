@@ -146,12 +146,12 @@ const Orders = () => {
         }
         const { data, error } = await supabase
           .from("vendors")
-          .select("id,name")
+          .select("id,display_name")
           .in("id", vendorIds);
         if (error) throw error;
         const map: Record<string, string> = {};
         (data || []).forEach((v: any) => {
-          if (v?.id) map[v.id] = v?.name || "Vendor";
+          if (v?.id) map[v.id] = v?.display_name || "Vendor";
         });
         setVendorMap(map);
       } catch (_) {
@@ -287,7 +287,6 @@ const Orders = () => {
         <div>
           <h1 className="text-2xl font-semibold">My Purchases</h1>
           <p className="text-sm text-muted-foreground">Track orders, shipments, returns, and refunds.</p>
-          <link rel="canonical" href={`${window.location.origin}/orders`} />
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button variant="secondary" asChild className="w-full sm:w-auto">

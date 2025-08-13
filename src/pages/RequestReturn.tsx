@@ -74,7 +74,7 @@ export default function RequestReturn() {
         buyer_user_id: auth.user.id,
         vendor_id: vendorId,
         reason: reason || null,
-        resolution: resolution as any,
+        preferred_resolution: resolution,
         currency,
       } as any);
       if (error) throw error;
