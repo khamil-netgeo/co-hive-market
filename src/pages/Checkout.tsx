@@ -94,7 +94,15 @@ export default function Checkout() {
             nearbyRiders
           );
         }
-
+        
+        // Require EasyParcel rates selection before proceeding
+        if (deliveryMethod === 'easyparcel' && (!shippingCents || shippingCents <= 0)) {
+          toast("Select shipping", { description: "Please fetch EasyParcel rates and select a courier before checkout." });
+          navigate("/cart");
+          setMounting(false);
+          return;
+        }
+        
         // Only require full address for rider delivery (drop-off coords, etc.)
         if (deliveryMethod === 'rider') {
           const userId = sessionData.session.user.id;

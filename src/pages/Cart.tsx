@@ -417,12 +417,13 @@ export default function Cart() {
                     <span className="text-lg md:text-xl font-semibold">{fmt(totalCents)}</span>
                   </div>
                 </div>
-                <div className="space-y-2 pt-2">
-                  <Button variant="hero" onClick={checkout} disabled={checkingOut} className="w-full">
+                  <Button variant="hero" onClick={checkout} disabled={checkingOut || (deliveryMethod === 'easyparcel' && !selectedRate)} className="w-full">
                     {checkingOut ? "Redirecting…" : "Checkout"}
                   </Button>
+                  {deliveryMethod === 'easyparcel' && !selectedRate && (
+                    <p className="text-xs text-muted-foreground" aria-live="polite">Fetch EasyParcel rates and choose a courier to continue.</p>
+                  )}
                   <Button variant="ghost" onClick={cart.clear} className="w-full">Clear cart</Button>
-                </div>
               </div>
             </CardContent>
           </Card>
