@@ -175,6 +175,9 @@ export default function Checkout() {
           // Non-fatal; order will still be created without item details
         }
 
+        const savedRateRaw = typeof window !== "undefined" ? localStorage.getItem("selected_easyparcel_rate") : null;
+        let easyparcelMeta: any = null;
+        try { easyparcelMeta = savedRateRaw ? JSON.parse(savedRateRaw) : null; } catch {}
         const { data, error } = await supabase.functions.invoke("create-embedded-checkout", {
           body: {
             name: `Cart purchase (${cart.count} item${cart.count > 1 ? "s" : ""})`,
@@ -188,6 +191,10 @@ export default function Checkout() {
             total_weight_grams: totalWeightGrams,
             snapshot_id: snapshotId,
             shipping_cents: shippingCents,
+            shipping_provider: easyparcelMeta?.provider,
+            courier_name: easyparcelMeta?.courier_name,
+            service_name: easyparcelMeta?.service_name,
+            etd_text: easyparcelMeta?.etd_text,
           },
         });
         if (error) {
@@ -212,6 +219,9 @@ export default function Checkout() {
       } catch (e: any) {
         // Fallback to hosted Stripe Checkout if Embedded fails
         try {
+          const savedRateRaw2 = typeof window !== "undefined" ? localStorage.getItem("selected_easyparcel_rate") : null;
+          let easyparcelMeta2: any = null;
+          try { easyparcelMeta2 = savedRateRaw2 ? JSON.parse(savedRateRaw2) : null; } catch {}
           const { data: fallback, error: fbErr } = await supabase.functions.invoke("create-payment", {
             body: {
               name: `Cart purchase (${cart.count} item${cart.count > 1 ? "s" : ""})`,
@@ -224,6 +234,10 @@ export default function Checkout() {
               product_id: cart.items[0]?.product_id,
               delivery_method: "embedded_fallback",
               shipping_cents: shippingCents,
+              shipping_provider: easyparcelMeta2?.provider,
+              courier_name: easyparcelMeta2?.courier_name,
+              service_name: easyparcelMeta2?.service_name,
+              etd_text: easyparcelMeta2?.etd_text,
             },
           });
           if (fbErr) throw fbErr;

@@ -43,6 +43,11 @@ serve(async (req) => {
       total_weight_grams,
       snapshot_id,
       shipping_cents,
+      // Shipping details (when using EasyParcel)
+      shipping_provider,
+      courier_name,
+      service_name,
+      etd_text,
     } = body ?? {};
 
     if (!amount_cents || typeof amount_cents !== "number" || amount_cents <= 0) {
@@ -67,6 +72,16 @@ serve(async (req) => {
         JSON.stringify({ error: `Minimum charge is ${human} ${(minCents / 100).toFixed(2)}` }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
       );
+    }
+
+    // Require shipping rate selection when using EasyParcel
+    if (String(delivery_method) === 'easyparcel') {
+      if (!(typeof shipping_cents === 'number' && shipping_cents > 0)) {
+        return new Response(JSON.stringify({ error: "EasyParcel requires a selected rate (shipping_cents > 0)" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -109,6 +124,10 @@ serve(async (req) => {
         total_weight_grams: total_weight_grams ? String(total_weight_grams) : undefined,
         snapshot_id: snapshot_id ? String(snapshot_id) : undefined,
         shipping_cents: typeof shipping_cents === 'number' ? String(Math.round(shipping_cents)) : undefined,
+        shipping_provider: shipping_provider ? String(shipping_provider) : undefined,
+        courier_name: courier_name ? String(courier_name) : undefined,
+        service_name: service_name ? String(service_name) : undefined,
+        etd_text: etd_text ? String(etd_text) : undefined,
       },
     };
 

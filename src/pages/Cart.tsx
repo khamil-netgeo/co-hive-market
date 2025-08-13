@@ -219,6 +219,22 @@ export default function Cart() {
         toast("Select a shipping option", { description: "Fetch rates and choose a courier before checkout." });
         return;
       }
+      if (deliveryMethod === 'easyparcel' && selectedRate) {
+        try {
+          const payload = {
+            provider: 'easyparcel',
+            courier_name: selectedRate.courier,
+            service_name: selectedRate.service,
+            etd_text: selectedRate.etd || null,
+            price_cents: selectedRate.price_cents,
+            currency: cart.currency,
+            id: selectedRate.id,
+          };
+          localStorage.setItem('selected_easyparcel_rate', JSON.stringify(payload));
+        } catch {}
+      } else {
+        try { localStorage.removeItem('selected_easyparcel_rate'); } catch {}
+      }
       navigate("/checkout", { state: { shippingCents } });
     } catch (e: any) {
       toast("Unable to checkout", { description: e.message || String(e) });

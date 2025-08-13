@@ -1395,6 +1395,65 @@ export type Database = {
           },
         ]
       }
+      order_shipments: {
+        Row: {
+          courier_code: string | null
+          courier_name: string | null
+          created_at: string
+          currency: string
+          etd_text: string | null
+          id: string
+          meta: Json
+          order_id: string
+          provider: string
+          service_code: string | null
+          service_name: string | null
+          shipping_cents: number
+          tracking_no: string | null
+          updated_at: string
+        }
+        Insert: {
+          courier_code?: string | null
+          courier_name?: string | null
+          created_at?: string
+          currency?: string
+          etd_text?: string | null
+          id?: string
+          meta?: Json
+          order_id: string
+          provider: string
+          service_code?: string | null
+          service_name?: string | null
+          shipping_cents: number
+          tracking_no?: string | null
+          updated_at?: string
+        }
+        Update: {
+          courier_code?: string | null
+          courier_name?: string | null
+          created_at?: string
+          currency?: string
+          etd_text?: string | null
+          id?: string
+          meta?: Json
+          order_id?: string
+          provider?: string
+          service_code?: string | null
+          service_name?: string | null
+          shipping_cents?: number
+          tracking_no?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           buyer_confirmed_at: string | null
