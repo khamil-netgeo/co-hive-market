@@ -3,11 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { setSEO } from "@/lib/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import MediaGallery from "@/components/common/MediaGallery";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import OrderCard from "@/components/orders/OrderCard";
 
 interface OrderRow {
   id: string;
@@ -16,7 +18,9 @@ interface OrderRow {
   total_amount_cents: number;
   shipping_cents?: number | null;
   currency: string;
+  vendor_id?: string | null;
 }
+
 
 
 const cents = (n: number, currency: string) =>
@@ -25,9 +29,13 @@ const cents = (n: number, currency: string) =>
 const Orders = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [orderThumbs, setOrderThumbs] = useState<Record<string, string>>({});
-
+  const [summaries, setSummaries] = useState<Record<string, { title: string; count: number }>>({});
+  const [vendorMap, setVendorMap] = useState<Record<string, string>>({});
+  const [etaMap, setEtaMap] = useState<Record<string, string>>({});
+  const [tab, setTab] = useState<string>("all");
+  const [search, setSearch] = useState<string>("");
   useEffect(() => {
-    setSEO("My Orders — CoopMarket", "View your recent marketplace orders");
+    setSEO("My Purchases — CoopMarket", "Track orders, shipments, returns, and refunds");
   }, []);
 
   useEffect(() => {
@@ -48,7 +56,7 @@ const Orders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id, created_at, status, total_amount_cents, currency")
+        .select("id, created_at, status, total_amount_cents, currency, vendor_id")
         .eq("buyer_user_id", userId as string)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -70,38 +78,53 @@ const Orders = () => {
       supabase.removeChannel(channel);
     };
   }, [userId, refetch]);
-  // Load a thumbnail per order (first product image)
+  // Load a thumbnail and summary per order (first product image and name)
   useEffect(() => {
     (async () => {
       try {
         if (!orders || orders.length === 0) {
           setOrderThumbs({});
+          setSummaries({});
           return;
         }
         const orderIds = orders.map((o) => o.id);
-        const { data: items } = await supabase
+        const { data: items, error: itemsErr } = await supabase
           .from("order_items")
           .select("order_id,product_id")
           .in("order_id", orderIds);
+        if (itemsErr) throw itemsErr;
         const productIds = Array.from(new Set((items || []).map((r: any) => r.product_id))).filter(Boolean);
         if (productIds.length === 0) return;
-        const { data: prods } = await supabase
+        const { data: prods, error: prodErr } = await supabase
           .from("products")
-          .select("id,image_urls")
+          .select("id,name,image_urls")
           .in("id", productIds);
+        if (prodErr) throw prodErr;
         const imgByProduct = new Map<string, string>();
+        const nameByProduct = new Map<string, string>();
         (prods || []).forEach((p: any) => {
           const u = p?.image_urls?.[0];
           if (u) imgByProduct.set(p.id, u);
+          if (p?.name) nameByProduct.set(p.id, p.name);
         });
-        const map: Record<string, string> = {};
+        const imgMap: Record<string, string> = {};
+        const sumMap: Record<string, { title: string; count: number }> = {};
+        const byOrder: Record<string, string[]> = {};
         (items || []).forEach((r: any) => {
-          if (!map[r.order_id]) {
+          if (!imgMap[r.order_id]) {
             const img = imgByProduct.get(r.product_id);
-            if (img) map[r.order_id] = img;
+            if (img) imgMap[r.order_id] = img;
           }
+          if (!byOrder[r.order_id]) byOrder[r.order_id] = [];
+          byOrder[r.order_id].push(r.product_id);
         });
-        setOrderThumbs(map);
+        Object.keys(byOrder).forEach((oid) => {
+          const ids = byOrder[oid];
+          const firstName = ids.length > 0 ? nameByProduct.get(ids[0]) : undefined;
+          sumMap[oid] = { title: firstName || `Order ${oid.slice(0, 8)}`, count: ids.length };
+        });
+        setOrderThumbs(imgMap);
+        setSummaries(sumMap);
       } catch (_) {
         // non-fatal; ignore
       }
@@ -112,14 +135,16 @@ const Orders = () => {
     <main className="container py-8">
       <header className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">My Orders</h1>
-          <p className="text-sm text-muted-foreground">Recent purchases and their status.</p>
+          <h1 className="text-2xl font-semibold">My Purchases</h1>
+          <p className="text-sm text-muted-foreground">Track orders, shipments, returns, and refunds.</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button variant="secondary" asChild className="w-full sm:w-auto">
             <a href="/products">Go to Catalog</a>
           </Button>
-          <Button variant="outline" onClick={() => refetch()} className="w-full sm:w-auto">Refresh</Button>
+          <Button variant="outline" onClick={() => refetch()} className="w-full sm:w-auto">
+            Refresh
+          </Button>
         </div>
       </header>
 
@@ -135,79 +160,68 @@ const Orders = () => {
           ) : orders.length === 0 ? (
             <p className="text-sm text-muted-foreground">No orders yet. Explore the catalog to get started.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Order</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.map((o) => (
-                    <TableRow key={o.id}>
-                      <TableCell className="w-16">
-                        <div className="h-12 w-12">
-                          <MediaGallery
-                            images={orderThumbs[o.id] ? [orderThumbs[o.id]] : []}
-                            alt={`Order ${o.id.slice(0, 8)}`}
-                            aspect="square"
-                            showThumbnails={false}
-                            className="h-12 w-12"
-                          />
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs sm:text-sm">
-                        <a href={`/orders/${o.id}`} className="underline-offset-2 hover:underline">{o.id.slice(0, 8)}</a>
-                      </TableCell>
-                      <TableCell>{new Date(o.created_at).toLocaleString()}</TableCell>
-                      <TableCell>
-                        <Badge variant={o.status === "completed" ? "default" : o.status === "canceled" ? "destructive" : "secondary"}>
-                          {o.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">{cents(o.total_amount_cents, o.currency)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button size="sm" variant="secondary" asChild>
-                            <a href={`/orders/${o.id}`}>Track</a>
-                          </Button>
-                          {o.status !== 'fulfilled' && o.status !== 'canceled' && (
-                            <Button
-                              size="sm"
-                              onClick={async () => {
-                                try {
-                                  const { error: updErr } = await supabase
-                                    .from('orders')
-                                    .update({ status: 'fulfilled', buyer_confirmed_at: new Date().toISOString() } as any)
-                                    .eq('id', o.id);
-                                  if (updErr) throw updErr;
-                                  await supabase.from('order_progress_events').insert({
-                                    order_id: o.id,
-                                    event: 'buyer_confirmed_received',
-                                    description: 'Buyer confirmed receiving the goods',
-                                    metadata: {},
-                                  });
-                                  toast.success('Thanks for confirming!');
-                                  refetch();
-                                } catch (e: any) {
-                                  toast('Confirmation failed', { description: e.message || String(e) });
-                                }
-                              }}
-                            >
-                              Confirm Received
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <Tabs value={tab} onValueChange={setTab} className="w-full sm:w-auto">
+                  <TabsList className="grid grid-cols-3 sm:inline-flex">
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="to_pay">To Pay</TabsTrigger>
+                    <TabsTrigger value="to_ship">To Ship</TabsTrigger>
+                    <TabsTrigger value="to_receive">To Receive</TabsTrigger>
+                    <TabsTrigger value="completed">Completed</TabsTrigger>
+                    <TabsTrigger value="returns">Returns</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <div className="w-full sm:w-64">
+                  <Input
+                    placeholder="Search orders by shop, item, or ID"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    aria-label="Search orders"
+                  />
+                </div>
+              </div>
+
+              <section className="space-y-3">
+                {filtered.map((o) => (
+                  <OrderCard
+                    key={o.id}
+                    orderId={o.id}
+                    createdAt={o.created_at}
+                    status={o.status}
+                    totalCents={o.total_amount_cents}
+                    currency={o.currency}
+                    thumbnailUrl={orderThumbs[o.id]}
+                    vendorName={o.vendor_id ? vendorMap[o.vendor_id] : undefined}
+                    summaryTitle={summaries[o.id]?.title}
+                    itemCount={summaries[o.id]?.count}
+                    etaText={etaMap[o.id]}
+                    onConfirm={
+                      o.status !== "fulfilled" && o.status !== "canceled"
+                        ? async () => {
+                            try {
+                              const { error: updErr } = await supabase
+                                .from("orders")
+                                .update({ status: "fulfilled", buyer_confirmed_at: new Date().toISOString() } as any)
+                                .eq("id", o.id);
+                              if (updErr) throw updErr;
+                              await supabase.from("order_progress_events").insert({
+                                order_id: o.id,
+                                event: "buyer_confirmed_received",
+                                description: "Buyer confirmed receiving the goods",
+                                metadata: {},
+                              });
+                              toast.success("Thanks for confirming!");
+                              refetch();
+                            } catch (e: any) {
+                              toast("Confirmation failed", { description: e.message || String(e) });
+                            }
+                          }
+                        : undefined
+                    }
+                  />
+                ))}
+              </section>
             </div>
           )}
         </CardContent>
