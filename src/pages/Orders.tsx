@@ -3,10 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { setSEO } from "@/lib/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import MediaGallery from "@/components/common/MediaGallery";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import OrderCard from "@/components/orders/OrderCard";
@@ -195,6 +195,37 @@ const Orders = () => {
     })();
   }, [orders]);
 
+  useEffect(() => {
+    if (!orders || orders.length === 0) return;
+    const orderIdsSet = new Set(orders.map((o) => o.id));
+    const channel = supabase
+      .channel("deliveries-buyer-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "deliveries" },
+        (payload) => {
+          const row = payload.new as any;
+          const orderId = row?.order_id;
+          if (!orderIdsSet.has(orderId)) return;
+          setEtaMap((prev) => {
+            const next = { ...prev };
+            const s = (row?.status || "").toLowerCase();
+            const dt = row?.scheduled_dropoff_at ? new Date(row.scheduled_dropoff_at) : null;
+            if (dt) next[orderId] = `ETA ${dt.toLocaleDateString()}`;
+            else if (s === "delivered") next[orderId] = "Delivered";
+            else if (s === "picked_up" || s === "out_for_delivery") next[orderId] = "Out for delivery";
+            else if (s === "assigned") next[orderId] = "Rider assigned";
+            else delete next[orderId];
+            return next;
+          });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [orders]);
+
   // Apply tab + search filters
   const filtered = orders.filter((o) => {
     const s = (o.status || "").toLowerCase();
@@ -256,6 +287,7 @@ const Orders = () => {
         <div>
           <h1 className="text-2xl font-semibold">My Purchases</h1>
           <p className="text-sm text-muted-foreground">Track orders, shipments, returns, and refunds.</p>
+          <link rel="canonical" href={`${window.location.origin}/orders`} />
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <Button variant="secondary" asChild className="w-full sm:w-auto">
@@ -311,6 +343,7 @@ const Orders = () => {
                     totalCents={o.total_amount_cents}
                     currency={o.currency}
                     thumbnailUrl={orderThumbs[o.id]}
+                    vendorId={o.vendor_id || undefined}
                     vendorName={o.vendor_id ? vendorMap[o.vendor_id] : undefined}
                     summaryTitle={summaries[o.id]?.title}
                     itemCount={summaries[o.id]?.count}

@@ -10,6 +10,7 @@ export type OrderCardProps = {
   totalCents: number;
   currency: string;
   thumbnailUrl?: string;
+  vendorId?: string | null;
   vendorName?: string | null;
   summaryTitle?: string | null;
   itemCount?: number;
@@ -37,6 +38,7 @@ export default function OrderCard({
   totalCents,
   currency,
   thumbnailUrl,
+  vendorId,
   vendorName,
   summaryTitle,
   itemCount,
@@ -86,11 +88,16 @@ export default function OrderCard({
           <Button size="sm" variant="secondary" asChild>
             <a href={`/orders/${orderId}`}>Track</a>
           </Button>
+          {vendorId ? (
+            <Button size="sm" variant="outline" asChild>
+              <a href={`/chat?vendorId=${vendorId}`}>Message seller</a>
+            </Button>
+          ) : null}
           <Button size="sm" variant="outline" asChild>
-            <a href={`/request-cancellation?orderId=${orderId}`}>Request Cancellation</a>
+            <a href={`/orders/${orderId}/cancel`}>Request Cancellation</a>
           </Button>
           <Button size="sm" variant="outline" asChild>
-            <a href={`/request-return?orderId=${orderId}`}>Request Return</a>
+            <a href={`/orders/${orderId}/return`}>Request Return</a>
           </Button>
           {onConfirm ? (
             <Button size="sm" onClick={onConfirm}>
