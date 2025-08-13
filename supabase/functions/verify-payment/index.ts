@@ -326,6 +326,21 @@ serve(async (req) => {
           .single();
         if (dErr) throw dErr;
 
+        // Record a shipment row for rider delivery
+        try {
+          await service.from("order_shipments").insert({
+            order_id: order.id,
+            provider: 'rider',
+            courier_name: 'Rider Network',
+            service_name: null,
+            etd_text: (md as any)?.scheduled_dropoff_at ? `Scheduled ${new Date(String(md.scheduled_dropoff_at)).toLocaleString()}` : null,
+            shipping_cents: (md as any)?.shipping_cents ? Math.round(Number((md as any).shipping_cents)) : null,
+            tracking_no: null,
+            label_url: null,
+            metadata: { delivery_id: delivery.id }
+          } as any);
+        } catch (e) { console.warn('Failed to insert rider shipment row', e); }
+
         if (delivery?.pickup_lat != null && delivery?.pickup_lng != null) {
           // Fan-out to nearby riders (don’t block the response)
           (globalThis as any).EdgeRuntime?.waitUntil?.(
@@ -439,6 +454,22 @@ serve(async (req) => {
                 .from("orders")
                 .update({ easyparcel_order_no: orderNo, easyparcel_awb_no: awbNo })
                 .eq("id", order.id);
+
+              // Record a shipment row for EasyParcel
+              try {
+                await service.from('order_shipments').insert({
+                  order_id: order.id,
+                  provider: 'easyparcel',
+                  courier_name: 'EasyParcel',
+                  service_name: first?.service_name || first?.courier || null,
+                  etd_text: first?.etd || first?.estimated_delivery || null,
+                  shipping_cents: (md as any)?.shipping_cents ? Math.round(Number((md as any).shipping_cents)) : null,
+                  tracking_no: awbNo || orderNo,
+                  label_url: first?.label_url || null,
+                  metadata: { easyparcel_raw: first, order_no: orderNo, awb_no: awbNo }
+                } as any);
+              } catch (e) { console.warn('Failed to insert EasyParcel shipment row', e); }
+
               await service.from("order_progress_events").insert({
                 order_id: order.id,
                 event: "shipment_booked",

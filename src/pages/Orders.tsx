@@ -32,6 +32,7 @@ const Orders = () => {
   const [summaries, setSummaries] = useState<Record<string, { title: string; count: number }>>({});
   const [vendorMap, setVendorMap] = useState<Record<string, string>>({});
   const [etaMap, setEtaMap] = useState<Record<string, string>>({});
+  const [shipMap, setShipMap] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<string>("all");
   const [search, setSearch] = useState<string>("");
   useEffect(() => {
@@ -195,6 +196,33 @@ const Orders = () => {
     })();
   }, [orders]);
 
+  // Load shipments (e.g., EasyParcel AWB) for orders
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!orders || orders.length === 0) {
+          setShipMap({});
+          return;
+        }
+        const orderIds = orders.map((o) => o.id);
+        const { data, error } = await supabase
+          .from('order_shipments')
+          .select('order_id, provider, tracking_no, courier_name')
+          .in('order_id', orderIds);
+        if (error) throw error;
+        const map: Record<string, string> = {};
+        (data || []).forEach((s: any) => {
+          if ((s?.provider || '').toLowerCase() === 'easyparcel' && s?.tracking_no) {
+            map[s.order_id] = `AWB ${s.tracking_no}`;
+          }
+        });
+        setShipMap(map);
+      } catch (_) {
+        // ignore non-critical errors
+      }
+    })();
+  }, [orders]);
+
   useEffect(() => {
     if (!orders || orders.length === 0) return;
     const orderIdsSet = new Set(orders.map((o) => o.id));
@@ -346,7 +374,7 @@ const Orders = () => {
                     vendorName={o.vendor_id ? vendorMap[o.vendor_id] : undefined}
                     summaryTitle={summaries[o.id]?.title}
                     itemCount={summaries[o.id]?.count}
-                    etaText={etaMap[o.id]}
+                    etaText={shipMap[o.id] || etaMap[o.id]}
                     onConfirm={
                       o.status !== "fulfilled" && o.status !== "canceled"
                         ? async () => {
