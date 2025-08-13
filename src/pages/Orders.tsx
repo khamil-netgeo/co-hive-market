@@ -131,6 +131,125 @@ const Orders = () => {
     })();
   }, [orders]);
 
+  // Load vendor names for current orders
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!orders || orders.length === 0) {
+          setVendorMap({});
+          return;
+        }
+        const vendorIds = Array.from(new Set(orders.map((o) => o.vendor_id).filter(Boolean))) as string[];
+        if (vendorIds.length === 0) {
+          setVendorMap({});
+          return;
+        }
+        const { data, error } = await supabase
+          .from("vendors")
+          .select("id,name")
+          .in("id", vendorIds);
+        if (error) throw error;
+        const map: Record<string, string> = {};
+        (data || []).forEach((v: any) => {
+          if (v?.id) map[v.id] = v?.name || "Vendor";
+        });
+        setVendorMap(map);
+      } catch (_) {
+        // ignore non-critical errors
+      }
+    })();
+  }, [orders]);
+
+  // Load delivery ETA/status text for orders
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!orders || orders.length === 0) {
+          setEtaMap({});
+          return;
+        }
+        const orderIds = orders.map((o) => o.id);
+        const { data, error } = await supabase
+          .from("deliveries")
+          .select("order_id,status,scheduled_dropoff_at,assigned_at")
+          .in("order_id", orderIds);
+        if (error) throw error;
+        const map: Record<string, string> = {};
+        (data || []).forEach((d: any) => {
+          const s = (d?.status || "").toLowerCase();
+          const dt = d?.scheduled_dropoff_at ? new Date(d.scheduled_dropoff_at) : null;
+          if (dt) {
+            map[d.order_id] = `ETA ${dt.toLocaleDateString()}`;
+          } else if (s === "delivered") {
+            map[d.order_id] = "Delivered";
+          } else if (s === "picked_up" || s === "out_for_delivery") {
+            map[d.order_id] = "Out for delivery";
+          } else if (s === "assigned") {
+            map[d.order_id] = "Rider assigned";
+          }
+        });
+        setEtaMap(map);
+      } catch (_) {
+        // ignore non-critical errors
+      }
+    })();
+  }, [orders]);
+
+  // Apply tab + search filters
+  const filtered = orders.filter((o) => {
+    const s = (o.status || "").toLowerCase();
+    let matchesTab = true;
+    if (tab === "to_pay") {
+      matchesTab = [
+        "pending",
+        "to_pay",
+        "awaiting_payment",
+        "payment_pending",
+        "created",
+        "unpaid",
+      ].includes(s);
+    } else if (tab === "to_ship") {
+      matchesTab = [
+        "paid",
+        "processing",
+        "to_ship",
+        "awaiting_shipment",
+        "confirmed",
+        "packaging",
+        "ready_to_ship",
+      ].includes(s);
+    } else if (tab === "to_receive") {
+      matchesTab = [
+        "shipped",
+        "in_transit",
+        "out_for_delivery",
+        "to_receive",
+      ].includes(s) || (!!etaMap[o.id] && !["fulfilled", "completed", "delivered", "canceled", "cancelled", "refunded", "returned"].includes(s));
+    } else if (tab === "completed") {
+      matchesTab = ["fulfilled", "completed", "delivered"].includes(s);
+    } else if (tab === "returns") {
+      matchesTab = [
+        "return_requested",
+        "refund_requested",
+        "refunded",
+        "returned",
+        "canceled",
+        "cancelled",
+      ].includes(s);
+    }
+    if (!matchesTab) return false;
+
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    const vendorName = o.vendor_id ? vendorMap[o.vendor_id] : "";
+    const title = summaries[o.id]?.title || "";
+    return (
+      (vendorName || "").toLowerCase().includes(q) ||
+      title.toLowerCase().includes(q) ||
+      o.id.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <main className="container py-8">
       <header className="mb-6 flex items-center justify-between">
