@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoopMarket Flutter App Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        
+        .phone-container {
+            width: 375px;
+            height: 667px;
+            background: #1e293b;
+            margin: 20px auto;
+            border-radius: 25px;
+            border: 8px solid #334155;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .screen {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        .app-bar {
+            background: #0f172a;
+            padding: 20px 16px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .app-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        
+        .bottom-nav {
+            background: #1e293b;
+            border-top: 1px solid #334155;
+            display: flex;
+            padding: 12px 0;
+        }
+        
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .nav-item.active {
+            color: #8b5cf6;
+        }
+        
+        .nav-item:hover {
+            color: #8b5cf6;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .greeting {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .location-banner {
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .quick-action {
+            flex: 1;
+            background: #334155;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .quick-action:hover {
+            background: #475569;
+        }
+        
+        .quick-action-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            color: #8b5cf6;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .product-card {
+            background: #334155;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(45deg, #475569, #64748b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+        
+        .product-info {
+            padding: 12px;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+        
+        .product-price {
+            color: #8b5cf6;
+            font-weight: bold;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        
+        .search-bar {
+            background: #334155;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            color: #f1f5f9;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        
+        .category-chips {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        
+        .category-chip {
+            background: #334155;
+            padding: 8px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .category-chip.active {
+            background: #8b5cf6;
+        }
+        
+        .cart-item {
+            background: #334155;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .cart-image {
+            width: 60px;
+            height: 60px;
+            background: #475569;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cart-info {
+            flex: 1;
+        }
+        
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        .quantity-btn {
+            background: #8b5cf6;
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .checkout-section {
+            background: #1e293b;
+            padding: 16px;
+            border-top: 1px solid #334155;
+        }
+        
+        .checkout-btn {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .order-card {
+            background: #334155;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .order-id {
+            font-weight: 600;
+        }
+        
+        .order-status {
+            background: #10b981;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 0 auto 16px;
+        }
+        
+        .profile-info {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .menu-item {
+            background: #334155;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+        
+        .menu-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8b5cf6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Phone Container -->
+    <div class="phone-container">
+        <!-- Home Screen -->
+        <div class="screen active" id="home">
+            <div class="app-bar">
+                <div class="app-title">CoopMarket</div>
+                <div>🔔 🔍</div>
+            </div>
+            
+            <div class="content">
+                <div class="greeting">Good Evening</div>
+                
+                <div class="location-banner">
+                    <div style="font-size: 24px;">📍</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 12px;">Deliver to</div>
+                        <div>Current Location</div>
+                    </div>
+                    <button style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 12px; border-radius: 6px;">Change</button>
+                </div>
+                
+                <div class="quick-actions">
+                    <div class="quick-action">
+                        <div class="quick-action-icon">🍽️</div>
+                        <div>Food</div>
+                    </div>
+                    <div class="quick-action">
+                        <div class="quick-action-icon">🛒</div>
+                        <div>Groceries</div>
+                    </div>
+                    <div class="quick-action">
+                        <div class="quick-action-icon">🔧</div>
+                        <div>Services</div>
+                    </div>
+                </div>
+                
+                <div class="section-title">Featured Products</div>
+                <div class="product-grid">
+                    <div class="product-card">
+                        <div class="product-image">🍕</div>
+                        <div class="product-info">
+                            <div class="product-name">Pizza Margherita</div>
+                            <div class="product-price">$12.99</div>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image">🥗</div>
+                        <div class="product-info">
+                            <div class="product-name">Caesar Salad</div>
+                            <div class="product-price">$8.50</div>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image">🍔</div>
+                        <div class="product-info">
+                            <div class="product-name">Cheeseburger</div>
+                            <div class="product-price">$9.99</div>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image">🍜</div>
+                        <div class="product-info">
+                            <div class="product-name">Ramen Bowl</div>
+                            <div class="product-price">$11.25</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bottom-nav">
+                <div class="nav-item active" onclick="showScreen('home')">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">Home</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('catalog')">
+                    <div class="nav-icon">🔍</div>
+                    <div class="nav-label">Catalog</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('cart')">
+                    <div class="nav-icon">🛒</div>
+                    <div class="nav-label">Cart</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('orders')">
+                    <div class="nav-icon">📦</div>
+                    <div class="nav-label">Orders</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('profile')">
+                    <div class="nav-icon">👤</div>
+                    <div class="nav-label">Profile</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Catalog Screen -->
+        <div class="screen" id="catalog">
+            <div class="app-bar">
+                <div class="app-title">Shop</div>
+                <div>⚙️</div>
+            </div>
+            
+            <div class="content">
+                <input class="search-bar" placeholder="Search products..." />
+                
+                <div class="category-chips">
+                    <div class="category-chip active">All</div>
+                    <div class="category-chip">Food</div>
+                    <div class="category-chip">Electronics</div>
+                    <div class="category-chip">Clothing</div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span>Sort by: Newest</span>
+                    <span style="color: #94a3b8;">12 items</span>
+                </div>
+                
+                <div class="product-grid">
+                    <div class="product-card">
+                        <div class="product-image">🍕</div>
+                        <div class="product-info">
+                            <div class="product-name">Pizza Margherita</div>
+                            <div class="product-price">$12.99</div>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image">🥗</div>
+                        <div class="product-info">
+                            <div class="product-name">Caesar Salad</div>
+                            <div class="product-price">$8.50</div>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image">🍔</div>
+                        <div class="product-info">
+                            <div class="product-name">Cheeseburger</div>
+                            <div class="product-price">$9.99</div>
+                        </div>
+                    </div>
+                    <div class="product-card">
+                        <div class="product-image">🍜</div>
+                        <div class="product-info">
+                            <div class="product-name">Ramen Bowl</div>
+                            <div class="product-price">$11.25</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bottom-nav">
+                <div class="nav-item" onclick="showScreen('home')">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">Home</div>
+                </div>
+                <div class="nav-item active" onclick="showScreen('catalog')">
+                    <div class="nav-icon">🔍</div>
+                    <div class="nav-label">Catalog</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('cart')">
+                    <div class="nav-icon">🛒</div>
+                    <div class="nav-label">Cart</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('orders')">
+                    <div class="nav-icon">📦</div>
+                    <div class="nav-label">Orders</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('profile')">
+                    <div class="nav-icon">👤</div>
+                    <div class="nav-label">Profile</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cart Screen -->
+        <div class="screen" id="cart">
+            <div class="app-bar">
+                <div class="app-title">Shopping Cart</div>
+                <div style="color: #8b5cf6; cursor: pointer;">Clear All</div>
+            </div>
+            
+            <div class="content">
+                <div class="cart-item">
+                    <div class="cart-image">🍕</div>
+                    <div class="cart-info">
+                        <div class="product-name">Pizza Margherita</div>
+                        <div class="product-price">$12.99</div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn">-</button>
+                            <span>2</span>
+                            <button class="quantity-btn">+</button>
+                            <span style="margin-left: auto; font-weight: bold;">$25.98</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cart-item">
+                    <div class="cart-image">🥗</div>
+                    <div class="cart-info">
+                        <div class="product-name">Caesar Salad</div>
+                        <div class="product-price">$8.50</div>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn">-</button>
+                            <span>1</span>
+                            <button class="quantity-btn">+</button>
+                            <span style="margin-left: auto; font-weight: bold;">$8.50</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="checkout-section">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Subtotal</span>
+                    <span style="color: #8b5cf6; font-weight: bold;">$34.48</span>
+                </div>
+                <div style="font-size: 12px; color: #94a3b8; margin-bottom: 16px;">
+                    Shipping calculated at checkout
+                </div>
+                <button class="checkout-btn">Proceed to Checkout</button>
+            </div>
+            
+            <div class="bottom-nav">
+                <div class="nav-item" onclick="showScreen('home')">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">Home</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('catalog')">
+                    <div class="nav-icon">🔍</div>
+                    <div class="nav-label">Catalog</div>
+                </div>
+                <div class="nav-item active" onclick="showScreen('cart')">
+                    <div class="nav-icon">🛒</div>
+                    <div class="nav-label">Cart</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('orders')">
+                    <div class="nav-icon">📦</div>
+                    <div class="nav-label">Orders</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('profile')">
+                    <div class="nav-icon">👤</div>
+                    <div class="nav-label">Profile</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Orders Screen -->
+        <div class="screen" id="orders">
+            <div class="app-bar">
+                <div class="app-title">My Orders</div>
+            </div>
+            
+            <div class="content">
+                <div class="category-chips" style="margin-bottom: 24px;">
+                    <div class="category-chip active">All (5)</div>
+                    <div class="category-chip">Active (2)</div>
+                    <div class="category-chip">Completed (3)</div>
+                </div>
+                
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-id">Order #AB123456</div>
+                        <div class="order-status">Ready</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 24px;">📦</div>
+                        <div style="flex: 1;">
+                            <div>From: Local Vendor</div>
+                            <div style="color: #94a3b8; font-size: 14px;">3 items • $34.48</div>
+                            <div style="color: #94a3b8; font-size: 12px;">Dec 15, 2023</div>
+                        </div>
+                        <div>➡️</div>
+                    </div>
+                </div>
+                
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-id">Order #CD789012</div>
+                        <div class="order-status" style="background: #10b981;">Delivered</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 24px;">📦</div>
+                        <div style="flex: 1;">
+                            <div>From: Another Store</div>
+                            <div style="color: #94a3b8; font-size: 14px;">1 item • $12.99</div>
+                            <div style="color: #94a3b8; font-size: 12px;">Dec 10, 2023</div>
+                        </div>
+                        <div>➡️</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bottom-nav">
+                <div class="nav-item" onclick="showScreen('home')">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">Home</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('catalog')">
+                    <div class="nav-icon">🔍</div>
+                    <div class="nav-label">Catalog</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('cart')">
+                    <div class="nav-icon">🛒</div>
+                    <div class="nav-label">Cart</div>
+                </div>
+                <div class="nav-item active" onclick="showScreen('orders')">
+                    <div class="nav-icon">📦</div>
+                    <div class="nav-label">Orders</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('profile')">
+                    <div class="nav-icon">👤</div>
+                    <div class="nav-label">Profile</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Screen -->
+        <div class="screen" id="profile">
+            <div class="app-bar">
+                <div class="app-title">Profile</div>
+                <div>⚙️</div>
+            </div>
+            
+            <div class="content">
+                <div class="profile-avatar">J</div>
+                <div class="profile-info">
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 4px;">John Doe</div>
+                    <div style="color: #94a3b8;">john@example.com</div>
+                    <button style="background: transparent; border: 1px solid #8b5cf6; color: #8b5cf6; padding: 8px 16px; border-radius: 6px; margin-top: 12px;">Edit Profile</button>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="menu-icon">📦</div>
+                    <div style="flex: 1;">
+                        <div>My Orders</div>
+                        <div style="color: #94a3b8; font-size: 12px;">Track and manage orders</div>
+                    </div>
+                    <div>➡️</div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="menu-icon">❤️</div>
+                    <div style="flex: 1;">
+                        <div>Favorites</div>
+                        <div style="color: #94a3b8; font-size: 12px;">Your saved items</div>
+                    </div>
+                    <div>➡️</div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="menu-icon">📍</div>
+                    <div style="flex: 1;">
+                        <div>Addresses</div>
+                        <div style="color: #94a3b8; font-size: 12px;">Manage delivery addresses</div>
+                    </div>
+                    <div>➡️</div>
+                </div>
+                
+                <div class="menu-item">
+                    <div class="menu-icon">💳</div>
+                    <div style="flex: 1;">
+                        <div>Payment Methods</div>
+                        <div style="color: #94a3b8; font-size: 12px;">Manage cards and payment</div>
+                    </div>
+                    <div>➡️</div>
+                </div>
+                
+                <button style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 16px; border-radius: 8px; width: 100%; margin-top: 24px;">Sign Out</button>
+            </div>
+            
+            <div class="bottom-nav">
+                <div class="nav-item" onclick="showScreen('home')">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">Home</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('catalog')">
+                    <div class="nav-icon">🔍</div>
+                    <div class="nav-label">Catalog</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('cart')">
+                    <div class="nav-icon">🛒</div>
+                    <div class="nav-label">Cart</div>
+                </div>
+                <div class="nav-item" onclick="showScreen('orders')">
+                    <div class="nav-icon">📦</div>
+                    <div class="nav-label">Orders</div>
+                </div>
+                <div class="nav-item active" onclick="showScreen('profile')">
+                    <div class="nav-icon">👤</div>
+                    <div class="nav-label">Profile</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin: 20px; color: #94a3b8;">
+        <h2 style="color: #8b5cf6; margin-bottom: 16px;">🎯 CoopMarket Flutter App Preview</h2>
+        <p>Click the bottom navigation tabs to explore different screens</p>
+        <p style="margin-top: 8px; font-size: 14px;">This is a web simulation of the Flutter mobile app interface</p>
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show selected screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Find and activate corresponding nav items in all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                const navItems = screen.querySelectorAll('.nav-item');
+                navItems.forEach((item, index) => {
+                    if ((screenId === 'home' && index === 0) ||
+                        (screenId === 'catalog' && index === 1) ||
+                        (screenId === 'cart' && index === 2) ||
+                        (screenId === 'orders' && index === 3) ||
+                        (screenId === 'profile' && index === 4)) {
+                        item.classList.add('active');
+                    }
+                });
+            });
+        }
+        
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.product-card, .cart-item, .order-card, .menu-item');
+            
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.98)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
