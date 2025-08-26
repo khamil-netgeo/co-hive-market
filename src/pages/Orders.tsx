@@ -255,7 +255,7 @@ const Orders = () => {
   }, [orders]);
 
   // Apply tab + search filters
-  const filtered = orders.filter((o) => {
+  const filteredOrders = orders.filter((o) => {
     const s = (o.status || "").toLowerCase();
     let matchesTab = true;
     if (tab === "to_pay") {
@@ -361,7 +361,7 @@ const Orders = () => {
               </div>
 
               <section className="space-y-3">
-                {filtered.map((o) => (
+                {filteredOrders.map((o) => (
                   <OrderCard
                     key={o.id}
                     orderId={o.id}
