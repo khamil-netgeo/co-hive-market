@@ -86,9 +86,8 @@ export function useRiderTracking() {
       return data;
     } catch (error: any) {
       console.error('Accept assignment error:', error);
-      toast('Failed to accept assignment', { 
-        description: error.message,
-        variant: 'destructive'
+      toast.error('Failed to accept assignment', { 
+        description: error.message
       });
       throw error;
     }
@@ -125,9 +124,8 @@ export function useRiderTracking() {
       fetchAssignments();
       fetchPerformance();
     } catch (error: any) {
-      toast('Error declining assignment', {
-        description: error.message,
-        variant: 'destructive'
+      toast.error('Error declining assignment', {
+        description: error.message
       });
     }
   }, []);
