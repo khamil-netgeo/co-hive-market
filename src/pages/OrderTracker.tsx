@@ -9,7 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import { useOrderProgress } from "@/hooks/useOrderProgress";
 import { toast } from "sonner";
 import { trackEasyParcel } from "@/lib/shipping";
-import OrderDeliveryMap from "@/components/order/OrderDeliveryMap";
+import LiveRiderMap from "@/components/order/LiveRiderMap";
+import OrderChatPanel from "@/components/order/OrderChatPanel";
 import MediaGallery from "@/components/common/MediaGallery";
 
 interface OrderMeta {
@@ -89,7 +90,7 @@ export default function OrderTracker() {
     const loadDelivery = async () => {
       const { data: d } = await supabase
         .from('deliveries')
-        .select('id,status,rider_user_id,pickup_address,dropoff_address,assigned_at,scheduled_pickup_at,scheduled_dropoff_at')
+        .select('id,status,rider_user_id,pickup_address,dropoff_address,pickup_lat,pickup_lng,dropoff_lat,dropoff_lng,assigned_at,scheduled_pickup_at,scheduled_dropoff_at')
         .eq('order_id', orderId)
         .maybeSingle();
       if (d) setDelivery(d as any);
@@ -278,28 +279,45 @@ export default function OrderTracker() {
           </Card>
         </div>
 
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Delivery Timeline</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-sm text-muted-foreground">Loading updates…</p>
-            ) : timeline.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No updates yet. We’ll notify you when things start moving.</p>
-            ) : (
-              <ol className="relative border-l pl-4">
-                {timeline.map((t) => (
-                  <li key={t.id} className="mb-6 ml-2">
-                    <div className="absolute w-3 h-3 bg-primary rounded-full mt-1.5 -left-1.5 border border-background" />
-                    <time className="block text-xs text-muted-foreground">{t.at}</time>
-                    <p className="text-sm font-medium mt-1">{t.label}</p>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </CardContent>
-        </Card>
+        <div className="lg:col-span-2 space-y-6">
+          {/* Live Rider Tracking Map */}
+          {order?.shipping_method === 'rider' && delivery && orderId && (
+            <LiveRiderMap 
+              orderId={orderId}
+              delivery={delivery}
+              heightClass="h-96"
+            />
+          )}
+
+          {/* Order Chat */}
+          {orderId && (
+            <OrderChatPanel orderId={orderId} />
+          )}
+
+          {/* Delivery Timeline */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Delivery Timeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <p className="text-sm text-muted-foreground">Loading updates…</p>
+              ) : timeline.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No updates yet. We'll notify you when things start moving.</p>
+              ) : (
+                <ol className="relative border-l pl-4">
+                  {timeline.map((t) => (
+                    <li key={t.id} className="mb-6 ml-2">
+                      <div className="absolute w-3 h-3 bg-primary rounded-full mt-1.5 -left-1.5 border border-background" />
+                      <time className="block text-xs text-muted-foreground">{t.at}</time>
+                      <p className="text-sm font-medium mt-1">{t.label}</p>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </main>
   );

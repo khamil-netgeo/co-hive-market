@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -260,6 +260,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chat_message_templates: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          message: string
+          role: string
+          template_key: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message: string
+          role: string
+          template_key: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          message?: string
+          role?: string
+          template_key?: string
+        }
+        Relationships: []
       }
       chat_messages: {
         Row: {
@@ -865,6 +895,48 @@ export type Database = {
           },
         ]
       }
+      delivery_etas: {
+        Row: {
+          created_at: string
+          delivery_id: string | null
+          distance_to_delivery_km: number | null
+          distance_to_pickup_km: number | null
+          estimated_delivery_at: string | null
+          estimated_pickup_at: string | null
+          id: string
+          order_id: string
+          rider_user_id: string
+          traffic_factor: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_id?: string | null
+          distance_to_delivery_km?: number | null
+          distance_to_pickup_km?: number | null
+          estimated_delivery_at?: string | null
+          estimated_pickup_at?: string | null
+          id?: string
+          order_id: string
+          rider_user_id: string
+          traffic_factor?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivery_id?: string | null
+          distance_to_delivery_km?: number | null
+          distance_to_pickup_km?: number | null
+          estimated_delivery_at?: string | null
+          estimated_pickup_at?: string | null
+          id?: string
+          order_id?: string
+          rider_user_id?: string
+          traffic_factor?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feature_flags: {
         Row: {
           audience: string | null
@@ -1252,6 +1324,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      order_chats: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          media_url: string | null
+          message_type: string
+          metadata: Json | null
+          order_id: string
+          receiver_user_id: string
+          sender_user_id: string
+          template_type: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          media_url?: string | null
+          message_type?: string
+          metadata?: Json | null
+          order_id: string
+          receiver_user_id: string
+          sender_user_id: string
+          template_type?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          media_url?: string | null
+          message_type?: string
+          metadata?: Json | null
+          order_id?: string
+          receiver_user_id?: string
+          sender_user_id?: string
+          template_type?: string | null
+        }
+        Relationships: []
       }
       order_items: {
         Row: {
@@ -1879,6 +1993,45 @@ export type Database = {
           title?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      rider_location_snapshots: {
+        Row: {
+          accuracy_meters: number | null
+          created_at: string
+          heading: number | null
+          id: string
+          latitude: number
+          longitude: number
+          metadata: Json | null
+          order_id: string | null
+          rider_user_id: string
+          speed_kmh: number | null
+        }
+        Insert: {
+          accuracy_meters?: number | null
+          created_at?: string
+          heading?: number | null
+          id?: string
+          latitude: number
+          longitude: number
+          metadata?: Json | null
+          order_id?: string | null
+          rider_user_id: string
+          speed_kmh?: number | null
+        }
+        Update: {
+          accuracy_meters?: number | null
+          created_at?: string
+          heading?: number | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          metadata?: Json | null
+          order_id?: string | null
+          rider_user_id?: string
+          speed_kmh?: number | null
         }
         Relationships: []
       }
@@ -2831,8 +2984,8 @@ export type Database = {
       }
       can_submit_review: {
         Args: {
-          _target_type: Database["public"]["Enums"]["review_target"]
           _target_id: string
+          _target_type: Database["public"]["Enums"]["review_target"]
         }
         Returns: boolean
       }
@@ -2842,16 +2995,16 @@ export type Database = {
       }
       find_nearby_riders: {
         Args: {
+          max_distance_km?: number
           pickup_lat: number
           pickup_lng: number
-          max_distance_km?: number
         }
         Returns: {
+          distance_km: number
+          rating: number
           rider_id: string
           user_id: string
-          distance_km: number
           vehicle_type: string
-          rating: number
         }[]
       }
       get_vendor_follower_count: {
@@ -2860,8 +3013,8 @@ export type Database = {
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
@@ -2874,7 +3027,7 @@ export type Database = {
         Returns: boolean
       }
       is_vendor_owner: {
-        Args: { _vendor_id: string; _user_id: string }
+        Args: { _user_id: string; _vendor_id: string }
         Returns: boolean
       }
     }
