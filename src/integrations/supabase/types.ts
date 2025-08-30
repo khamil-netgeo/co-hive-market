@@ -3203,7 +3203,12 @@ export type Database = {
         | "refunded"
         | "canceled"
       order_status: "pending" | "paid" | "canceled" | "fulfilled" | "refunded"
-      product_kind_type: "prepared_food" | "packaged_food" | "grocery" | "other"
+      product_kind_type:
+        | "prepared_food"
+        | "packaged_food"
+        | "grocery"
+        | "other"
+        | "preloved"
       product_status: "active" | "inactive" | "archived"
       return_resolution: "refund" | "replacement" | "store_credit"
       review_status: "pending" | "approved" | "rejected"
@@ -3382,7 +3387,13 @@ export const Constants = {
         "canceled",
       ],
       order_status: ["pending", "paid", "canceled", "fulfilled", "refunded"],
-      product_kind_type: ["prepared_food", "packaged_food", "grocery", "other"],
+      product_kind_type: [
+        "prepared_food",
+        "packaged_food",
+        "grocery",
+        "other",
+        "preloved",
+      ],
       product_status: ["active", "inactive", "archived"],
       return_resolution: ["refund", "replacement", "store_credit"],
       review_status: ["pending", "approved", "rejected"],
