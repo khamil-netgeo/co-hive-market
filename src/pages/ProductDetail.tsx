@@ -16,9 +16,7 @@ import DeliveryBanner from "@/components/delivery/DeliveryBanner";
 import DeliveryInfoCard from "@/components/delivery/DeliveryInfoCard";
 import DeliveryMethodsCard from "@/components/delivery/DeliveryMethodsCard";
 import ProductSpecificationsCard from "@/components/product/ProductSpecificationsCard";
-import ReviewSummary from "@/components/reviews/ReviewSummary";
-import ReviewList from "@/components/reviews/ReviewList";
-import ReviewForm from "@/components/reviews/ReviewForm";
+import { ReviewSummary, ReviewList, ReviewForm, ReviewRatingDistribution } from "@/components/reviews";
 import { Input } from "@/components/ui/input";
 import { useVendorFollow } from "@/hooks/useVendorFollow";
 
@@ -668,20 +666,36 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
           </div>
         </div>
 
-        {/* Reviews Section - Full Width */}
+        {/* Reviews Section - Full Width with Enhanced UI */}
         <section id="reviews" className="w-full">
-          <Card>
-            <CardHeader className="pb-3 sm:pb-6">
-              <CardTitle className="text-base sm:text-lg">Customer Reviews</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6 pt-0">
-              <div className="flex items-center justify-between">
-                <ReviewSummary targetType="product" targetId={product.id} />
-              </div>
-              <ReviewList targetType="product" targetId={product.id} />
-              <ReviewForm targetType="product" targetId={product.id} />
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Review Summary and Distribution */}
+            <div className="lg:col-span-1 space-y-4">
+              <ReviewSummary targetType="product" targetId={product.id} />
+              <ReviewRatingDistribution targetType="product" targetId={product.id} />
+            </div>
+            
+            {/* Reviews List and Form */}
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Reviews & Ratings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <ReviewList targetType="product" targetId={product.id} />
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Write a Review</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ReviewForm targetType="product" targetId={product.id} />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </section>
       </div>
 

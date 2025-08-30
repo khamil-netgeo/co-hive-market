@@ -16,6 +16,7 @@ export type ReviewRecord = {
   status: "pending" | "approved" | "rejected";
   created_at: string;
   updated_at: string;
+  helpful_count?: number;
 };
 
 export type RatingSummary = {
@@ -28,6 +29,23 @@ export type ReviewImage = {
   review_id: string;
   user_id: string;
   url: string;
+  created_at: string;
+};
+
+export type ReviewResponse = {
+  id: string;
+  review_id: string;
+  vendor_user_id: string;
+  response_text: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ReviewVote = {
+  id: string;
+  review_id: string;
+  user_id: string;
+  vote_type: 'helpful' | 'not_helpful';
   created_at: string;
 };
 
@@ -66,17 +84,40 @@ export function useReviewSummary(targetType: TargetType, targetId: string): UseQ
   }) as UseQueryResult<RatingSummary, Error>;
 }
 
-export function useApprovedReviews(targetType: TargetType, targetId: string): UseQueryResult<ReviewRecord[], Error> {
+export function useApprovedReviews(
+  targetType: TargetType, 
+  targetId: string,
+  sortBy: 'newest' | 'oldest' | 'helpful' | 'rating_high' | 'rating_low' = 'newest'
+): UseQueryResult<ReviewRecord[], Error> {
   return useQuery({
-    queryKey: ["approved-reviews", targetType, targetId] as const,
+    queryKey: ["approved-reviews", targetType, targetId, sortBy] as const,
     queryFn: async (): Promise<ReviewRecord[]> => {
-      const { data, error } = await (supabase as any)
+      let query = (supabase as any)
         .from("reviews")
         .select("*")
         .eq("target_type", targetType)
         .eq("target_id", targetId)
-        .eq("status", "approved")
-        .order("created_at", { ascending: false });
+        .eq("status", "approved");
+
+      // Apply sorting
+      switch (sortBy) {
+        case 'oldest':
+          query = query.order("created_at", { ascending: true });
+          break;
+        case 'helpful':
+          query = query.order("helpful_count", { ascending: false });
+          break;
+        case 'rating_high':
+          query = query.order("rating", { ascending: false });
+          break;
+        case 'rating_low':
+          query = query.order("rating", { ascending: true });
+          break;
+        default:
+          query = query.order("created_at", { ascending: false });
+      }
+
+      const { data, error } = await query;
       if (error) throw error as Error;
       return (data ?? []) as ReviewRecord[];
     },
@@ -250,6 +291,124 @@ export function useRemoveReviewImage(reviewId?: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["review-images", reviewId] });
+    },
+  });
+}
+
+// Review responses hooks
+export function useReviewResponses(reviewId: string): UseQueryResult<ReviewResponse[], Error> {
+  return useQuery({
+    queryKey: ["review-responses", reviewId] as const,
+    queryFn: async (): Promise<ReviewResponse[]> => {
+      const { data, error } = await (supabase as any)
+        .from("review_responses")
+        .select("*")
+        .eq("review_id", reviewId)
+        .order("created_at", { ascending: true });
+      if (error) throw error as Error;
+      return (data ?? []) as ReviewResponse[];
+    },
+  }) as UseQueryResult<ReviewResponse[], Error>;
+}
+
+export function useSubmitReviewResponse() {
+  const qc = useQueryClient();
+  const userId = useCurrentUserId();
+
+  return useMutation({
+    mutationFn: async ({ reviewId, responseText }: { reviewId: string; responseText: string }) => {
+      if (!userId) throw new Error("Please sign in to respond to reviews.");
+      
+      const { data, error } = await (supabase as any)
+        .from("review_responses")
+        .insert({
+          review_id: reviewId,
+          vendor_user_id: userId,
+          response_text: responseText,
+        })
+        .select()
+        .single();
+      
+      if (error) throw error as Error;
+      return data as ReviewResponse;
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["review-responses", data.review_id] });
+    },
+  });
+}
+
+// Review voting hooks
+export function useReviewVote(reviewId: string): UseQueryResult<ReviewVote | null, Error> {
+  const userId = useCurrentUserId();
+  return useQuery({
+    queryKey: ["review-vote", reviewId, userId] as const,
+    enabled: !!userId,
+    queryFn: async (): Promise<ReviewVote | null> => {
+      if (!userId) return null;
+      const { data, error } = await (supabase as any)
+        .from("review_votes")
+        .select("*")
+        .eq("review_id", reviewId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error as Error;
+      return (data ?? null) as ReviewVote | null;
+    },
+  }) as UseQueryResult<ReviewVote | null, Error>;
+}
+
+export function useVoteOnReview() {
+  const qc = useQueryClient();
+  const userId = useCurrentUserId();
+
+  return useMutation({
+    mutationFn: async ({ reviewId, voteType }: { reviewId: string; voteType: 'helpful' | 'not_helpful' }) => {
+      if (!userId) throw new Error("Please sign in to vote on reviews.");
+      
+      const { data, error } = await (supabase as any)
+        .from("review_votes")
+        .upsert(
+          {
+            review_id: reviewId,
+            user_id: userId,
+            vote_type: voteType,
+          },
+          { onConflict: "review_id,user_id" }
+        )
+        .select()
+        .single();
+      
+      if (error) throw error as Error;
+      return data as ReviewVote;
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["review-vote", data.review_id] });
+      qc.invalidateQueries({ queryKey: ["approved-reviews"] });
+    },
+  });
+}
+
+export function useRemoveReviewVote() {
+  const qc = useQueryClient();
+  const userId = useCurrentUserId();
+
+  return useMutation({
+    mutationFn: async ({ reviewId }: { reviewId: string }) => {
+      if (!userId) throw new Error("Please sign in.");
+      
+      const { error } = await (supabase as any)
+        .from("review_votes")
+        .delete()
+        .eq("review_id", reviewId)
+        .eq("user_id", userId);
+      
+      if (error) throw error as Error;
+      return true;
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["review-vote", variables.reviewId] });
+      qc.invalidateQueries({ queryKey: ["approved-reviews"] });
     },
   });
 }

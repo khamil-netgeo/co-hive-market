@@ -1,8 +1,11 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useApprovedReviews } from "@/hooks/useReviews";
-import { Card } from "@/components/ui/card";
-import RatingStars from "./RatingStars";
+import ReviewCard from "./ReviewCard";
+import ReviewFilters from "./ReviewFilters";
+
+type SortOption = 'newest' | 'oldest' | 'helpful' | 'rating_high' | 'rating_low';
+type RatingFilter = 'all' | '5' | '4' | '3' | '2' | '1';
 
 type Props = {
   targetType: "product" | "service";
@@ -10,30 +13,63 @@ type Props = {
 };
 
 export default function ReviewList({ targetType, targetId }: Props) {
-  const { data, isLoading } = useApprovedReviews(targetType, targetId);
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [ratingFilter, setRatingFilter] = useState<RatingFilter>('all');
+  
+  const { data: allReviews = [], isLoading } = useApprovedReviews(targetType, targetId, sortBy);
+
+  // Filter reviews by rating
+  const filteredReviews = ratingFilter === 'all' 
+    ? allReviews 
+    : allReviews.filter(review => review.rating === parseInt(ratingFilter));
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading reviews...</p>;
+    return (
+      <div className="space-y-4">
+        <div className="h-10 bg-muted rounded animate-pulse" />
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-32 bg-muted rounded animate-pulse" />
+        ))}
+      </div>
+    );
   }
 
-  if (!data || data.length === 0) {
-    return <p className="text-sm text-muted-foreground">No reviews yet. Be the first to review!</p>;
+  if (!allReviews || allReviews.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">No reviews yet. Be the first to review!</p>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-3">
-      {data.map((r) => (
-        <Card key={r.id} className="p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <RatingStars value={r.rating} readOnly size="sm" />
-            <span className="text-xs text-muted-foreground">
-              {new Date(r.created_at).toLocaleDateString()}
-            </span>
-          </div>
-          {r.title && <h4 className="mt-2 font-medium text-foreground">{r.title}</h4>}
-          {r.body && <p className="mt-1 text-sm text-muted-foreground whitespace-pre-wrap">{r.body}</p>}
-        </Card>
-      ))}
+    <div className="space-y-4">
+      <ReviewFilters
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        ratingFilter={ratingFilter}
+        onRatingFilterChange={setRatingFilter}
+        totalReviews={filteredReviews.length}
+      />
+      
+      {filteredReviews.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            No reviews found with the selected rating.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredReviews.map((review) => (
+            <ReviewCard
+              key={review.id}
+              review={review}
+              targetType={targetType}
+              targetId={targetId}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
