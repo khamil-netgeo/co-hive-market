@@ -86,6 +86,7 @@ export default function UnifiedCatalog() {
   const { selected } = useCommunity();
 
   useEffect(() => {
+    console.log("UnifiedCatalog: Component mounted");
     setSEO(
       "Catalog | CoopMarket",
       "Browse products and services with member discounts. Shop or book everything in one place."
@@ -169,6 +170,7 @@ export default function UnifiedCatalog() {
   }, [activeTab, productKindFilter, query, sort, useNearMe, radiusKm, categoryFilter]);
 
   const load = async () => {
+    console.log("UnifiedCatalog: Starting data load");
     setLoading(true);
     try {
       // Load products and services in parallel
@@ -252,8 +254,10 @@ export default function UnifiedCatalog() {
       setItemCats(icMap);
 
     } catch (e: any) {
+      console.error("UnifiedCatalog: Load error", e);
       toast("Failed to load catalog", { description: e.message || String(e) });
     } finally {
+      console.log("UnifiedCatalog: Load completed");
       setLoading(false);
     }
   };
