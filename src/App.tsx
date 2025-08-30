@@ -22,6 +22,7 @@ import VendorPayouts from "./pages/vendor/VendorPayouts";
 import OrderDetail from "./pages/vendor/OrderDetail";
 import BookingsDashboard from "./pages/vendor/BookingsDashboard";
 import ServiceIntelligence from "./pages/vendor/ServiceIntelligence";
+import ServiceAutomation from "./pages/vendor/ServiceAutomation";
 import Riders from "./pages/Riders";
 import Layout from "@/components/layout/Layout";
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -143,6 +144,7 @@ const App = () => (
           <Route path="/vendor/orders/:orderId" element={<OrderDetail />} />
           <Route path="/vendor/bookings" element={<BookingsDashboard />} />
           <Route path="/vendor/intelligence" element={<ServiceIntelligence />} />
+          <Route path="/vendor/automation" element={<ServiceAutomation />} />
               <Route path="/vendor/analytics" element={<VendorAnalytics />} />
               <Route path="/vendor/calendar" element={<VendorCalendar />} />
               <Route path="/vendor/payouts" element={<VendorPayouts />} />
