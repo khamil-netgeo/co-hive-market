@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ThumbsUp, ThumbsDown, MessageSquare, Send, User } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, Send, User, Star as StarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import RatingStars from "./RatingStars";
+import ReviewerProfile from "./ReviewerProfile";
+import DetailedRatingInput from "./DetailedRatingInput";
 import MediaGallery from "@/components/common/MediaGallery";
 import { useReviewImages, useReviewResponses, useSubmitReviewResponse, useReviewVote, useVoteOnReview, useRemoveReviewVote } from "@/hooks/useReviews";
 import useIsVendor from "@/hooks/useIsVendor";
@@ -87,32 +89,61 @@ export default function ReviewCard({ review, targetType, targetId }: Props) {
   };
 
   return (
-    <Card className="p-4 sm:p-6">
-      {/* Review Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-        <div className="flex items-start gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src="" />
-            <AvatarFallback>
-              <User className="h-5 w-5" />
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-foreground">Verified Buyer</span>
-              <Badge variant="secondary" className="text-xs">
-                Verified
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 mb-2">
-              <RatingStars value={review.rating} readOnly size="sm" />
-              <span className="text-xs text-muted-foreground">
-                {formatDate(review.created_at)}
-              </span>
-            </div>
-          </div>
+    <Card className="p-4 sm:p-6 space-y-4">
+      {/* Review Header with Reviewer Profile */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <ReviewerProfile userId={review.user_id} showStats={true} size="md" />
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>{formatDate(review.created_at)}</span>
         </div>
       </div>
+
+      {/* Overall Rating */}
+      <div className="flex items-center gap-3">
+        <RatingStars value={review.rating} readOnly size="md" />
+        <span className="text-sm font-medium">{review.rating}/5</span>
+      </div>
+
+      {/* Detailed Ratings */}
+      {(review.quality_rating || review.service_rating || review.delivery_rating || review.value_rating) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg">
+          <div className="text-xs font-medium text-muted-foreground mb-2 sm:col-span-2">
+            Detailed Ratings:
+          </div>
+          {review.quality_rating && (
+            <DetailedRatingInput
+              label="Quality"
+              value={review.quality_rating}
+              readOnly
+              size="sm"
+            />
+          )}
+          {review.service_rating && (
+            <DetailedRatingInput
+              label="Service"
+              value={review.service_rating}
+              readOnly
+              size="sm"
+            />
+          )}
+          {review.delivery_rating && (
+            <DetailedRatingInput
+              label="Delivery"
+              value={review.delivery_rating}
+              readOnly
+              size="sm"
+            />
+          )}
+          {review.value_rating && (
+            <DetailedRatingInput
+              label="Value"
+              value={review.value_rating}
+              readOnly
+              size="sm"
+            />
+          )}
+        </div>
+      )}
 
       {/* Review Content */}
       <div className="space-y-3 mb-4">

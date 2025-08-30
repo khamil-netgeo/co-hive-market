@@ -1879,49 +1879,70 @@ export type Database = {
           address_line1: string | null
           address_line2: string | null
           avatar_url: string | null
+          average_rating_given: number | null
           city: string | null
           country: string
           created_at: string
           delivery_preference: string | null
+          helpful_votes_received: number | null
           id: string
           latitude: number | null
           longitude: number | null
           phone: string | null
           postcode: string | null
+          reviewer_rank: string | null
           state: string | null
+          total_reviews: number | null
           updated_at: string
+          verification_level:
+            | Database["public"]["Enums"]["reviewer_verification_level"]
+            | null
         }
         Insert: {
           address_line1?: string | null
           address_line2?: string | null
           avatar_url?: string | null
+          average_rating_given?: number | null
           city?: string | null
           country?: string
           created_at?: string
           delivery_preference?: string | null
+          helpful_votes_received?: number | null
           id: string
           latitude?: number | null
           longitude?: number | null
           phone?: string | null
           postcode?: string | null
+          reviewer_rank?: string | null
           state?: string | null
+          total_reviews?: number | null
           updated_at?: string
+          verification_level?:
+            | Database["public"]["Enums"]["reviewer_verification_level"]
+            | null
         }
         Update: {
           address_line1?: string | null
           address_line2?: string | null
           avatar_url?: string | null
+          average_rating_given?: number | null
           city?: string | null
           country?: string
           created_at?: string
           delivery_preference?: string | null
+          helpful_votes_received?: number | null
           id?: string
           latitude?: number | null
           longitude?: number | null
           phone?: string | null
           postcode?: string | null
+          reviewer_rank?: string | null
           state?: string | null
+          total_reviews?: number | null
           updated_at?: string
+          verification_level?:
+            | Database["public"]["Enums"]["reviewer_verification_level"]
+            | null
         }
         Relationships: []
       }
@@ -1992,6 +2013,39 @@ export type Database = {
           },
         ]
       }
+      review_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          rating_suggestions: Json | null
+          target_type: Database["public"]["Enums"]["review_target"]
+          template_text: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          rating_suggestions?: Json | null
+          target_type: Database["public"]["Enums"]["review_target"]
+          template_text: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          rating_suggestions?: Json | null
+          target_type?: Database["public"]["Enums"]["review_target"]
+          template_text?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       review_votes: {
         Row: {
           created_at: string
@@ -2028,41 +2082,53 @@ export type Database = {
         Row: {
           body: string | null
           created_at: string
+          delivery_rating: number | null
           helpful_count: number | null
           id: string
+          quality_rating: number | null
           rating: number
+          service_rating: number | null
           status: Database["public"]["Enums"]["review_status"]
           target_id: string
           target_type: Database["public"]["Enums"]["review_target"]
           title: string | null
           updated_at: string
           user_id: string
+          value_rating: number | null
         }
         Insert: {
           body?: string | null
           created_at?: string
+          delivery_rating?: number | null
           helpful_count?: number | null
           id?: string
+          quality_rating?: number | null
           rating: number
+          service_rating?: number | null
           status?: Database["public"]["Enums"]["review_status"]
           target_id: string
           target_type: Database["public"]["Enums"]["review_target"]
           title?: string | null
           updated_at?: string
           user_id: string
+          value_rating?: number | null
         }
         Update: {
           body?: string | null
           created_at?: string
+          delivery_rating?: number | null
           helpful_count?: number | null
           id?: string
+          quality_rating?: number | null
           rating?: number
+          service_rating?: number | null
           status?: Database["public"]["Enums"]["review_status"]
           target_id?: string
           target_type?: Database["public"]["Enums"]["review_target"]
           title?: string | null
           updated_at?: string
           user_id?: string
+          value_rating?: number | null
         }
         Relationships: []
       }
@@ -3142,6 +3208,12 @@ export type Database = {
       return_resolution: "refund" | "replacement" | "store_credit"
       review_status: "pending" | "approved" | "rejected"
       review_target: "product" | "service"
+      reviewer_verification_level:
+        | "unverified"
+        | "email_verified"
+        | "phone_verified"
+        | "identity_verified"
+        | "premium_buyer"
       shipping_method: "rider" | "easyparcel"
       voucher_discount_type: "percent" | "amount"
     }
@@ -3315,6 +3387,13 @@ export const Constants = {
       return_resolution: ["refund", "replacement", "store_credit"],
       review_status: ["pending", "approved", "rejected"],
       review_target: ["product", "service"],
+      reviewer_verification_level: [
+        "unverified",
+        "email_verified",
+        "phone_verified",
+        "identity_verified",
+        "premium_buyer",
+      ],
       shipping_method: ["rider", "easyparcel"],
       voucher_discount_type: ["percent", "amount"],
     },

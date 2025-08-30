@@ -3,9 +3,13 @@ import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RatingStars from "./RatingStars";
-import { useCanSubmitReview, useDeleteOwnDraftReview, useOwnReview, useSubmitReview, useReviewImages, useAddReviewImage, useRemoveReviewImage } from "@/hooks/useReviews";
-import { useToast } from "@/components/ui/use-toast";
+import DetailedRatingInput from "./DetailedRatingInput";
+import ReviewTemplateSelector from "./ReviewTemplateSelector";
+import { useCanSubmitReview, useDeleteOwnDraftReview, useOwnReview, useSubmitReview, useReviewImages, useAddReviewImage, useRemoveReviewImage, type ReviewTemplate } from "@/hooks/useReviews";
+import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import MediaUploader from "@/components/media/MediaUploader";
 
@@ -25,14 +29,35 @@ export default function ReviewForm({ targetType, targetId, className }: Props) {
   const [rating, setRating] = useState<number>(0);
   const [title, setTitle] = useState<string>("");
   const [body, setBody] = useState<string>("");
+  const [qualityRating, setQualityRating] = useState<number>(0);
+  const [serviceRating, setServiceRating] = useState<number>(0);
+  const [deliveryRating, setDeliveryRating] = useState<number>(0);
+  const [valueRating, setValueRating] = useState<number>(0);
 
   useEffect(() => {
     if (ownReview) {
       setRating(ownReview.rating);
       setTitle(ownReview.title ?? "");
       setBody(ownReview.body ?? "");
+      setQualityRating(ownReview.quality_rating ?? 0);
+      setServiceRating(ownReview.service_rating ?? 0);
+      setDeliveryRating(ownReview.delivery_rating ?? 0);
+      setValueRating(ownReview.value_rating ?? 0);
     }
   }, [ownReview?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleTemplateSelect = (template: ReviewTemplate) => {
+    setBody(template.template_text);
+    setTitle(template.title);
+    
+    // Apply suggested ratings if available
+    if (template.rating_suggestions) {
+      if (template.rating_suggestions.quality_rating) setQualityRating(template.rating_suggestions.quality_rating);
+      if (template.rating_suggestions.service_rating) setServiceRating(template.rating_suggestions.service_rating);
+      if (template.rating_suggestions.delivery_rating) setDeliveryRating(template.rating_suggestions.delivery_rating);
+      if (template.rating_suggestions.value_rating) setValueRating(template.rating_suggestions.value_rating);
+    }
+  };
 
   // Review images management (only once we have a review id)
   const { data: reviewImages = [] } = useReviewImages(ownReview?.id);
@@ -85,7 +110,17 @@ export default function ReviewForm({ targetType, targetId, className }: Props) {
       return;
     }
     submit.mutate(
-      { targetType, targetId, rating, title, body },
+      { 
+        targetType, 
+        targetId, 
+        rating, 
+        title, 
+        body,
+        quality_rating: qualityRating || undefined,
+        service_rating: serviceRating || undefined,
+        delivery_rating: deliveryRating || undefined,
+        value_rating: valueRating || undefined,
+      },
       {
         onSuccess: () => {
           toast({ title: "Review submitted", description: "Your review will be visible after approval." });
@@ -113,62 +148,162 @@ export default function ReviewForm({ targetType, targetId, className }: Props) {
   };
 
   return (
-    <form onSubmit={onSubmit} className={cn("p-4 border rounded-lg bg-card", className)}>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <label className="text-sm text-muted-foreground">Your rating</label>
-        <RatingStars value={rating} onChange={setRating} size="lg" />
-      </div>
-      {eligible === false && (
-        <div className="mt-3 text-sm text-muted-foreground">
-          You can only review items you've purchased or completed.
-        </div>
-      )}
+    <div className={cn("space-y-6", className)}>
+      {/* Review Templates */}
+      <ReviewTemplateSelector 
+        targetType={targetType} 
+        onSelectTemplate={handleTemplateSelect}
+      />
 
-      <div className="mt-3 grid gap-3">
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Review title (optional)"
-          className="w-full"
-        />
-        <Textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder={`Share details about your experience with this ${targetType} (optional)`}
-          className="w-full"
-          rows={5}
-        />
-      </div>
+      <form onSubmit={onSubmit} className="space-y-6">
+        {/* Mobile-Optimized Tabs */}
+        <Tabs defaultValue="basic" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="basic">Basic Info</TabsTrigger>
+            <TabsTrigger value="detailed">Detailed Ratings</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="basic" className="space-y-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Your Review</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <label className="text-sm font-medium text-foreground">
+                    Overall Rating <span className="text-destructive">*</span>
+                  </label>
+                  <RatingStars value={rating} onChange={setRating} size="lg" />
+                </div>
+                
+                {eligible === false && (
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      You can only review items you've purchased or completed.
+                    </p>
+                  </div>
+                )}
 
-      {/* Optional images uploader */}
-      {ownReview?.id ? (
-        <div className="mt-3">
-          <MediaUploader
-            bucket="review-images"
-            folder={`${userId}/${ownReview.id}`}
-            max={4}
-            value={currentUrls}
-            onChange={onImagesChange}
-          />
-        </div>
-      ) : (
-        <p className="mt-3 text-xs text-muted-foreground">Tip: Save your rating to add photos to your review.</p>
-      )}
+                <div className="space-y-3">
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Review title (optional)"
+                    className="w-full"
+                  />
+                  <Textarea
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    placeholder={`Share details about your experience with this ${targetType} (optional)`}
+                    className="w-full min-h-[120px]"
+                    rows={6}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="detailed" className="space-y-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Detailed Ratings</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Rate different aspects of your experience (optional)
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <DetailedRatingInput
+                  label="Quality"
+                  value={qualityRating}
+                  onChange={setQualityRating}
+                />
+                
+                {targetType === "service" && (
+                  <DetailedRatingInput
+                    label="Service"
+                    value={serviceRating}
+                    onChange={setServiceRating}
+                  />
+                )}
+                
+                <DetailedRatingInput
+                  label="Delivery"
+                  value={deliveryRating}
+                  onChange={setDeliveryRating}
+                />
+                
+                <DetailedRatingInput
+                  label="Value"
+                  value={valueRating}
+                  onChange={setValueRating}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
-      <div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-        <Button type="submit" className="flex-1 sm:flex-none" disabled={!canSubmit || submit.isPending}>
-          {ownReview ? "Update review" : "Submit review"}
-        </Button>
-        {ownReview && (
-          <Button type="button" variant="outline" onClick={onDelete} disabled={removeDraft.isPending}>
-            Delete draft
-          </Button>
+        {/* Optional images uploader */}
+        {ownReview?.id && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Add Photos</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Help others by showing your experience
+              </p>
+            </CardHeader>
+            <CardContent>
+              <MediaUploader
+                bucket="review-images"
+                folder={`${userId}/${ownReview.id}`}
+                max={4}
+                value={currentUrls}
+                onChange={onImagesChange}
+              />
+            </CardContent>
+          </Card>
         )}
-      </div>
 
-      <p className="mt-2 text-xs text-muted-foreground">
-        Note: Reviews require approval before they appear publicly.
-      </p>
-    </form>
+        {!ownReview?.id && (
+          <Card className="bg-muted/30">
+            <CardContent className="p-4">
+              <p className="text-sm text-muted-foreground text-center">
+                💡 Tip: Save your rating to add photos to your review
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <Button 
+            type="submit" 
+            className="flex-1 sm:flex-none h-11" 
+            disabled={!canSubmit || submit.isPending}
+          >
+            {ownReview ? "Update Review" : "Submit Review"}
+          </Button>
+          {ownReview && (
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onDelete} 
+              disabled={removeDraft.isPending}
+              className="h-11"
+            >
+              Delete Draft
+            </Button>
+          )}
+        </div>
+
+        <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="p-4">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              📋 <strong>Note:</strong> Reviews require approval before they appear publicly. 
+              This helps maintain quality and authenticity.
+            </p>
+          </CardContent>
+        </Card>
+      </form>
+    </div>
   );
 }

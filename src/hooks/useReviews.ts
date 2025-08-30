@@ -17,6 +17,10 @@ export type ReviewRecord = {
   created_at: string;
   updated_at: string;
   helpful_count?: number;
+  quality_rating?: number;
+  service_rating?: number;
+  delivery_rating?: number;
+  value_rating?: number;
 };
 
 export type RatingSummary = {
@@ -47,6 +51,28 @@ export type ReviewVote = {
   user_id: string;
   vote_type: 'helpful' | 'not_helpful';
   created_at: string;
+};
+
+export type ReviewTemplate = {
+  id: string;
+  target_type: TargetType;
+  title: string;
+  template_text: string;
+  rating_suggestions: Record<string, number>;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ReviewerProfile = {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  verification_level: 'unverified' | 'email_verified' | 'phone_verified' | 'identity_verified' | 'premium_buyer';
+  total_reviews: number;
+  average_rating_given: number;
+  helpful_votes_received: number;
+  reviewer_rank: string;
 };
 
 function getSummaryView(targetType: TargetType) {
@@ -149,6 +175,10 @@ type SubmitPayload = {
   rating: number;
   title?: string;
   body?: string;
+  quality_rating?: number;
+  service_rating?: number;
+  delivery_rating?: number;
+  value_rating?: number;
 };
 
 export function useSubmitReview() {
@@ -161,7 +191,7 @@ export function useSubmitReview() {
         const err = new Error("Please sign in to submit a review.");
         throw err;
       }
-      const { targetType, targetId, rating, title, body } = payload;
+      const { targetType, targetId, rating, title, body, quality_rating, service_rating, delivery_rating, value_rating } = payload;
       const { data, error } = await (supabase as any)
         .from("reviews")
         .upsert(
@@ -173,6 +203,10 @@ export function useSubmitReview() {
               rating,
               title: title ?? null,
               body: body ?? null,
+              quality_rating: quality_rating ?? null,
+              service_rating: service_rating ?? null,
+              delivery_rating: delivery_rating ?? null,
+              value_rating: value_rating ?? null,
             },
           ],
           { onConflict: "user_id,target_type,target_id" }
@@ -411,4 +445,80 @@ export function useRemoveReviewVote() {
       qc.invalidateQueries({ queryKey: ["approved-reviews"] });
     },
   });
+}
+
+// Review templates hooks
+export function useReviewTemplates(targetType: TargetType): UseQueryResult<ReviewTemplate[], Error> {
+  return useQuery({
+    queryKey: ["review-templates", targetType] as const,
+    queryFn: async (): Promise<ReviewTemplate[]> => {
+      const { data, error } = await (supabase as any)
+        .from("review_templates")
+        .select("*")
+        .eq("target_type", targetType)
+        .eq("is_active", true)
+        .order("created_at", { ascending: true });
+      if (error) throw error as Error;
+      return (data ?? []) as ReviewTemplate[];
+    },
+  }) as UseQueryResult<ReviewTemplate[], Error>;
+}
+
+// Reviewer profile hooks
+export function useReviewerProfile(userId: string): UseQueryResult<ReviewerProfile | null, Error> {
+  return useQuery({
+    queryKey: ["reviewer-profile", userId] as const,
+    queryFn: async (): Promise<ReviewerProfile | null> => {
+      const { data, error } = await (supabase as any)
+        .from("profiles")
+        .select("id, display_name, avatar_url, verification_level, total_reviews, average_rating_given, helpful_votes_received, reviewer_rank")
+        .eq("id", userId)
+        .maybeSingle();
+      if (error) throw error as Error;
+      return (data ?? null) as ReviewerProfile | null;
+    },
+  }) as UseQueryResult<ReviewerProfile | null, Error>;
+}
+
+// Review analytics hooks for vendors
+export function useReviewAnalytics(targetType: TargetType, targetId: string): UseQueryResult<any, Error> {
+  return useQuery({
+    queryKey: ["review-analytics", targetType, targetId] as const,
+    queryFn: async () => {
+      const { data: reviews, error } = await (supabase as any)
+        .from("reviews")
+        .select("*")
+        .eq("target_type", targetType)
+        .eq("target_id", targetId)
+        .eq("status", "approved");
+      
+      if (error) throw error as Error;
+      
+      const analytics = {
+        totalReviews: reviews.length,
+        averageRating: reviews.length > 0 ? reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length : 0,
+        ratingDistribution: reviews.reduce((acc: Record<number, number>, r: any) => {
+          acc[r.rating] = (acc[r.rating] || 0) + 1;
+          return acc;
+        }, {}),
+        monthlyTrend: reviews.reduce((acc: Record<string, number>, r: any) => {
+          const month = new Date(r.created_at).toISOString().slice(0, 7);
+          acc[month] = (acc[month] || 0) + 1;
+          return acc;
+        }, {}),
+        averageDetailedRatings: {
+          quality: reviews.filter((r: any) => r.quality_rating).reduce((sum: number, r: any) => sum + r.quality_rating, 0) / reviews.filter((r: any) => r.quality_rating).length || 0,
+          service: reviews.filter((r: any) => r.service_rating).reduce((sum: number, r: any) => sum + r.service_rating, 0) / reviews.filter((r: any) => r.service_rating).length || 0,
+          delivery: reviews.filter((r: any) => r.delivery_rating).reduce((sum: number, r: any) => sum + r.delivery_rating, 0) / reviews.filter((r: any) => r.delivery_rating).length || 0,
+          value: reviews.filter((r: any) => r.value_rating).reduce((sum: number, r: any) => sum + r.value_rating, 0) / reviews.filter((r: any) => r.value_rating).length || 0,
+        },
+        helpfulnessStats: {
+          totalVotes: reviews.reduce((sum: number, r: any) => sum + (r.helpful_count || 0), 0),
+          averageHelpfulness: reviews.length > 0 ? reviews.reduce((sum: number, r: any) => sum + (r.helpful_count || 0), 0) / reviews.length : 0,
+        }
+      };
+      
+      return analytics;
+    },
+  }) as UseQueryResult<any, Error>;
 }
