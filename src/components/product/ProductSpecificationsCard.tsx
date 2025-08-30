@@ -20,6 +20,11 @@ interface ProductSpecificationsCardProps {
     stock_qty?: number;
     pickup_lat?: number | null;
     pickup_lng?: number | null;
+    // Preloved fields
+    condition?: string | null;
+    age_years?: number | null;
+    original_price_cents?: number | null;
+    wear_description?: string | null;
   };
   vendor?: {
     id: string;
@@ -63,9 +68,28 @@ export default function ProductSpecificationsCard({
         return { label: 'Prepared Food', icon: '🍽️', color: 'bg-orange-100 text-orange-800' };
       case 'grocery':
         return { label: 'Grocery Item', icon: '🛒', color: 'bg-green-100 text-green-800' };
+      case 'preloved':
+        return { label: 'Preloved', icon: '♻️', color: 'bg-purple-100 text-purple-800' };
       case 'other':
       default:
         return { label: 'General Product', icon: '📦', color: 'bg-blue-100 text-blue-800' };
+    }
+  };
+
+  const getConditionLabel = (condition?: string | null) => {
+    switch (condition) {
+      case 'like_new':
+        return { label: 'Like New', color: 'bg-green-100 text-green-800' };
+      case 'excellent':
+        return { label: 'Excellent', color: 'bg-blue-100 text-blue-800' };
+      case 'good':
+        return { label: 'Good', color: 'bg-yellow-100 text-yellow-800' };
+      case 'fair':
+        return { label: 'Fair', color: 'bg-orange-100 text-orange-800' };
+      case 'poor':
+        return { label: 'Poor', color: 'bg-red-100 text-red-800' };
+      default:
+        return null;
     }
   };
 
@@ -99,10 +123,18 @@ export default function ProductSpecificationsCard({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Product type badge */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge className={`${productKindInfo.color} border-0`}>
               {productKindInfo.icon} {productKindInfo.label}
             </Badge>
+            {product.product_kind === 'preloved' && product.condition && (() => {
+              const conditionInfo = getConditionLabel(product.condition);
+              return conditionInfo ? (
+                <Badge className={`${conditionInfo.color} border-0 text-xs`}>
+                  {conditionInfo.label}
+                </Badge>
+              ) : null;
+            })()}
             {product.perishable && (
               <Badge variant="outline" className="text-xs">
                 <Shield className="h-3 w-3 mr-1" />
@@ -181,6 +213,54 @@ export default function ProductSpecificationsCard({
               </div>
             )}
           </div>
+
+          {/* Preloved-specific information */}
+          {product.product_kind === 'preloved' && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <h4 className="font-medium text-muted-foreground">Preloved Item Details</h4>
+                <div className="grid gap-4">
+                  {product.age_years && (
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Clock className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Item Age</p>
+                        <p className="text-sm text-muted-foreground">
+                          {product.age_years} year{product.age_years !== 1 ? 's' : ''} old
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {product.original_price_cents && (
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Package className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Original Price</p>
+                        <p className="text-sm text-muted-foreground">
+                          RM {(product.original_price_cents / 100).toFixed(2)} when new
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {product.wear_description && (
+                    <div className="bg-muted/50 p-3 rounded-lg">
+                      <h5 className="font-medium mb-2">Condition Notes</h5>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {product.wear_description}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

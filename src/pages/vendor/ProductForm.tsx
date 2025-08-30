@@ -33,6 +33,14 @@ const DIETARY_OPTIONS = [
   "organic",
 ] as const;
 
+const CONDITION_OPTIONS = [
+  { value: "like_new", label: "Like New" },
+  { value: "excellent", label: "Excellent" },
+  { value: "good", label: "Good" },
+  { value: "fair", label: "Fair" },
+  { value: "poor", label: "Poor" },
+] as const;
+
 const productSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().optional(),
@@ -43,7 +51,7 @@ const productSchema = z.object({
   currency: z.string().default("myr"),
   status: z.enum(["active", "inactive", "archived"]).default("inactive"),
   category: z.string().min(1, "Category is required"),
-  product_kind: z.enum(["prepared_food","packaged_food","grocery","other"]).default("other"),
+  product_kind: z.enum(["prepared_food","packaged_food","grocery","other","preloved"]).default("other"),
   perishable: z.boolean().default(false),
   refrigeration_required: z.boolean().default(false),
   weight_grams: z.string().optional(),
@@ -58,6 +66,11 @@ const productSchema = z.object({
   pickup_lng: z.string().optional(),
   best_before: z.date().optional(),
   dietary_tags: z.array(z.enum(DIETARY_OPTIONS)).optional().default([]),
+  // Preloved-specific fields
+  condition: z.enum(["like_new", "excellent", "good", "fair", "poor"]).optional(),
+  age_years: z.string().optional(),
+  original_price: z.string().optional(),
+  wear_description: z.string().optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -249,6 +262,11 @@ const ProductForm = () => {
           pickup_lng: (productData as any).pickup_lng?.toString() || "",
           best_before: parsedDate,
           dietary_tags: parsedDiet,
+          // Preloved fields
+          condition: (productData as any).condition || undefined,
+          age_years: (productData as any).age_years?.toString() || "",
+          original_price: (productData as any).original_price_cents ? ((productData as any).original_price_cents / 100).toFixed(2) : "",
+          wear_description: (productData as any).wear_description || "",
         });
 
         // Load selected categories for this product
@@ -333,6 +351,11 @@ const ProductForm = () => {
         pickup_lng: data.pickup_lng ? parseFloat(data.pickup_lng) : null,
         image_urls: imageUrls.length ? imageUrls : null,
         video_url: videoUrl ? videoUrl.trim() : null,
+        // Preloved-specific fields
+        condition: data.product_kind === 'preloved' ? data.condition : null,
+        age_years: data.product_kind === 'preloved' && data.age_years ? parseInt(data.age_years, 10) : null,
+        original_price_cents: data.product_kind === 'preloved' && data.original_price ? Math.round(parseFloat(data.original_price) * 100) : null,
+        wear_description: data.product_kind === 'preloved' ? data.wear_description : null,
       };
 
       let productIdToUse: string | null = null;
@@ -585,6 +608,7 @@ const ProductForm = () => {
                               <SelectItem value="prepared_food">🍜 Prepared Food (hot meals, cooked dishes)</SelectItem>
                               <SelectItem value="packaged_food">📦 Packaged Food (shelf-stable, canned)</SelectItem>
                               <SelectItem value="grocery">🥬 Fresh Groceries (fruits, vegetables)</SelectItem>
+                              <SelectItem value="preloved">♻️ Preloved/Second-hand</SelectItem>
                               <SelectItem value="other">📱 Other Products</SelectItem>
                             </SelectContent>
                           </Select>
@@ -1020,6 +1044,95 @@ const ProductForm = () => {
                         </FormItem>
                       )}
                     />
+
+                    {/* Preloved-specific fields */}
+                    {form.watch('product_kind') === 'preloved' && (
+                      <>
+                        <Separator />
+                        <div className="space-y-4">
+                          <div>
+                            <FormLabel className="text-base font-medium">Preloved Item Details</FormLabel>
+                            <FormDescription>Provide details about the condition and history of this item</FormDescription>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="condition"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Item Condition *</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue placeholder="Select condition" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {CONDITION_OPTIONS.map((option) => (
+                                        <SelectItem key={option.value} value={option.value}>
+                                          {option.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={form.control}
+                              name="age_years"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Age (years)</FormLabel>
+                                  <FormControl>
+                                    <Input type="number" min={0} max={100} placeholder="2" {...field} />
+                                  </FormControl>
+                                  <FormDescription>How old is the item?</FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={form.control}
+                            name="original_price"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Original Price (optional)</FormLabel>
+                                <FormControl>
+                                  <Input type="number" min={0} step="0.01" placeholder="150.00" {...field} />
+                                </FormControl>
+                                <FormDescription>What was the original retail price when new?</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="wear_description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Wear & Defects Description</FormLabel>
+                                <FormControl>
+                                  <Textarea
+                                    placeholder="Describe any visible wear, scratches, stains, or defects..."
+                                    className="min-h-[100px]"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormDescription>Be honest about any imperfections to build trust with buyers</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </>
+                    )}
 
                     {/* Pickup location */}
                     <div className="space-y-4">

@@ -1765,10 +1765,14 @@ export type Database = {
       }
       products: {
         Row: {
+          age_years: number | null
           allow_easyparcel: boolean
           allow_rider_delivery: boolean
           category: string | null
           community_id: string
+          condition:
+            | Database["public"]["Enums"]["product_condition_type"]
+            | null
           created_at: string
           currency: string
           description: string | null
@@ -1777,6 +1781,7 @@ export type Database = {
           image_urls: string[] | null
           length_cm: number | null
           name: string
+          original_price_cents: number | null
           perishable: boolean
           pickup_lat: number | null
           pickup_lng: number | null
@@ -1792,14 +1797,19 @@ export type Database = {
           updated_at: string
           vendor_id: string
           video_url: string | null
+          wear_description: string | null
           weight_grams: number | null
           width_cm: number | null
         }
         Insert: {
+          age_years?: number | null
           allow_easyparcel?: boolean
           allow_rider_delivery?: boolean
           category?: string | null
           community_id: string
+          condition?:
+            | Database["public"]["Enums"]["product_condition_type"]
+            | null
           created_at?: string
           currency?: string
           description?: string | null
@@ -1808,6 +1818,7 @@ export type Database = {
           image_urls?: string[] | null
           length_cm?: number | null
           name: string
+          original_price_cents?: number | null
           perishable?: boolean
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -1823,14 +1834,19 @@ export type Database = {
           updated_at?: string
           vendor_id: string
           video_url?: string | null
+          wear_description?: string | null
           weight_grams?: number | null
           width_cm?: number | null
         }
         Update: {
+          age_years?: number | null
           allow_easyparcel?: boolean
           allow_rider_delivery?: boolean
           category?: string | null
           community_id?: string
+          condition?:
+            | Database["public"]["Enums"]["product_condition_type"]
+            | null
           created_at?: string
           currency?: string
           description?: string | null
@@ -1839,6 +1855,7 @@ export type Database = {
           image_urls?: string[] | null
           length_cm?: number | null
           name?: string
+          original_price_cents?: number | null
           perishable?: boolean
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -1854,6 +1871,7 @@ export type Database = {
           updated_at?: string
           vendor_id?: string
           video_url?: string | null
+          wear_description?: string | null
           weight_grams?: number | null
           width_cm?: number | null
         }
@@ -3203,6 +3221,12 @@ export type Database = {
         | "refunded"
         | "canceled"
       order_status: "pending" | "paid" | "canceled" | "fulfilled" | "refunded"
+      product_condition_type:
+        | "like_new"
+        | "excellent"
+        | "good"
+        | "fair"
+        | "poor"
       product_kind_type:
         | "prepared_food"
         | "packaged_food"
@@ -3387,6 +3411,7 @@ export const Constants = {
         "canceled",
       ],
       order_status: ["pending", "paid", "canceled", "fulfilled", "refunded"],
+      product_condition_type: ["like_new", "excellent", "good", "fair", "poor"],
       product_kind_type: [
         "prepared_food",
         "packaged_food",
