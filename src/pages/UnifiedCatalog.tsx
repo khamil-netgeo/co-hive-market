@@ -23,7 +23,7 @@ import InlineShopFeed from "@/components/feed/InlineShopFeed";
 import ReviewSummary from "@/components/reviews/ReviewSummary";
 import SkeletonGrid from "@/components/common/SkeletonGrid";
 import MiniCartButton from "@/components/cart/MiniCartButton";
-import CatalogQuickView from "@/components/catalog/CatalogQuickView";
+
 
 // Unified item interface
 interface CatalogItem {
@@ -81,8 +81,6 @@ export default function UnifiedCatalog() {
   const [scheduleById, setScheduleById] = useState<Record<string, string>>({});
   const [notesById, setNotesById] = useState<Record<string, string>>({});
   
-  // Detail view state
-  const [selectedItem, setSelectedItem] = useState<CatalogItem | null>(null);
   const { selected } = useCommunity();
 
   useEffect(() => {
@@ -860,13 +858,11 @@ export default function UnifiedCatalog() {
                                 variant="outline" 
                                 size="sm"
                                 className="text-xs"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  setSelectedItem(item);
-                                }}
+                                asChild
                               >
-                                View details →
+                                <Link to={`/${item.type}/${item.id}`}>
+                                  View details →
+                                </Link>
                               </Button>
                             </>
                           ) : (
@@ -874,13 +870,11 @@ export default function UnifiedCatalog() {
                               variant="outline" 
                               size="sm"
                               className="w-full text-xs"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setSelectedItem(item);
-                              }}
+                              asChild
                             >
-                              View & book →
+                              <Link to={`/${item.type}/${item.id}`}>
+                                View & book →
+                              </Link>
                             </Button>
                           )}
                         </div>
@@ -897,17 +891,6 @@ export default function UnifiedCatalog() {
         </div>
       </div>
       </main>
-      <CatalogQuickView
-        open={!!selectedItem}
-        onOpenChange={(o) => { if (!o) setSelectedItem(null); }}
-        item={selectedItem}
-        onAddToCart={(it) => addToCart(it as any)}
-        discountedCents={selectedItem ? memberPrice(selectedItem) : null}
-        discountPercent={selectedItem ? effectiveDiscountPercent(selectedItem) : 0}
-        distanceKm={selectedItem && selectedItem.type === 'product' && loc && selectedItem.pickup_lat != null && selectedItem.pickup_lng != null
-          ? haversineKm(loc.lat, loc.lng, selectedItem.pickup_lat, selectedItem.pickup_lng)
-          : null}
-      />
       <MiniCartButton />
     </>
   );
