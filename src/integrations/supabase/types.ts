@@ -1957,10 +1957,78 @@ export type Database = {
           },
         ]
       }
+      review_responses: {
+        Row: {
+          created_at: string
+          id: string
+          response_text: string
+          review_id: string
+          updated_at: string
+          vendor_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          response_text: string
+          review_id: string
+          updated_at?: string
+          vendor_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          response_text?: string
+          review_id?: string
+          updated_at?: string
+          vendor_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_responses_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_votes: {
+        Row: {
+          created_at: string
+          id: string
+          review_id: string
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          review_id: string
+          user_id: string
+          vote_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          review_id?: string
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           body: string | null
           created_at: string
+          helpful_count: number | null
           id: string
           rating: number
           status: Database["public"]["Enums"]["review_status"]
@@ -1973,6 +2041,7 @@ export type Database = {
         Insert: {
           body?: string | null
           created_at?: string
+          helpful_count?: number | null
           id?: string
           rating: number
           status?: Database["public"]["Enums"]["review_status"]
@@ -1985,6 +2054,7 @@ export type Database = {
         Update: {
           body?: string | null
           created_at?: string
+          helpful_count?: number | null
           id?: string
           rating?: number
           status?: Database["public"]["Enums"]["review_status"]
