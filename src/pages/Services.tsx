@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { setSEO } from "@/lib/seo";
 import { toast } from "sonner";
 import MediaGallery from "@/components/common/MediaGallery";
+import { ServicePortfolio } from "@/components/service/ServicePortfolio";
+import { ServiceRecommendations } from "@/components/service/ServiceRecommendations";
 
 interface Service {
   id: string;
@@ -194,7 +196,12 @@ const [serviceCats, setServiceCats] = useState<Record<string, string[]>>({});
 
   return (
     <main className="container py-12 md:py-16">
-      <h1 className="text-3xl font-semibold">Services</h1>
+      {/* Service Portfolio Section */}
+      <section className="mb-16">
+        <ServicePortfolio limit={6} />
+      </section>
+
+      <h1 className="text-3xl font-semibold">All Services</h1>
       <p className="mt-2 max-w-prose text-muted-foreground">Book community services and pay per visit.</p>
 
       <script
@@ -319,6 +326,11 @@ const [serviceCats, setServiceCats] = useState<Record<string, string[]>>({});
               </Button>
             </div>
           )}
+          
+          {/* Service Recommendations */}
+          <section className="mt-16">
+            <ServiceRecommendations limit={4} />
+          </section>
         </>
       )}
     </main>
