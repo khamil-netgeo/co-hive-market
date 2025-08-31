@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
+import { getVideoInfo } from "@/lib/video";
 import { Image as ImageIcon, Play } from "lucide-react";
 
 type MediaGalleryProps = {
@@ -55,13 +56,39 @@ export default function MediaGallery({ images, videos, alt, aspect = "video", cl
                       decoding="async"
                     />
                   ) : (
-                    <video
-                      src={s.src}
-                      controls
-                      preload="metadata"
-                      className="h-full w-full object-cover"
-                      playsInline
-                    />
+                    (() => {
+                      const videoInfo = getVideoInfo(s.src);
+                      
+                      if (videoInfo.type === 'youtube' || videoInfo.type === 'vimeo') {
+                        return (
+                          <iframe
+                            src={videoInfo.embedUrl}
+                            title={`${alt} video ${idx + 1}`}
+                            className="h-full w-full"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        );
+                      } else if (videoInfo.type === 'direct') {
+                        return (
+                          <video
+                            src={s.src}
+                            controls
+                            preload="metadata"
+                            className="h-full w-full object-cover"
+                            playsInline
+                          />
+                        );
+                      } else {
+                        return (
+                          <div className="h-full w-full bg-muted flex items-center justify-center">
+                            <Play className="h-12 w-12 text-muted-foreground" />
+                            <span className="ml-2 text-sm text-muted-foreground">Invalid video URL</span>
+                          </div>
+                        );
+                      }
+                    })()
                   )}
                 </div>
               </CarouselItem>
@@ -89,9 +116,25 @@ export default function MediaGallery({ images, videos, alt, aspect = "video", cl
               {s.type === "image" ? (
                 <img src={s.src} alt={`${alt} thumbnail ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
               ) : (
-                <div className="h-full w-full bg-black/60 flex items-center justify-center">
-                  <Play className="h-5 w-5 text-primary" />
-                </div>
+                (() => {
+                  const videoInfo = getVideoInfo(s.src);
+                  if (videoInfo.thumbnailUrl) {
+                    return (
+                      <div className="relative h-full w-full">
+                        <img src={videoInfo.thumbnailUrl} alt={`${alt} video thumbnail ${idx + 1}`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                          <Play className="h-5 w-5 text-white" />
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    return (
+                      <div className="h-full w-full bg-black/60 flex items-center justify-center">
+                        <Play className="h-5 w-5 text-primary" />
+                      </div>
+                    );
+                  }
+                })()
               )}
             </button>
           ))}

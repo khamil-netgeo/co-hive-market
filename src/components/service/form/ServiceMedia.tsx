@@ -1,7 +1,8 @@
 import { FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import MediaUploader from "@/components/media/MediaUploader";
-import { Camera, Video } from "lucide-react";
+import { isValidVideoUrl, getVideoInfo } from "@/lib/video";
+import { Camera, Video, CheckCircle, XCircle } from "lucide-react";
 
 interface ServiceMediaProps {
   userId?: string;
@@ -45,14 +46,35 @@ export default function ServiceMedia({
               <Video className="h-4 w-4 text-primary" />
               <FormLabel className="text-base">Promo video URL (optional)</FormLabel>
             </div>
-            <Input 
-              placeholder="https://... (YouTube, Vimeo or direct MP4 link)" 
-              value={videoUrl} 
-              onChange={(e) => onVideoUrlChange(e.target.value)} 
-            />
-            <p className="text-sm text-muted-foreground mt-1">
-              Add a video to increase bookings by up to 40%
-            </p>
+            <div className="space-y-2">
+              <Input 
+                placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..." 
+                value={videoUrl} 
+                onChange={(e) => onVideoUrlChange(e.target.value)} 
+              />
+              {videoUrl && (
+                <div className="flex items-center gap-2 text-sm">
+                  {isValidVideoUrl(videoUrl) ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-green-600">
+                        {getVideoInfo(videoUrl).type === 'youtube' && 'YouTube video detected'}
+                        {getVideoInfo(videoUrl).type === 'vimeo' && 'Vimeo video detected'}
+                        {getVideoInfo(videoUrl).type === 'direct' && 'Direct video file detected'}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-4 w-4 text-red-500" />
+                      <span className="text-red-600">Invalid video URL format</span>
+                    </>
+                  )}
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Add a video to increase bookings by up to 40%. Supports YouTube, Vimeo, or direct video files.
+              </p>
+            </div>
           </div>
         </div>
       </div>
