@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,43 @@ export default function Communities() {
   const [myMemberships, setMyMemberships] = useState<{ id: string; community_id: string; member_type: MemberType; }[]>([]);
   const [loadingMemberships, setLoadingMemberships] = useState(true);
   const { selected, setSelected } = useCommunity();
+
+  // Helper functions for membership status
+  const getUserRoleInCommunity = (communityId: string, memberType: MemberType) => {
+    return myMemberships.find(m => m.community_id === communityId && m.member_type === memberType);
+  };
+
+  const getUserRolesInCommunity = (communityId: string) => {
+    return myMemberships.filter(m => m.community_id === communityId).map(m => m.member_type);
+  };
+
+  const getButtonState = (communityId: string, memberType: MemberType) => {
+    const hasRole = getUserRoleInCommunity(communityId, memberType);
+    const userRoles = getUserRolesInCommunity(communityId);
+    
+    if (hasRole) {
+      return { 
+        text: `${memberType.charAt(0).toUpperCase() + memberType.slice(1)}`,
+        variant: 'default' as const,
+        icon: true,
+        disabled: true
+      };
+    } else if (userRoles.length > 0) {
+      return { 
+        text: `Switch to ${memberType.charAt(0).toUpperCase() + memberType.slice(1)}`,
+        variant: 'outline' as const,
+        icon: false,
+        disabled: false
+      };
+    } else {
+      return { 
+        text: `Join as ${memberType.charAt(0).toUpperCase() + memberType.slice(1)}`,
+        variant: 'outline' as const,
+        icon: false,
+        disabled: false
+      };
+    }
+  };
 
   useEffect(() => {
     setSEO("Communities — CoopMarket", "Discover communities to join and save, or create one if you are an admin.");
@@ -310,9 +347,51 @@ export default function Communities() {
                   </CardHeader>
                   <CardContent>
                     <div className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'buyer')} disabled={!user} className="flex-1 min-w-[100px] sm:flex-none">Join as Buyer</Button>
-                      <Button size="sm" onClick={() => handleJoin(c.id, 'vendor')} disabled={!user} className="flex-1 min-w-[100px] sm:flex-none">Join as Vendor</Button>
-                      <Button size="sm" variant="outline" onClick={() => handleJoin(c.id, 'delivery')} disabled={!user} className="flex-1 min-w-[100px] sm:flex-none">Join as Rider</Button>
+                      {(() => {
+                        const buyerState = getButtonState(c.id, 'buyer');
+                        return (
+                          <Button 
+                            size="sm" 
+                            variant={buyerState.variant}
+                            onClick={() => handleJoin(c.id, 'buyer')} 
+                            disabled={!user || buyerState.disabled} 
+                            className="flex-1 min-w-[100px] sm:flex-none"
+                          >
+                            {buyerState.icon && <Check className="h-3 w-3 mr-1" />}
+                            {buyerState.text}
+                          </Button>
+                        );
+                      })()}
+                      {(() => {
+                        const vendorState = getButtonState(c.id, 'vendor');
+                        return (
+                          <Button 
+                            size="sm" 
+                            variant={vendorState.variant}
+                            onClick={() => handleJoin(c.id, 'vendor')} 
+                            disabled={!user || vendorState.disabled} 
+                            className="flex-1 min-w-[100px] sm:flex-none"
+                          >
+                            {vendorState.icon && <Check className="h-3 w-3 mr-1" />}
+                            {vendorState.text}
+                          </Button>
+                        );
+                      })()}
+                      {(() => {
+                        const riderState = getButtonState(c.id, 'delivery');
+                        return (
+                          <Button 
+                            size="sm" 
+                            variant={riderState.variant}
+                            onClick={() => handleJoin(c.id, 'delivery')} 
+                            disabled={!user || riderState.disabled} 
+                            className="flex-1 min-w-[100px] sm:flex-none"
+                          >
+                            {riderState.icon && <Check className="h-3 w-3 mr-1" />}
+                            {riderState.text}
+                          </Button>
+                        );
+                      })()}
                       <Button size="sm" variant="ghost" asChild className="flex-1 min-w-[120px] sm:flex-none group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                         <Link to={`/communities/${c.id}`} className="flex items-center gap-1">
                           View details <ArrowRight className="h-3 w-3" />
