@@ -181,6 +181,44 @@ export type Database = {
           },
         ]
       }
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          quantity: number
+          unit_price_cents: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          quantity?: number
+          unit_price_cents: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+          unit_price_cents?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cart_snapshots: {
         Row: {
           created_at: string
@@ -1601,6 +1639,47 @@ export type Database = {
           },
         ]
       }
+      order_status_transitions: {
+        Row: {
+          automated: boolean
+          created_at: string
+          from_status: string | null
+          id: string
+          metadata: Json | null
+          order_id: string
+          to_status: string
+          transitioned_by: string | null
+        }
+        Insert: {
+          automated?: boolean
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id: string
+          to_status: string
+          transitioned_by?: string | null
+        }
+        Update: {
+          automated?: boolean
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string
+          to_status?: string
+          transitioned_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_transitions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           buyer_confirmed_at: string | null
@@ -1857,6 +1936,47 @@ export type Database = {
             foreignKeyName: "product_categories_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_inventory: {
+        Row: {
+          created_at: string
+          id: string
+          low_stock_threshold: number
+          product_id: string
+          reserved_quantity: number
+          stock_quantity: number
+          track_inventory: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          low_stock_threshold?: number
+          product_id: string
+          reserved_quantity?: number
+          stock_quantity?: number
+          track_inventory?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          low_stock_threshold?: number
+          product_id?: string
+          reserved_quantity?: number
+          stock_quantity?: number
+          track_inventory?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_inventory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -3446,6 +3566,14 @@ export type Database = {
       }
       is_vendor_owner: {
         Args: { _user_id: string; _vendor_id: string }
+        Returns: boolean
+      }
+      release_inventory: {
+        Args: { p_product_id: string; p_quantity: number }
+        Returns: boolean
+      }
+      reserve_inventory: {
+        Args: { p_product_id: string; p_quantity: number }
         Returns: boolean
       }
     }
