@@ -208,11 +208,12 @@ export default function CommunityRoleStats({ communitiesById }: CommunityRoleSta
                   <div className="flex items-center gap-2">
                     {community.roles.map(role => {
                       const config = roleConfig[role as keyof typeof roleConfig];
+                      if (!config) return null;
                       const Icon = config.icon;
                       return (
-                        <Badge key={role} variant="outline" className="text-xs">
-                          <Icon className="h-3 w-3 mr-1" />
-                          {config.label}
+                        <Badge key={role} variant="outline" className="text-xs flex items-center gap-1">
+                          <Icon className="h-3 w-3" />
+                          <span>{config.label}</span>
                         </Badge>
                       );
                     })}
@@ -241,8 +242,8 @@ export default function CommunityRoleStats({ communitiesById }: CommunityRoleSta
                 return (
                   <div key={role} className={`p-4 rounded-lg border ${config.bgColor}`}>
                     <div className="flex items-center gap-2 mb-3">
-                      <Icon className={`h-4 w-4 ${config.color}`} />
-                      <span className="font-medium text-sm">{config.label}</span>
+                      <Icon className={`h-4 w-4 ${config.color} flex-shrink-0`} />
+                      <span className="font-medium text-sm whitespace-nowrap">{config.label}</span>
                     </div>
                     
                     <div className="space-y-2">
