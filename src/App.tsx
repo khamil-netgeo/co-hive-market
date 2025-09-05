@@ -50,6 +50,7 @@ import StatisticsManagement from "./pages/superadmin/StatisticsManagement";
 import TrustManagement from "./pages/superadmin/TrustManagement";
 import PageContentManagement from "./pages/superadmin/PageContentManagement";
 import ProcessStepsManagement from "./pages/superadmin/ProcessStepsManagement";
+import CategoriesManagement from "./pages/superadmin/CategoriesManagement";
 import GettingStarted from "./pages/GettingStarted";
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import ProductForm from "./pages/vendor/ProductForm";
@@ -322,7 +323,7 @@ const App = () => (
                 path="/superadmin/categories"
                 element={
                   <RequireSuperadmin>
-                    <PlatformManagement />
+                    <CategoriesManagement />
                   </RequireSuperadmin>
                 }
               />
