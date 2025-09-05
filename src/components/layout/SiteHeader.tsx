@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MessageSquare, LifeBuoy } from "lucide-react";
 import RoleContextSwitcher from "@/components/navigation/RoleContextSwitcher";
+import RoleBasedNotifications from "@/components/notifications/RoleBasedNotifications";
 
 const SiteHeader = () => {
   const { user, isAdmin, isSuperadmin, signOut } = useAuthRoles();
@@ -48,6 +49,7 @@ const SiteHeader = () => {
         </nav>
         <div className="flex items-center gap-3">
           {user && <RoleContextSwitcher compact />}
+          <RoleBasedNotifications />
           <Button variant="ghost" size="icon" asChild>
             <Link to="/chat" aria-label="Chat with vendors">
               <MessageSquare className="h-5 w-5" />

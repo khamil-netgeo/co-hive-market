@@ -16,6 +16,7 @@ import KycUploader from "@/components/kyc/KycUploader";
 import KycRequirements from "@/components/kyc/KycRequirements";
 import DeliveryPreferenceSelector from "@/components/delivery/DeliveryPreferenceSelector";
 import RoleManagementCard from "@/components/profile/RoleManagementCard";
+import CommunityRoleStats from "@/components/profile/CommunityRoleStats";
 
 interface Membership { community_id: string; member_type: string }
 interface Community { id: string; name: string }
@@ -163,6 +164,8 @@ export default function Profile() {
           ordersCount={0} // TODO: Fetch actual order count
           deliveriesCount={0} // TODO: Fetch actual delivery count
         />
+
+        <CommunityRoleStats communitiesById={communitiesById} />
       </div>
 
       {/* Avatar & Identity */}
