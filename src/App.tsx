@@ -47,6 +47,7 @@ import AdminKYC from "./pages/admin/KYC";
 import AdminKYCRequirements from "./pages/admin/KYCRequirements";
 import TestimonialsManagement from "./pages/superadmin/TestimonialsManagement";
 import StatisticsManagement from "./pages/superadmin/StatisticsManagement";
+import TrustManagement from "./pages/superadmin/TrustManagement";
 import PageContentManagement from "./pages/superadmin/PageContentManagement";
 import GettingStarted from "./pages/GettingStarted";
 import VendorDashboard from "./pages/vendor/VendorDashboard";
@@ -263,6 +264,14 @@ const App = () => (
                 element={
                   <RequireSuperadmin>
                     <StatisticsManagement />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/trust"
+                element={
+                  <RequireSuperadmin>
+                    <TrustManagement />
                   </RequireSuperadmin>
                 }
               />
