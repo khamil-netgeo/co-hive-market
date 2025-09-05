@@ -41,14 +41,29 @@ const GettingStarted = () => {
     const communityId = searchParams.get('community');
     const role = searchParams.get('role');
     
-    if (communityId && role && user && !loading && !autoProcessing) {
+    if (communityId && role && user && !loading && !autoProcessing && !joiningRole) {
       const validRoles = ['buyer', 'vendor', 'delivery'];
       if (validRoles.includes(role)) {
+        // Check if user already has this role before proceeding
+        const hasRole = getRolesForCommunity(communityId).includes(role);
+        
+        if (hasRole) {
+          // User already has this role, redirect directly
+          if (role === 'vendor') {
+            navigate('/vendor/dashboard');
+          } else if (role === 'delivery') {
+            navigate('/rider');
+          } else {
+            navigate('/');
+          }
+          return;
+        }
+        
         setAutoProcessing(true);
         handleJoinCommunity(communityId, role as 'buyer' | 'vendor' | 'delivery');
       }
     }
-  }, [user, loading, searchParams, autoProcessing]);
+  }, [user, loading, searchParams, autoProcessing, joiningRole, getRolesForCommunity, navigate]);
 
   const fetchCommunities = async () => {
     try {
@@ -130,7 +145,15 @@ const GettingStarted = () => {
     } catch (error: any) {
       logError("Error joining community", 'community', error);
       if (typeof error.message === 'string' && error.message.toLowerCase().includes("duplicate")) {
-        toast.error("You already have this role in this community");
+        // User already has this role, redirect appropriately
+        toast.info(`You already have the ${memberType} role in this community`);
+        if (memberType === 'vendor') {
+          navigate('/vendor/dashboard');
+        } else if (memberType === 'delivery') {
+          navigate('/rider');
+        } else {
+          navigate('/');
+        }
       } else if (error.code === 'PGRST116') {
         toast.error("Permission denied while joining. Please sign in and try again.");
       } else {
