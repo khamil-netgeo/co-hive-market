@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,10 +17,12 @@ import MultiRoleOnboardingFlow from "@/components/onboarding/MultiRoleOnboarding
 const GettingStarted = () => {
   const { user, loading, signOut } = useAuthRoles();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [communities, setCommunities] = useState<any[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(true);
   const [joiningRole, setJoiningRole] = useState<{ communityId: string; role: string } | null>(null);
   const [showMultiRoleFlow, setShowMultiRoleFlow] = useState<{ [key: string]: boolean }>({});
+  const [autoProcessing, setAutoProcessing] = useState(false);
   const { info, error: logError } = useProductionLogging();
   const { getRolesForCommunity, refresh: refreshRoles } = useUserRoles();
 
@@ -33,6 +35,20 @@ const GettingStarted = () => {
     
     fetchCommunities();
   }, []);
+
+  // Auto-process role joining from URL parameters
+  useEffect(() => {
+    const communityId = searchParams.get('community');
+    const role = searchParams.get('role');
+    
+    if (communityId && role && user && !loading && !autoProcessing) {
+      const validRoles = ['buyer', 'vendor', 'delivery'];
+      if (validRoles.includes(role)) {
+        setAutoProcessing(true);
+        handleJoinCommunity(communityId, role as 'buyer' | 'vendor' | 'delivery');
+      }
+    }
+  }, [user, loading, searchParams, autoProcessing]);
 
   const fetchCommunities = async () => {
     try {
@@ -103,7 +119,14 @@ const GettingStarted = () => {
       // Refresh user roles to update the UI
       await refreshRoles();
       
-      navigate(memberType === 'delivery' ? '/rider' : '/');
+      // Redirect based on role type
+      if (memberType === 'vendor') {
+        navigate('/vendor/dashboard');
+      } else if (memberType === 'delivery') {
+        navigate('/rider');
+      } else {
+        navigate('/');
+      }
     } catch (error: any) {
       logError("Error joining community", 'community', error);
       if (typeof error.message === 'string' && error.message.toLowerCase().includes("duplicate")) {
@@ -115,6 +138,7 @@ const GettingStarted = () => {
       }
     } finally {
       setJoiningRole(null);
+      setAutoProcessing(false);
     }
   };
 
@@ -160,6 +184,15 @@ const GettingStarted = () => {
       // Hide multi-role flow
       setShowMultiRoleFlow(prev => ({ ...prev, [communityId]: false }));
       
+      // Redirect based on primary role (vendor > delivery > buyer)
+      if (selectedRoles.includes('vendor')) {
+        navigate('/vendor/dashboard');
+      } else if (selectedRoles.includes('delivery')) {
+        navigate('/rider');
+      } else {
+        navigate('/');
+      }
+      
     } catch (error: any) {
       logError("Error joining community with multiple roles", 'community', error);
       if (typeof error.message === 'string' && error.message.toLowerCase().includes("duplicate")) {
@@ -178,14 +211,25 @@ const GettingStarted = () => {
   return (
     <main className="container mx-auto px-4 py-16">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gradient-brand mb-4">
-              Choose Your Role
+        {autoProcessing ? (
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gradient-brand mb-4">
+              Processing Your Role...
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Join a community marketplace and start participating as a buyer, vendor, or delivery rider.
+              Setting up your vendor profile and redirecting you to the dashboard.
             </p>
           </div>
+        ) : (
+          <>
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold text-gradient-brand mb-4">
+                Choose Your Role
+              </h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Join a community marketplace and start participating as a buyer, vendor, or delivery rider.
+              </p>
+            </div>
 
           
           {user && (
@@ -373,7 +417,9 @@ const GettingStarted = () => {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-        </div>
+          </div>
+          </>
+        )}
       </div>
     </main>
   );
