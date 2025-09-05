@@ -233,6 +233,11 @@ export default function CommunityRoleStats({ communitiesById }: CommunityRoleSta
                 const statsKey = `${role}Stats` as keyof CommunityStats;
                 const roleStats = community[statsKey] as any;
 
+                // Skip if config or roleStats are undefined
+                if (!config || !roleStats) {
+                  return null;
+                }
+
                 return (
                   <div key={role} className={`p-4 rounded-lg border ${config.bgColor}`}>
                     <div className="flex items-center gap-2 mb-3">
@@ -243,7 +248,7 @@ export default function CommunityRoleStats({ communitiesById }: CommunityRoleSta
                     <div className="space-y-2">
                       {config.metrics.map((metric) => {
                         const MetricIcon = metric.icon;
-                        const value = roleStats[metric.key];
+                        const value = roleStats[metric.key] ?? 0;
                         
                         return (
                           <div key={metric.key} className="flex items-center justify-between text-sm">
