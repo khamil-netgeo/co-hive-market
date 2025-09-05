@@ -1760,6 +1760,42 @@ export type Database = {
           },
         ]
       }
+      process_steps: {
+        Row: {
+          created_at: string
+          description: string
+          display_order: number
+          icon_name: string
+          id: string
+          is_active: boolean
+          step_number: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          display_order?: number
+          icon_name: string
+          id?: string
+          is_active?: boolean
+          step_number: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          display_order?: number
+          icon_name?: string
+          id?: string
+          is_active?: boolean
+          step_number?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_categories: {
         Row: {
           category_id: string
