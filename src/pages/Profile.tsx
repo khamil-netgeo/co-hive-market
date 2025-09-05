@@ -129,204 +129,297 @@ export default function Profile() {
   const userIdShort = useMemo(() => user?.id ? `${user.id.slice(0, 8)}…` : "", [user?.id]);
 
   return (
-    <main className="container px-4 py-8">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold">My Profile</h1>
-        <p className="text-sm text-muted-foreground">Account overview and quick actions.</p>
-      </header>
-
-      {/* Account */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Account</CardTitle>
-            <CardDescription>Your basic account info</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-sm">Email: <span className="font-medium">{user?.email}</span></div>
-            <div className="text-sm">User ID: <span className="font-mono">{userIdShort}</span></div>
-            <div className="text-sm flex items-center gap-2">Roles:
-              {(roles && roles.length > 0) ? roles.map((r: string) => (
-                <Badge key={r} variant="secondary">{r}</Badge>
-              )) : <span className="text-muted-foreground">none</span>}
+    <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container max-w-7xl mx-auto px-4 py-6 md:py-8 lg:py-12">
+        {/* Header */}
+        <header className="mb-8 lg:mb-12">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                My Profile
+              </h1>
+              <p className="text-muted-foreground mt-2 text-base md:text-lg">
+                Manage your account, roles, and preferences across communities
+              </p>
             </div>
-            <div className="flex gap-2 pt-2">
-              <Button asChild variant="secondary"><Link to="/catalog">Go to Catalog</Link></Button>
-              <Button asChild variant="outline"><Link to="/orders">My Orders</Link></Button>
-              <Button variant="ghost" onClick={async () => { await signOut(); navigate("/"); }}>Sign out</Button>
-            </div>
-          </CardContent>
-        </Card>
+            <Button asChild variant="default" size="lg" className="w-fit">
+              <Link to="/catalog">Browse Catalog</Link>
+            </Button>
+          </div>
+        </header>
 
-        <RoleManagementCard 
-          communitiesById={communitiesById}
-          vendors={vendors}
-          ordersCount={0} // TODO: Fetch actual order count
-          deliveriesCount={0} // TODO: Fetch actual delivery count
-        />
-
-        <CommunityRoleStats communitiesById={communitiesById} />
-      </div>
-
-      {/* Avatar & Identity */}
-      <section className="mt-6 grid gap-6 md:grid-cols-2">
-        <AvatarUploader />
-        <KycUploader />
-      </section>
-
-      <section className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Role-specific Requirements</CardTitle>
-            <CardDescription>Complete any additional requirements for your roles</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Lazy import would be ideal; kept simple for now */}
-            <div className="space-y-4">
-              {/* Buyer requirements if any */}
-              <div>
-                <KycRequirements role="buyer" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Address & Location */}
-      <section className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Address & Location</CardTitle>
-            <CardDescription>Save your delivery address and precise map location</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="address1">Address line 1</Label>
-                  <Textarea
-                    id="address1"
-                    placeholder="Apartment, street, etc."
-                    value={profile.address_line1 ?? ""}
-                    onChange={(e) => setProfile((p) => ({ ...p, address_line1: e.target.value || null }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address2">Address line 2</Label>
-                  <Input
-                    id="address2"
-                    value={profile.address_line2 ?? ""}
-                    onChange={(e) => setProfile((p) => ({ ...p, address_line2: e.target.value || null }))}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      value={profile.city ?? ""}
-                      onChange={(e) => setProfile((p) => ({ ...p, city: e.target.value || null }))}
-                    />
+        {/* Main Content Grid */}
+        <div className="space-y-8 lg:space-y-12">
+          {/* Top Section - Account Overview & Role Management */}
+          <section className="grid gap-6 lg:grid-cols-3 lg:gap-8">
+            {/* Account Info - spans 1 column */}
+            <Card className="lg:col-span-1 border-2 hover:border-primary/20 transition-colors duration-200">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  Account Overview
+                </CardTitle>
+                <CardDescription>Your account details and quick actions</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-muted-foreground">Email</span>
+                    <span className="font-medium">{user?.email}</span>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">State</Label>
-                    <Input
-                      id="state"
-                      value={profile.state ?? ""}
-                      onChange={(e) => setProfile((p) => ({ ...p, state: e.target.value || null }))}
-                    />
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-muted-foreground">User ID</span>
+                    <span className="font-mono text-sm">{userIdShort}</span>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="postcode">Postcode</Label>
-                    <Input
-                      id="postcode"
-                      value={profile.postcode ?? ""}
-                      onChange={(e) => setProfile((p) => ({ ...p, postcode: e.target.value || null }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
-                    <Input
-                      id="country"
-                      value={profile.country ?? ""}
-                      onChange={(e) => setProfile((p) => ({ ...p, country: e.target.value || null }))}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={profile.phone ?? ""}
-                    onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value || null }))}
-                  />
-                </div>
-                <div className="flex justify-end">
-                  <Button onClick={handleSaveAddress} disabled={saving}>{saving ? 'Saving…' : 'Save address'}</Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <MapPicker
-                  value={{ latitude: profile.latitude, longitude: profile.longitude }}
-                  onChange={({ latitude, longitude }) => setProfile((p) => ({ ...p, latitude, longitude }))}
-                />
-                <p className="text-xs text-muted-foreground">
-                  {profile.latitude && profile.longitude
-                    ? `Selected: ${profile.latitude.toFixed(6)}, ${profile.longitude.toFixed(6)}`
-                    : 'Pick your location by clicking on the map or use the geolocate control.'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Vendor */}
-      <section className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Vendor</CardTitle>
-            <CardDescription>Manage your vendor account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loadingData ? (
-              <p className="text-sm text-muted-foreground">Loading…</p>
-            ) : vendors.length === 0 ? (
-              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                You are not a vendor yet.
-                <Button size="sm" asChild>
-                  <Link to="/getting-started">Become a vendor</Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {vendors.map((v) => (
-                  <div key={v.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3">
-                    <div className="space-y-0.5">
-                      <div className="font-medium">{v.display_name}</div>
-                      <div className="text-xs text-muted-foreground">Community: {communitiesById[v.community_id]?.name || v.community_id} • {v.active ? "Active" : "Inactive"}</div>
-                    </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">Active Roles</span>
                     <div className="flex flex-wrap gap-2">
-                      <Button size="sm" asChild variant="secondary"><Link to="/vendor/dashboard">Dashboard</Link></Button>
-                      <Button size="sm" asChild variant="outline"><Link to="/vendor/products/new">New Product</Link></Button>
-                      <Button size="sm" asChild variant="outline"><Link to="/vendor/orders">Orders</Link></Button>
-                      
+                      {(roles && roles.length > 0) ? roles.map((r: string) => (
+                        <Badge key={r} variant="secondary" className="font-medium">{r}</Badge>
+                      )) : <span className="text-muted-foreground italic">No roles assigned</span>}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </section>
+                </div>
+                
+                <div className="pt-4 border-t space-y-3">
+                  <div className="grid gap-2">
+                    <Button asChild variant="outline" className="w-full">
+                      <Link to="/orders">My Orders</Link>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full hover:bg-destructive/10 hover:text-destructive"
+                      onClick={async () => { await signOut(); navigate("/"); }}
+                    >
+                      Sign out
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* Delivery Preferences */}
-      <section className="mt-6">
-        <DeliveryPreferenceSelector />
-      </section>
+            {/* Role Management - spans 2 columns */}
+            <div className="lg:col-span-2">
+              <RoleManagementCard 
+                communitiesById={communitiesById}
+                vendors={vendors}
+                ordersCount={0}
+                deliveriesCount={0}
+              />
+            </div>
+          </section>
+
+          {/* Community Performance Stats */}
+          <section>
+            <CommunityRoleStats communitiesById={communitiesById} />
+          </section>
+
+          {/* Identity Verification Section */}
+          <section>
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-2">Identity & Verification</h2>
+              <p className="text-muted-foreground">Upload your profile photo and complete identity verification</p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
+              <AvatarUploader />
+              <KycUploader />
+            </div>
+          </section>
+
+          {/* Role Requirements */}
+          <section>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Role-specific Requirements</CardTitle>
+                <CardDescription>Complete additional requirements for your active roles</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <KycRequirements role="buyer" />
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Location & Address */}
+          <section>
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-2">Address & Location</h2>
+              <p className="text-muted-foreground">Set your delivery address and precise location for better service</p>
+            </div>
+            <Card className="border-2">
+              <CardContent className="p-6 lg:p-8">
+                <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+                  {/* Address Form */}
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="address1" className="text-base font-medium">Address Line 1</Label>
+                        <Textarea
+                          id="address1"
+                          placeholder="Street address, apartment, unit, etc."
+                          value={profile.address_line1 ?? ""}
+                          onChange={(e) => setProfile((p) => ({ ...p, address_line1: e.target.value || null }))}
+                          className="min-h-[80px]"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="address2" className="text-base font-medium">Address Line 2 (Optional)</Label>
+                        <Input
+                          id="address2"
+                          placeholder="Building, floor, etc."
+                          value={profile.address_line2 ?? ""}
+                          onChange={(e) => setProfile((p) => ({ ...p, address_line2: e.target.value || null }))}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="city" className="text-base font-medium">City</Label>
+                          <Input
+                            id="city"
+                            placeholder="Enter city"
+                            value={profile.city ?? ""}
+                            onChange={(e) => setProfile((p) => ({ ...p, city: e.target.value || null }))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="state" className="text-base font-medium">State</Label>
+                          <Input
+                            id="state"
+                            placeholder="Enter state"
+                            value={profile.state ?? ""}
+                            onChange={(e) => setProfile((p) => ({ ...p, state: e.target.value || null }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="postcode" className="text-base font-medium">Postcode</Label>
+                          <Input
+                            id="postcode"
+                            placeholder="Enter postcode"
+                            value={profile.postcode ?? ""}
+                            onChange={(e) => setProfile((p) => ({ ...p, postcode: e.target.value || null }))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="country" className="text-base font-medium">Country</Label>
+                          <Input
+                            id="country"
+                            placeholder="Enter country"
+                            value={profile.country ?? ""}
+                            onChange={(e) => setProfile((p) => ({ ...p, country: e.target.value || null }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="text-base font-medium">Phone Number</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="Enter phone number"
+                          value={profile.phone ?? ""}
+                          onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value || null }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="pt-4">
+                      <Button 
+                        onClick={handleSaveAddress} 
+                        disabled={saving}
+                        size="lg"
+                        className="w-full sm:w-auto"
+                      >
+                        {saving ? 'Saving Address...' : 'Save Address'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Map Section */}
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <h3 className="text-base font-medium">Precise Location</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Click on the map or use the locate button to set your exact location
+                      </p>
+                    </div>
+                    <div className="border-2 border-dashed border-muted-foreground/20 rounded-lg overflow-hidden">
+                      <MapPicker
+                        value={{ latitude: profile.latitude, longitude: profile.longitude }}
+                        onChange={({ latitude, longitude }) => setProfile((p) => ({ ...p, latitude, longitude }))}
+                      />
+                    </div>
+                    <div className="text-xs text-muted-foreground p-3 bg-muted rounded-lg">
+                      {profile.latitude && profile.longitude
+                        ? `📍 Selected coordinates: ${profile.latitude.toFixed(6)}, ${profile.longitude.toFixed(6)}`
+                        : '📍 No location selected. Click on the map to set your precise location.'}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Vendor Management */}
+          <section>
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-2">Vendor Management</h2>
+              <p className="text-muted-foreground">Manage your vendor accounts and store settings</p>
+            </div>
+            <Card className="border-2">
+              <CardContent className="p-6">
+                {loadingData ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-muted-foreground">Loading vendor information...</div>
+                  </div>
+                ) : vendors.length === 0 ? (
+                  <div className="text-center py-8 space-y-4">
+                    <div className="text-muted-foreground">
+                      You don't have any vendor accounts yet.
+                    </div>
+                    <Button size="lg" asChild>
+                      <Link to="/getting-started">Become a Vendor</Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {vendors.map((v) => (
+                      <div key={v.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-lg border-2 border-muted/50 hover:border-primary/30 transition-colors">
+                        <div className="space-y-2">
+                          <div className="font-semibold text-lg">{v.display_name}</div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>Community: {communitiesById[v.community_id]?.name || v.community_id}</span>
+                            <Badge variant={v.active ? "default" : "secondary"}>
+                              {v.active ? "Active" : "Inactive"}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                          <Button size="sm" asChild variant="default">
+                            <Link to="/vendor/dashboard">Dashboard</Link>
+                          </Button>
+                          <Button size="sm" asChild variant="outline">
+                            <Link to="/vendor/products/new">Add Product</Link>
+                          </Button>
+                          <Button size="sm" asChild variant="outline">
+                            <Link to="/vendor/orders">View Orders</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Delivery Preferences */}
+          <section>
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-2">Delivery Preferences</h2>
+              <p className="text-muted-foreground">Configure your delivery and pickup preferences</p>
+            </div>
+            <DeliveryPreferenceSelector />
+          </section>
+        </div>
+      </div>
     </main>
   );
 }
