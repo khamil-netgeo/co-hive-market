@@ -15,6 +15,7 @@ import AvatarUploader from "@/components/common/AvatarUploader";
 import KycUploader from "@/components/kyc/KycUploader";
 import KycRequirements from "@/components/kyc/KycRequirements";
 import DeliveryPreferenceSelector from "@/components/delivery/DeliveryPreferenceSelector";
+import RoleManagementCard from "@/components/profile/RoleManagementCard";
 
 interface Membership { community_id: string; member_type: string }
 interface Community { id: string; name: string }
@@ -156,36 +157,12 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Memberships */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Community Memberships</CardTitle>
-            <CardDescription>Your roles within communities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loadingData ? (
-              <p className="text-sm text-muted-foreground">Loading…</p>
-            ) : memberships.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No memberships yet.
-                <Button className="ml-2" size="sm" asChild>
-                  <Link to="/getting-started">Join a community</Link>
-                </Button>
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {memberships.map((m, idx) => (
-                  <li key={idx} className="flex items-center justify-between text-sm">
-                    <div>
-                      <span className="font-medium capitalize">{m.member_type}</span>
-                      <span className="text-muted-foreground"> in </span>
-                      <span>{communitiesById[m.community_id]?.name || m.community_id}</span>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <RoleManagementCard 
+          communitiesById={communitiesById}
+          vendors={vendors}
+          ordersCount={0} // TODO: Fetch actual order count
+          deliveriesCount={0} // TODO: Fetch actual delivery count
+        />
       </div>
 
       {/* Avatar & Identity */}

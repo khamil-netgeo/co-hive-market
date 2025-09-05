@@ -6,6 +6,7 @@ import useIsVendor from "@/hooks/useIsVendor";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MessageSquare, LifeBuoy } from "lucide-react";
+import RoleContextSwitcher from "@/components/navigation/RoleContextSwitcher";
 
 const SiteHeader = () => {
   const { user, isAdmin, isSuperadmin, signOut } = useAuthRoles();
@@ -46,6 +47,7 @@ const SiteHeader = () => {
           )}
         </nav>
         <div className="flex items-center gap-3">
+          {user && <RoleContextSwitcher compact />}
           <Button variant="ghost" size="icon" asChild>
             <Link to="/chat" aria-label="Chat with vendors">
               <MessageSquare className="h-5 w-5" />

@@ -12,6 +12,7 @@ import { logAudit } from "@/lib/audit";
 import { useProductionLogging } from "@/hooks/useProductionLogging";
 import useUserRoles from "@/hooks/useUserRoles";
 import UserRolesDisplay from "@/components/community/UserRolesDisplay";
+import MultiRoleOnboardingFlow from "@/components/onboarding/MultiRoleOnboardingFlow";
 
 const GettingStarted = () => {
   const { user, loading, signOut } = useAuthRoles();
@@ -19,6 +20,7 @@ const GettingStarted = () => {
   const [communities, setCommunities] = useState<any[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(true);
   const [joiningRole, setJoiningRole] = useState<{ communityId: string; role: string } | null>(null);
+  const [showMultiRoleFlow, setShowMultiRoleFlow] = useState<{ [key: string]: boolean }>({});
   const { info, error: logError } = useProductionLogging();
   const { getRolesForCommunity, refresh: refreshRoles } = useUserRoles();
 
@@ -106,6 +108,62 @@ const GettingStarted = () => {
       logError("Error joining community", 'community', error);
       if (typeof error.message === 'string' && error.message.toLowerCase().includes("duplicate")) {
         toast.error("You already have this role in this community");
+      } else if (error.code === 'PGRST116') {
+        toast.error("Permission denied while joining. Please sign in and try again.");
+      } else {
+        toast.error("Failed to join community");
+      }
+    } finally {
+      setJoiningRole(null);
+    }
+  };
+
+  const handleMultiRoleSelect = async (communityId: string, selectedRoles: ('buyer' | 'vendor' | 'delivery')[]) => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    setJoiningRole({ communityId, role: 'multiple' });
+
+    try {
+      // Insert all selected roles
+      const memberInserts = selectedRoles.map(memberType => ({
+        community_id: communityId,
+        user_id: user.id,
+        member_type: memberType as 'buyer' | 'vendor' | 'delivery'
+      }));
+
+      const { error: memberError } = await supabase
+        .from("community_members")
+        .insert(memberInserts);
+      if (memberError) throw memberError;
+
+      // If joining as vendor, create vendor profile
+      if (selectedRoles.includes('vendor')) {
+        const { error: vendorError } = await supabase
+          .from("vendors")
+          .insert({
+            user_id: user.id,
+            community_id: communityId,
+            display_name: user.email?.split('@')[0] || 'Vendor'
+          });
+        if (vendorError) throw vendorError;
+      }
+
+      logAudit('community.multi_join', 'community', communityId, { roles: selectedRoles });
+      toast.success(`Successfully joined as ${selectedRoles.length} roles!`);
+      
+      // Refresh user roles to update the UI
+      await refreshRoles();
+      
+      // Hide multi-role flow
+      setShowMultiRoleFlow(prev => ({ ...prev, [communityId]: false }));
+      
+    } catch (error: any) {
+      logError("Error joining community with multiple roles", 'community', error);
+      if (typeof error.message === 'string' && error.message.toLowerCase().includes("duplicate")) {
+        toast.error("You already have some of these roles in this community");
       } else if (error.code === 'PGRST116') {
         toast.error("Permission denied while joining. Please sign in and try again.");
       } else {
@@ -262,12 +320,45 @@ const GettingStarted = () => {
                       <CardDescription>{community.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <UserRolesDisplay
-                        communityId={community.id}
-                        existingRoles={getRolesForCommunity(community.id)}
-                        onJoinRole={(role) => handleJoinCommunity(community.id, role)}
-                        loading={joiningRole?.communityId === community.id}
-                      />
+                      {showMultiRoleFlow[community.id] ? (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold">Enhanced Setup</h3>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setShowMultiRoleFlow(prev => ({ ...prev, [community.id]: false }))}
+                              disabled={joiningRole?.communityId === community.id}
+                            >
+                              Simple Setup
+                            </Button>
+                          </div>
+                          <MultiRoleOnboardingFlow 
+                            onRoleSelect={(roles) => handleMultiRoleSelect(community.id, roles)}
+                            selectedCommunity={community.id}
+                          />
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold">Quick Join</h3>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setShowMultiRoleFlow(prev => ({ ...prev, [community.id]: true }))}
+                              disabled={joiningRole?.communityId === community.id}
+                            >
+                              Enhanced Setup
+                            </Button>
+                          </div>
+                          <UserRolesDisplay
+                            communityId={community.id}
+                            existingRoles={getRolesForCommunity(community.id)}
+                            onJoinRole={(role) => handleJoinCommunity(community.id, role)}
+                            loading={joiningRole?.communityId === community.id}
+                          />
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
