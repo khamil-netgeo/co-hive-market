@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useProductionLogging } from './useProductionLogging';
 
 export interface RiderAssignmentMetrics {
   id: string;
@@ -32,6 +33,7 @@ export function useRiderTracking() {
   const [assignments, setAssignments] = useState<RiderAssignmentMetrics[]>([]);
   const [performance, setPerformance] = useState<RiderPerformanceStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { warn } = useProductionLogging();
 
   // Enhanced assignment acceptance with tracking
   const acceptAssignmentWithTracking = useCallback(async (assignmentId: string) => {
@@ -51,7 +53,7 @@ export function useRiderTracking() {
             lng: position.coords.longitude
           };
         } catch (geoError) {
-          console.log('Could not get location for assignment tracking:', geoError);
+          warn('Could not get location for assignment tracking:', 'rider', geoError);
         }
       }
 

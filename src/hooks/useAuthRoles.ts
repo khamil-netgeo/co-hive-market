@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useProductionLogging } from './useProductionLogging';
 
 export type AuthRoles = {
   user: User | null;
@@ -17,6 +18,7 @@ export default function useAuthRoles(): AuthRoles {
   const [session, setSession] = useState<Session | null>(null);
   const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const { info } = useProductionLogging();
 
   const fetchRoles = async (uid?: string | null) => {
     const userId = uid ?? session?.user?.id ?? null;
@@ -47,12 +49,12 @@ export default function useAuthRoles(): AuthRoles {
     });
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log("useAuthRoles: Initial session check", { session: session?.user?.id || null });
+      info("useAuthRoles: Initial session check", 'auth', { session: session?.user?.id || null });
       setSession(session);
       setUser(session?.user ?? null);
       await fetchRoles(session?.user?.id);
       setLoading(false);
-      console.log("useAuthRoles: Loading set to false after roles fetched");
+      info("useAuthRoles: Loading set to false after roles fetched");
     });
 
     return () => sub.subscription.unsubscribe();

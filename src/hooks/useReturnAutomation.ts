@@ -1,6 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProductionLogging } from './useProductionLogging';
 
 interface ReturnRule {
   id: string;
@@ -32,6 +33,7 @@ interface ReturnRequest {
 
 export function useReturnAutomation() {
   const [isLoading, setIsLoading] = useState(false);
+  const { info, error } = useProductionLogging();
 
   // Create return rule for vendor
   const createReturnRule = useCallback(async (rule: Omit<ReturnRule, 'id' | 'created_at'>) => {
@@ -76,11 +78,11 @@ export function useReturnAutomation() {
         created_at: data.created_at
       };
       
-      console.log('Return rule created:', newRule);
+      info('Return rule created:', 'returns', newRule);
       toast.success('Return rule created successfully');
       return newRule;
     } catch (error) {
-      console.error('Failed to create return rule:', error);
+      error('Failed to create return rule:', 'returns', error);
       toast.error('Failed to create return rule');
       return null;
     } finally {

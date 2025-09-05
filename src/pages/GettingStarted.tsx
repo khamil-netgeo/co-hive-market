@@ -17,7 +17,7 @@ const GettingStarted = () => {
   const [loadingCommunities, setLoadingCommunities] = useState(true);
 
   useEffect(() => {
-    console.log("GettingStarted: Authentication state", { user, loading, loadingCommunities });
+    info("GettingStarted: Authentication state", 'auth', { user: user?.id, loading, loadingCommunities });
     setSEO(
       "Get Started — CoopMarket",
       "Join a community marketplace and start buying, selling, or delivering products and services."

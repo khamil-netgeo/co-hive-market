@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useProductionLogging } from './useProductionLogging';
 
 interface MobileSession {
   id: string;
@@ -24,6 +25,7 @@ export function useMobileSync() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error' | 'offline'>('synced');
   const [pendingChanges, setPendingChanges] = useState<any[]>([]);
+  const { info } = useProductionLogging();
 
   // Monitor online status
   useEffect(() => {
@@ -65,7 +67,7 @@ export function useMobileSync() {
         is_active: true,
         push_token: pushToken
       };
-      console.log('Mock mobile session registered:', session);
+      info('Mock mobile session registered:', 'mobile', session);
       return session;
     } catch (error) {
       console.error('Failed to register mobile session:', error);
@@ -123,7 +125,7 @@ export function useMobileSync() {
       };
 
       // Mock update last sync time
-      console.log('Mock sync time updated for device:', deviceId);
+      info('Mock sync time updated for device:', 'sync', { deviceId });
 
       setSyncStatus('synced');
       return syncData;
@@ -161,7 +163,7 @@ export function useMobileSync() {
       if (data.favorites) {
         // This would need more complex logic to handle additions/removals
         // For now, just log that favorites sync is needed
-        console.log('Favorites sync needed:', data.favorites);
+        info('Favorites sync needed:', 'sync', { favorites: data.favorites });
       }
 
       // Sync settings

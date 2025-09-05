@@ -1,4 +1,5 @@
 import { lazy } from 'react';
+import { useProductionLogging } from './useProductionLogging';
 
 /**
  * Bundle optimization utilities for code splitting and dynamic imports
@@ -89,11 +90,13 @@ export const useBundleOptimization = () => {
  * Hook for managing service worker and PWA optimization
  */
 export const usePWAOptimization = () => {
+  const { info, error } = useProductionLogging();
+  
   const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('SW registered: ', registration);
+        info('SW registered: ', 'pwa', registration);
         
         // Listen for updates
         registration.addEventListener('updatefound', () => {
@@ -110,7 +113,7 @@ export const usePWAOptimization = () => {
           }
         });
       } catch (error) {
-        console.log('SW registration failed: ', error);
+        error('SW registration failed: ', 'pwa', error);
       }
     }
   };
