@@ -74,17 +74,7 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
       // For now, generate notifications from recent orders
       const { data: orders, error } = await supabase
         .from('orders')
-        .select(`
-          id,
-          status,
-          total_amount_cents,
-          currency,
-          created_at,
-          updated_at,
-          profiles:buyer_user_id (
-            bio
-          )
-        `)
+        .select('id, status, total_amount_cents, currency, created_at, updated_at')
         .eq('vendor_id', vendorId)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -102,7 +92,7 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
         if (orderAge < 24 * 60 * 60 * 1000) { // Less than 24 hours old
           const newOrderNotif = generateOrderNotification({
             ...order,
-            customer_name: (order.profiles as any)?.bio || 'Customer',
+            customer_name: 'Customer',
           }, 'new_order');
           
           if (newOrderNotif) {
@@ -155,17 +145,10 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
             },
           });
 
-          // Get customer name
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('bio')
-            .eq('id', newOrder.buyer_user_id)
-            .maybeSingle();
-
           // Add to notifications
           const notification = generateOrderNotification({
             ...newOrder,
-            customer_name: profile?.bio || 'Customer',
+            customer_name: 'Customer',
           }, 'new_order');
 
           if (notification) {
