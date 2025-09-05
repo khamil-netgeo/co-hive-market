@@ -18,6 +18,7 @@ import Orders from "./pages/Orders";
 import OrderTracker from "./pages/OrderTracker";
 import VendorOrders from "./pages/vendor/VendorOrders";
 import VendorAnalytics from "./pages/vendor/VendorAnalytics";
+import VendorAnalyticsAdvanced from "./pages/vendor/VendorAnalyticsAdvanced";
 import VendorPayouts from "./pages/vendor/VendorPayouts";
 import OrderDetail from "./pages/vendor/OrderDetail";
 import BookingsDashboard from "./pages/vendor/BookingsDashboard";
@@ -154,7 +155,8 @@ const App = () => (
           <Route path="/vendor/bookings" element={<BookingsDashboard />} />
           <Route path="/vendor/intelligence" element={<ServiceIntelligence />} />
           <Route path="/vendor/automation" element={<ServiceAutomation />} />
-              <Route path="/vendor/analytics" element={<VendorAnalytics />} />
+        <Route path="/vendor/analytics" element={<VendorAnalytics />} />
+        <Route path="/vendor/analytics/advanced" element={<VendorAnalyticsAdvanced />} />
               <Route path="/vendor/calendar" element={<VendorCalendar />} />
               <Route path="/vendor/payouts" element={<VendorPayouts />} />
               <Route path="/vendor/settings" element={<VendorSettings />} />
