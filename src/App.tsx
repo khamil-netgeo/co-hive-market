@@ -51,6 +51,7 @@ import TrustManagement from "./pages/superadmin/TrustManagement";
 import PageContentManagement from "./pages/superadmin/PageContentManagement";
 import ProcessStepsManagement from "./pages/superadmin/ProcessStepsManagement";
 import CategoriesManagement from "./pages/superadmin/CategoriesManagement";
+import RolesManagement from "./pages/superadmin/RolesManagement";
 import GettingStarted from "./pages/GettingStarted";
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import ProductForm from "./pages/vendor/ProductForm";
@@ -324,6 +325,14 @@ const App = () => (
                 element={
                   <RequireSuperadmin>
                     <CategoriesManagement />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/roles"
+                element={
+                  <RequireSuperadmin>
+                    <RolesManagement />
                   </RequireSuperadmin>
                 }
               />
