@@ -25,30 +25,77 @@ export function useAdvancedNotifications() {
   const [channels, setChannels] = useState<NotificationChannel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch notification preferences (mock data for now)
+  // Fetch notification preferences
   const fetchChannels = useCallback(async () => {
     try {
       setIsLoading(true);
-      // Mock notification channels until table is created
-      const mockChannels: NotificationChannel[] = [
-        {
-          id: '1',
-          user_id: 'current-user',
-          type: 'email',
-          address: 'vendor@example.com',
-          verified: true,
-          preferences: {
-            email_orders: true,
-            email_payments: true,
-            email_reviews: false,
-            email_returns: true,
-            sms_urgent: false,
-            push_orders: false,
-            push_payments: false
+      
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Fetch from actual database table
+      const { data: channels, error } = await supabase
+        .from('notification_channels')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching channels:', error);
+        // If no channels exist, create default ones
+        const defaultChannels = [
+          {
+            user_id: user.id,
+            channel_type: 'email',
+            is_enabled: true,
+            settings: {
+              email_orders: true,
+              email_payments: true,
+              email_reviews: false,
+              email_returns: true
+            }
+          },
+          {
+            user_id: user.id,
+            channel_type: 'push',
+            is_enabled: true,
+            settings: {
+              push_orders: true,
+              push_payments: true
+            }
           }
+        ];
+
+        const { error: insertError } = await supabase
+          .from('notification_channels')
+          .insert(defaultChannels);
+
+        if (!insertError) {
+          // Refetch after creating defaults
+          const { data: newChannels } = await supabase
+            .from('notification_channels')
+            .select('*')
+            .eq('user_id', user.id);
+
+          setChannels(newChannels?.map(channel => ({
+            id: channel.id,
+            user_id: channel.user_id,
+            type: channel.channel_type as any,
+            address: user.email || '',
+            verified: true,
+            preferences: (channel.settings as unknown) as NotificationPreferences
+          })) || []);
         }
-      ];
-      setChannels(mockChannels);
+      } else {
+        setChannels(channels?.map(channel => ({
+          id: channel.id,
+          user_id: channel.user_id,
+          type: channel.channel_type as any,
+          address: user.email || '',
+          verified: true,
+          preferences: (channel.settings as unknown) as NotificationPreferences
+        })) || []);
+      }
     } catch (error) {
       console.error('Failed to fetch notification channels:', error);
       toast.error('Failed to load notification settings');
@@ -60,7 +107,13 @@ export function useAdvancedNotifications() {
   // Update notification preferences
   const updatePreferences = useCallback(async (channelId: string, preferences: Partial<NotificationPreferences>) => {
     try {
-      // Mock update for now
+      const { error } = await supabase
+        .from('notification_channels')
+        .update({ settings: preferences })
+        .eq('id', channelId);
+
+      if (error) throw error;
+
       setChannels(prev => prev.map(channel => 
         channel.id === channelId 
           ? { ...channel, preferences: { ...channel.preferences, ...preferences } }
@@ -124,23 +177,39 @@ export function useAdvancedNotifications() {
   // Add notification channel
   const addChannel = useCallback(async (type: 'email' | 'sms', address: string) => {
     try {
-      // Mock add for now
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('notification_channels')
+        .insert({
+          user_id: user.id,
+          channel_type: type,
+          is_enabled: true,
+          settings: {
+            email_orders: true,
+            email_payments: true,
+            email_reviews: false,
+            email_returns: true,
+            sms_urgent: type === 'sms',
+            push_orders: false,
+            push_payments: false
+          }
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       const newChannel: NotificationChannel = {
-        id: Date.now().toString(),
-        user_id: 'current-user',
+        id: data.id,
+        user_id: data.user_id,
         type,
         address,
         verified: false,
-        preferences: {
-          email_orders: true,
-          email_payments: true,
-          email_reviews: false,
-          email_returns: true,
-          sms_urgent: type === 'sms',
-          push_orders: false,
-          push_payments: false
-        }
+        preferences: (data.settings as unknown) as NotificationPreferences
       };
+      
       setChannels(prev => [...prev, newChannel]);
       toast.success(`${type === 'email' ? 'Email' : 'SMS'} channel added`);
     } catch (error) {
@@ -152,7 +221,13 @@ export function useAdvancedNotifications() {
   // Remove notification channel
   const removeChannel = useCallback(async (channelId: string) => {
     try {
-      // Mock remove for now
+      const { error } = await supabase
+        .from('notification_channels')
+        .delete()
+        .eq('id', channelId);
+
+      if (error) throw error;
+      
       setChannels(prev => prev.filter(channel => channel.id !== channelId));
       toast.success('Notification channel removed');
     } catch (error) {

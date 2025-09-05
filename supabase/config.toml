@@ -59,3 +59,18 @@ verify_jwt = true
 
 [functions.community-payment-confirm]
 verify_jwt = true
+
+[functions.send-notification]
+verify_jwt = true
+
+[functions.process-return-request]
+verify_jwt = true
+
+[functions.submit-return-request]
+verify_jwt = true
+
+[functions.check-return-eligibility]
+verify_jwt = true
+
+[functions.process-refund]
+verify_jwt = true

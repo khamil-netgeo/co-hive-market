@@ -1342,6 +1342,36 @@ export type Database = {
           },
         ]
       }
+      notification_channels: {
+        Row: {
+          channel_type: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          settings: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_type: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          settings?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_type?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          settings?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_cancel_requests: {
         Row: {
           buyer_user_id: string
@@ -2186,6 +2216,36 @@ export type Database = {
           verification_level?:
             | Database["public"]["Enums"]["reviewer_verification_level"]
             | null
+        }
+        Relationships: []
+      }
+      return_rules: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          parameters: Json
+          rule_type: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          parameters?: Json
+          rule_type: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          parameters?: Json
+          rule_type?: string
+          updated_at?: string
+          vendor_id?: string
         }
         Relationships: []
       }

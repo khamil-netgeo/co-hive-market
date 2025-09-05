@@ -33,17 +33,50 @@ interface ReturnRequest {
 export function useReturnAutomation() {
   const [isLoading, setIsLoading] = useState(false);
 
-  // Create return rule for vendor (mock for now)
+  // Create return rule for vendor
   const createReturnRule = useCallback(async (rule: Omit<ReturnRule, 'id' | 'created_at'>) => {
     try {
       setIsLoading(true);
-      // Mock rule creation
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Get vendor ID for current user
+      const { data: vendor } = await supabase
+        .from('vendors')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!vendor) throw new Error('Vendor not found');
+
+      const { data, error } = await supabase
+        .from('return_rules')
+        .insert({
+          vendor_id: vendor.id,
+          rule_type: 'time_limit',
+          parameters: {
+            days_limit: rule.days_limit,
+            auto_approve_under_amount: rule.auto_approve_under_amount,
+            requires_photos: rule.requires_photos,
+            return_reasons: rule.return_reasons,
+            processing_time_hours: rule.processing_time_hours
+          },
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
       const newRule = {
+        id: data.id,
+        vendor_id: data.vendor_id,
         ...rule,
-        id: Date.now().toString(),
-        created_at: new Date().toISOString()
+        created_at: data.created_at
       };
-      console.log('Mock return rule created:', newRule);
+      
+      console.log('Return rule created:', newRule);
       toast.success('Return rule created successfully');
       return newRule;
     } catch (error) {

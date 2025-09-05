@@ -32,8 +32,13 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
   const [isLoading, setIsLoading] = useState(false);
 
   // Generate notifications from order events
-  const generateOrderNotification = useCallback((order: any, type: string): VendorNotification | null => {
+  const generateOrderNotification = useCallback(async (order: any, type: string): Promise<VendorNotification | null> => {
     const orderRef = `Order #${order.id.slice(0, 8)}`;
+    
+    // Try to get customer name from profiles (simplified)
+    let customerName = 'Customer';
+    // Note: profiles table structure needs to be established
+    // For now, use fallback customer name
     
     switch (type) {
       case 'new_order':
@@ -41,9 +46,9 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
           id: `new_order_${order.id}_${Date.now()}`,
           type: 'new_order',
           title: 'New Order Received!',
-          message: `${orderRef} - ${order.total_amount_cents / 100} ${order.currency.toUpperCase()}`,
+          message: `${orderRef} from ${customerName} - ${order.total_amount_cents / 100} ${order.currency.toUpperCase()}`,
           order_id: order.id,
-          metadata: { customer_name: order.customer_name },
+          metadata: { customer_name: customerName },
           read: false,
           created_at: new Date().toISOString(),
         };
@@ -53,9 +58,9 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
           id: `payment_${order.id}_${Date.now()}`,
           type: 'payment_received',
           title: 'Payment Received',
-          message: `Payment confirmed for ${orderRef}`,
+          message: `Payment confirmed for ${orderRef} from ${customerName}`,
           order_id: order.id,
-          metadata: { amount: order.total_amount_cents },
+          metadata: { amount: order.total_amount_cents, customer_name: customerName },
           read: false,
           created_at: new Date().toISOString(),
         };
@@ -74,7 +79,7 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
       // For now, generate notifications from recent orders
       const { data: orders, error } = await supabase
         .from('orders')
-        .select('id, status, total_amount_cents, currency, created_at, updated_at')
+        .select('id, status, total_amount_cents, currency, buyer_user_id, created_at, updated_at')
         .eq('vendor_id', vendorId)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -86,13 +91,13 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
 
       const generatedNotifications: VendorNotification[] = [];
       
-      (orders || []).forEach(order => {
+      for (const order of orders || []) {
         // New order notification (if recent)
         const orderAge = Date.now() - new Date(order.created_at).getTime();
         if (orderAge < 24 * 60 * 60 * 1000) { // Less than 24 hours old
-          const newOrderNotif = generateOrderNotification({
+          const newOrderNotif = await generateOrderNotification({
             ...order,
-            customer_name: 'Customer',
+            buyer_user_id: order.buyer_user_id
           }, 'new_order');
           
           if (newOrderNotif) {
@@ -102,12 +107,16 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
 
         // Payment notification if paid
         if (order.status === 'paid') {
-          const paymentNotif = generateOrderNotification(order, 'payment_received');
+          const paymentNotif = await generateOrderNotification({
+            ...order,
+            buyer_user_id: order.buyer_user_id
+          }, 'payment_received');
+          
           if (paymentNotif) {
             generatedNotifications.push(paymentNotif);
           }
         }
-      });
+      }
 
       setNotifications(generatedNotifications);
     } catch (error) {
@@ -146,9 +155,9 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
           });
 
           // Add to notifications
-          const notification = generateOrderNotification({
+          const notification = await generateOrderNotification({
             ...newOrder,
-            customer_name: 'Customer',
+            buyer_user_id: newOrder.buyer_user_id
           }, 'new_order');
 
           if (notification) {
@@ -164,7 +173,7 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
           table: 'orders',
           filter: `vendor_id=eq.${vendorId}`,
         },
-        (payload) => {
+        async (payload) => {
           const updatedOrder = payload.new as any;
           const oldOrder = payload.old as any;
 
@@ -174,7 +183,11 @@ export function useVendorNotifications(vendorId?: string): VendorNotificationsHo
               description: `Payment confirmed for Order #${updatedOrder.id.slice(0, 8)}`,
             });
 
-            const notification = generateOrderNotification(updatedOrder, 'payment_received');
+            const notification = await generateOrderNotification({
+              ...updatedOrder,
+              buyer_user_id: updatedOrder.buyer_user_id
+            }, 'payment_received');
+            
             if (notification) {
               setNotifications(prev => [notification, ...prev.slice(0, 49)]);
             }
