@@ -1665,6 +1665,36 @@ export type Database = {
           },
         ]
       }
+      page_content: {
+        Row: {
+          content_key: string
+          content_type: string
+          content_value: string
+          id: string
+          is_active: boolean
+          page_slug: string
+          updated_at: string
+        }
+        Insert: {
+          content_key: string
+          content_type?: string
+          content_value: string
+          id?: string
+          is_active?: boolean
+          page_slug: string
+          updated_at?: string
+        }
+        Update: {
+          content_key?: string
+          content_type?: string
+          content_value?: string
+          id?: string
+          is_active?: boolean
+          page_slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payouts: {
         Row: {
           amount_cents: number
@@ -2563,6 +2593,36 @@ export type Database = {
         }
         Relationships: []
       }
+      site_statistics: {
+        Row: {
+          display_order: number | null
+          id: string
+          is_active: boolean
+          stat_key: string
+          stat_label: string
+          stat_value: string
+          updated_at: string
+        }
+        Insert: {
+          display_order?: number | null
+          id?: string
+          is_active?: boolean
+          stat_key: string
+          stat_label: string
+          stat_value: string
+          updated_at?: string
+        }
+        Update: {
+          display_order?: number | null
+          id?: string
+          is_active?: boolean
+          stat_key?: string
+          stat_label?: string
+          stat_value?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -2690,6 +2750,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      testimonials: {
+        Row: {
+          avatar_url: string | null
+          content: string
+          created_at: string
+          display_order: number | null
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          name: string
+          rating: number
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          content: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          name: string
+          rating?: number
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          content?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          name?: string
+          rating?: number
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_payout_profiles: {
         Row: {
