@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Sparkles, ShoppingBag, Wrench, Search, ArrowRight, Star, Shield, Users, TrendingUp } from "lucide-react";
 import { useHeroStats } from "@/hooks/useStatistics";
 import { usePageContent } from "@/hooks/usePageContent";
+import { useProductionLogging } from "@/hooks/useProductionLogging";
 
 interface HeroProps {
   onGetStarted: () => void;
@@ -15,9 +16,10 @@ interface HeroProps {
 const Hero = ({ onGetStarted }: HeroProps) => {
   const { data: heroStats, isLoading: statsLoading } = useHeroStats();
   const { data: pageContent, isLoading: contentLoading } = usePageContent("hero");
+  const { info } = useProductionLogging();
 
   useEffect(() => {
-    console.log("Landing v2: Hero mounted");
+    info("Landing v2: Hero mounted", 'hero');
   }, []);
 
   // Fallback content in case database is unavailable

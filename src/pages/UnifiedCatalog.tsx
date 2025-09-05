@@ -25,6 +25,8 @@ import SkeletonGrid from "@/components/common/SkeletonGrid";
 import MiniCartButton from "@/components/cart/MiniCartButton";
 
 
+import { useProductionLogging } from "@/hooks/useProductionLogging";
+
 // Unified item interface
 interface CatalogItem {
   id: string;
@@ -64,6 +66,7 @@ export default function UnifiedCatalog() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
+  const { info, error } = useProductionLogging();
   
   // Filters
   const [activeTab, setActiveTab] = useState<"all" | "products" | "services">("all");
@@ -84,7 +87,7 @@ export default function UnifiedCatalog() {
   const { selected } = useCommunity();
 
   useEffect(() => {
-    console.log("UnifiedCatalog: Component mounted");
+    info("UnifiedCatalog: Component mounted", 'catalog');
     setSEO(
       "Catalog | CoopMarket",
       "Browse products and services with member discounts. Shop or book everything in one place."
@@ -103,7 +106,7 @@ export default function UnifiedCatalog() {
     const radiusParam = sp.get('radius');
     const catParam = sp.get('category');
     
-    console.log('URL→State sync:', { path, typeParam, filterParam, activeTab, productKindFilter });
+    info('URL→State sync:', 'catalog', { path, typeParam, filterParam, activeTab, productKindFilter });
     
     if (typeParam === 'services') setActiveTab('services');
     else if (typeParam === 'products') setActiveTab('products');
@@ -137,7 +140,7 @@ export default function UnifiedCatalog() {
     const params = new URLSearchParams(location.search);
     const prev = params.toString();
     
-    console.log('State→URL sync:', { activeTab, productKindFilter, prev });
+    info('State→URL sync:', 'catalog', { activeTab, productKindFilter, prev });
 
     if (activeTab === 'services') params.set('type', 'services');
     else params.delete('type');
@@ -161,14 +164,14 @@ export default function UnifiedCatalog() {
     else params.delete('category');
 
     const next = params.toString();
-    console.log('URL change:', { prev, next, willChange: next !== prev });
+    info('URL change:', 'catalog', { prev, next, willChange: next !== prev });
     if (next !== prev) {
       setSearchParams(params, { replace: true });
     }
   }, [activeTab, productKindFilter, query, sort, useNearMe, radiusKm, categoryFilter]);
 
   const load = async () => {
-    console.log("UnifiedCatalog: Starting data load");
+    info("UnifiedCatalog: Starting data load", 'catalog');
     setLoading(true);
     try {
       // Load products and services in parallel
@@ -252,10 +255,10 @@ export default function UnifiedCatalog() {
       setItemCats(icMap);
 
     } catch (e: any) {
-      console.error("UnifiedCatalog: Load error", e);
+      error("UnifiedCatalog: Load error", 'catalog', e);
       toast("Failed to load catalog", { description: e.message || String(e) });
     } finally {
-      console.log("UnifiedCatalog: Load completed");
+      info("UnifiedCatalog: Load completed", 'catalog');
       setLoading(false);
     }
   };

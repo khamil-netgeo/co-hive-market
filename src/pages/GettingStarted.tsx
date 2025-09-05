@@ -9,12 +9,14 @@ import useAuthRoles from "@/hooks/useAuthRoles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
+import { useProductionLogging } from "@/hooks/useProductionLogging";
 
 const GettingStarted = () => {
   const { user, loading, signOut } = useAuthRoles();
   const navigate = useNavigate();
   const [communities, setCommunities] = useState<any[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(true);
+  const { info } = useProductionLogging();
 
   useEffect(() => {
     info("GettingStarted: Authentication state", 'auth', { user: user?.id, loading, loadingCommunities });

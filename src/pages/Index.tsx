@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { toast } from "sonner";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
+import { useProductionLogging } from "@/hooks/useProductionLogging";
 import Hero from "./index/Hero";
 import Explore from "./index/Explore";
 import FeaturedListings from "./index/FeaturedListings";
@@ -16,13 +17,14 @@ import Categories from "./index/Categories";
 
 const Index = () => {
   const { user } = useAuthRoles();
+  const { info } = useProductionLogging();
   
   useEffect(() => {
     setSEO(
       "CoopMarket — Community Marketplace",
       "Buy, sell, and deliver in a community-powered marketplace for products, services, time and learning."
     );
-    console.log("Landing v2: Index mounted at", window.location.href);
+    info("Landing v2: Index mounted at", 'page', { location: window.location.href });
   }, []);
 
   const handleGetStarted = () => {

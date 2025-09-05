@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { useNavigate, Link } from "react-router-dom";
 import { format } from "date-fns";
+import { useProductionLogging } from "@/hooks/useProductionLogging";
 
 interface ServiceBooking {
   id: string;
@@ -45,6 +46,7 @@ const BookingsDashboard = () => {
   const navigate = useNavigate();
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [loadingVendor, setLoadingVendor] = useState(true);
+  const { info } = useProductionLogging();
 
   useEffect(() => {
     setSEO(
@@ -147,7 +149,7 @@ const BookingsDashboard = () => {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'service_bookings' },
         (payload) => {
-          console.log('New booking:', payload);
+          info('New booking:', 'bookings', payload);
           toast.success('New service booking received!');
           refetchBookings();
         }

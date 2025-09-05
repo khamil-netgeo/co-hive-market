@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, CalendarIcon, Package, DollarSign, Image, Truck, Settings } from "lucide-react";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
+import { useProductionLogging } from "@/hooks/useProductionLogging";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -100,6 +101,7 @@ const ProductForm = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState("");
   const isEditing = Boolean(productId);
+  const { info, error } = useProductionLogging();
   const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
 
@@ -143,7 +145,7 @@ const ProductForm = () => {
     if (!user) return;
 
     try {
-      console.log("Fetching vendor and categories data...");
+      info("Fetching vendor and categories data...", 'vendor');
       
       // Get vendor profile
       const { data: vendorData, error: vendorError } = await supabase
@@ -164,7 +166,7 @@ const ProductForm = () => {
       }
 
       setVendor(vendorData);
-      console.log("Vendor loaded:", vendorData);
+      info("Vendor loaded:", 'vendor', vendorData);
 
       // Load available categories (product/both types only)
       const { data: categoriesData, error: categoriesError } = await supabase
@@ -181,7 +183,7 @@ const ProductForm = () => {
       }
 
       const catList = categoriesData as Category[] || [];
-      console.log("Categories loaded:", catList);
+      info("Categories loaded:", 'vendor', catList);
       setAvailableCategories(catList);
       
       // Set default category if creating new product
@@ -189,7 +191,7 @@ const ProductForm = () => {
         form.setValue("category", catList[0].slug);
         // Also select in multi-category
         setSelectedCategoryIds([catList[0].id]);
-        console.log("Set default category:", catList[0].slug);
+        info("Set default category:", 'vendor', { category: catList[0].slug });
       }
 
       // If editing, fetch product data
