@@ -45,6 +45,9 @@ import Verification from "./pages/superadmin/Verification";
 import Finance from "./pages/admin/Finance";
 import AdminKYC from "./pages/admin/KYC";
 import AdminKYCRequirements from "./pages/admin/KYCRequirements";
+import TestimonialsManagement from "./pages/superadmin/TestimonialsManagement";
+import StatisticsManagement from "./pages/superadmin/StatisticsManagement";
+import PageContentManagement from "./pages/superadmin/PageContentManagement";
 import GettingStarted from "./pages/GettingStarted";
 import VendorDashboard from "./pages/vendor/VendorDashboard";
 import ProductForm from "./pages/vendor/ProductForm";
@@ -244,6 +247,30 @@ const App = () => (
                 element={
                   <RequireSuperadmin>
                     <AuditLogs />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/testimonials"
+                element={
+                  <RequireSuperadmin>
+                    <TestimonialsManagement />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/statistics"
+                element={
+                  <RequireSuperadmin>
+                    <StatisticsManagement />
+                  </RequireSuperadmin>
+                }
+              />
+              <Route
+                path="/superadmin/content"
+                element={
+                  <RequireSuperadmin>
+                    <PageContentManagement />
                   </RequireSuperadmin>
                 }
               />
