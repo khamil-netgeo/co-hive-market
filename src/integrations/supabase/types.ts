@@ -367,6 +367,30 @@ export type Database = {
           },
         ]
       }
+      chat_participants: {
+        Row: {
+          created_at: string
+          id: string
+          thread_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          thread_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          thread_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_read_states: {
         Row: {
           created_at: string
@@ -2621,6 +2645,39 @@ export type Database = {
         }
         Relationships: []
       }
+      security_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       service_addons: {
         Row: {
           created_at: string
@@ -3641,6 +3698,10 @@ export type Database = {
       }
       can_view_event: {
         Args: { _event_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_rider_location: {
+        Args: { _rider_user_id: string }
         Returns: boolean
       }
       create_order_from_cart: {
