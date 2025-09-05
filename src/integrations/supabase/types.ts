@@ -1682,6 +1682,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          automated_transition: boolean | null
           buyer_confirmed_at: string | null
           buyer_user_id: string
           community_id: string
@@ -1703,10 +1704,12 @@ export type Database = {
           status: Database["public"]["Enums"]["order_status"]
           stripe_session_id: string | null
           total_amount_cents: number
+          transition_metadata: Json | null
           updated_at: string
           vendor_id: string
         }
         Insert: {
+          automated_transition?: boolean | null
           buyer_confirmed_at?: string | null
           buyer_user_id: string
           community_id: string
@@ -1730,10 +1733,12 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
           total_amount_cents?: number
+          transition_metadata?: Json | null
           updated_at?: string
           vendor_id: string
         }
         Update: {
+          automated_transition?: boolean | null
           buyer_confirmed_at?: string | null
           buyer_user_id?: string
           community_id?: string
@@ -1757,6 +1762,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
           total_amount_cents?: number
+          transition_metadata?: Json | null
           updated_at?: string
           vendor_id?: string
         }
@@ -3520,6 +3526,10 @@ export type Database = {
         }
         Returns: number
       }
+      auto_transition_order_status: {
+        Args: { p_order_id: string; p_trigger_event: string }
+        Returns: boolean
+      }
       can_submit_review: {
         Args: {
           _target_id: string
@@ -3530,6 +3540,10 @@ export type Database = {
       can_view_event: {
         Args: { _event_id: string; _user_id: string }
         Returns: boolean
+      }
+      create_order_from_cart: {
+        Args: { p_delivery_address?: Json; p_notes?: string; p_user_id: string }
+        Returns: string
       }
       find_nearby_riders: {
         Args: {

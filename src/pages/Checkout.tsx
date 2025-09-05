@@ -1,14 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { useCart } from "@/hooks/useCart";
+import { useCartSync } from "@/hooks/useCartSync";
+import { useOrderWorkflow } from "@/hooks/useOrderWorkflow";
+import { useInventory } from "@/hooks/useInventory";
 import { supabase } from "@/integrations/supabase/client";
 import { setSEO } from "@/lib/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useRiderPreference, determineDeliveryMethod } from "@/hooks/useRiderPreference";
+import { ShoppingCart, Package, CreditCard, MapPin } from "lucide-react";
 
 export default function Checkout() {
   const cart = useCart();
