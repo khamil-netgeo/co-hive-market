@@ -19,6 +19,9 @@ import ProductSpecificationsCard from "@/components/product/ProductSpecification
 import { ReviewSummary, ReviewList, ReviewForm, ReviewRatingDistribution } from "@/components/reviews";
 import { Input } from "@/components/ui/input";
 import { useVendorFollow } from "@/hooks/useVendorFollow";
+import { SectionErrorBoundary } from "@/components/error/SectionErrorBoundary";
+import { AsyncErrorBoundary } from "@/components/error/AsyncErrorBoundary";
+import { useErrorHandler } from "@/hooks/useErrorHandler";
 
 interface Product {
   id: string;

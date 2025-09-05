@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
+import { useProductionLogging } from "./useProductionLogging";
 
 export type CartItem = {
   product_id: string;
@@ -28,12 +29,14 @@ const Ctx = createContext<CartState | undefined>(undefined);
 const LS_KEY = "cart:v1";
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { error: logError } = useProductionLogging();
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
       if (typeof window === 'undefined') return [];
       const raw = window.localStorage.getItem(LS_KEY);
       return raw ? (JSON.parse(raw) as CartItem[]) : [];
-    } catch {
+    } catch (error) {
+      logError('Failed to load cart from localStorage', 'CartProvider', { error: (error as Error).message });
       return [];
     }
   });

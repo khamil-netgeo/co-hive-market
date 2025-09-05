@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import LikeButton from "@/components/feed/LikeButton";
 import ShareButtons from "@/components/common/ShareButtons";
+import { SectionErrorBoundary } from "@/components/error/SectionErrorBoundary";
+import { LoadingErrorState } from "@/components/error/LoadingErrorState";
+import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { useRetryOperation } from "@/hooks/useRetryOperation";
 
 // Lightweight inline shop feed for the products page
 // Randomized TikTok-style vertical shorts inside a fixed-height area
@@ -41,7 +45,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export default function InlineShopFeed() {
+function InlineShopFeedContent() {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [prodPage, setProdPage] = useState(0);
@@ -50,6 +54,8 @@ export default function InlineShopFeed() {
   const [loadingMore, setLoadingMore] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const { handleAsyncError } = useErrorHandler();
+  const { retry } = useRetryOperation();
 
   const setVideoRef = useCallback(
     (key: string) => (el: HTMLVideoElement | null) => {
@@ -62,10 +68,11 @@ export default function InlineShopFeed() {
 
   const loadMore = useCallback(
     async (initial = false) => {
-      if (!hasMore && !initial) return;
-      if (initial) setLoading(true);
-      else setLoadingMore(true);
-      try {
+      await handleAsyncError(async () => {
+        if (!hasMore && !initial) return;
+        if (initial) setLoading(true);
+        else setLoadingMore(true);
+        
         const prodFrom = prodPage * PER_KIND_PAGE;
         const prodTo = prodFrom + PER_KIND_PAGE - 1;
         const svcFrom = svcPage * PER_KIND_PAGE;
@@ -118,12 +125,16 @@ export default function InlineShopFeed() {
 
         const gotFullPage = prods.length === PER_KIND_PAGE || svcs.length === PER_KIND_PAGE;
         if (!gotFullPage) setHasMore(false);
-      } finally {
+      }, { 
+        operation: "loadFeedItems", 
+        component: "InlineShopFeed",
+        metadata: { initial, prodPage, svcPage }
+      }).finally(() => {
         if (initial) setLoading(false);
         else setLoadingMore(false);
-      }
+      });
     },
-    [prodPage, svcPage, hasMore]
+    [prodPage, svcPage, hasMore, handleAsyncError]
   );
 
   useEffect(() => {
@@ -256,5 +267,14 @@ export default function InlineShopFeed() {
         </CardContent>
       </Card>
     </section>
+  );
+}
+
+// Wrapped with error boundary
+export default function InlineShopFeed() {
+  return (
+    <SectionErrorBoundary sectionName="Video Feed">
+      <InlineShopFeedContent />
+    </SectionErrorBoundary>
   );
 }

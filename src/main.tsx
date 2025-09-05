@@ -9,6 +9,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Toaster } from "@/components/ui/sonner"
 import { ErrorBoundary } from "@/components/common/ErrorBoundary"
 
+// Initialize global error handling
+import "@/lib/globalErrorHandler"
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
