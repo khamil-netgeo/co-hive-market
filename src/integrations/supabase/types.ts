@@ -2219,6 +2219,48 @@ export type Database = {
         }
         Relationships: []
       }
+      refund_transactions: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          order_id: string
+          processed_by: string | null
+          provider: string
+          provider_refund_id: string | null
+          return_request_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          order_id: string
+          processed_by?: string | null
+          provider?: string
+          provider_refund_id?: string | null
+          return_request_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          order_id?: string
+          processed_by?: string | null
+          provider?: string
+          provider_refund_id?: string | null
+          return_request_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       return_rules: {
         Row: {
           created_at: string
