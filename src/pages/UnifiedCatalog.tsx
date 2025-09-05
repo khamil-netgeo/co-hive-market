@@ -108,67 +108,112 @@ export default function UnifiedCatalog() {
     
     info('URL→State sync:', 'catalog', { path, typeParam, filterParam, activeTab, productKindFilter });
     
-    if (typeParam === 'services') setActiveTab('services');
-    else if (typeParam === 'products') setActiveTab('products');
-    else if (path.includes('/services')) setActiveTab('services');
-    else if (path.includes('/products') || filterParam) setActiveTab('products');
-    else setActiveTab('all');
-
-    if (filterParam === 'prepared_food' || filterParam === 'grocery') setProductKindFilter(filterParam);
-    else setProductKindFilter('all');
-
-    setQuery(qParam);
-
-    if (sortParam === 'nearest' || sortParam === 'price_asc' || sortParam === 'price_desc' || sortParam === 'newest') {
-      setSort(sortParam);
-    } else {
-      setSort('newest');
+    // Only update activeTab if there's an explicit change
+    let newTab = activeTab;
+    if (typeParam === 'services') newTab = 'services';
+    else if (typeParam === 'products') newTab = 'products';
+    else if (path.includes('/services')) newTab = 'services';
+    else if (path.includes('/products') || filterParam) newTab = 'products';
+    else if (typeParam === null && !path.includes('/services') && !path.includes('/products') && !filterParam) newTab = 'all';
+    
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
     }
 
-    if (nearParam != null) setUseNearMe(nearParam === '1' || nearParam === 'true');
+    // Only update productKindFilter if there's a specific filter param or if this is initial load
+    if (filterParam && (filterParam === 'prepared_food' || filterParam === 'grocery')) {
+      if (productKindFilter !== filterParam) {
+        setProductKindFilter(filterParam);
+      }
+    } else if (filterParam === null && productKindFilter !== 'all') {
+      // Only reset to 'all' if the URL explicitly has no filter param AND current filter is not 'all'
+      setProductKindFilter('all');
+    }
+
+    if (query !== qParam) {
+      setQuery(qParam);
+    }
+
+    const newSort = (sortParam === 'nearest' || sortParam === 'price_asc' || sortParam === 'price_desc' || sortParam === 'newest') ? sortParam : 'newest';
+    if (sort !== newSort) {
+      setSort(newSort);
+    }
+
+    if (nearParam != null) {
+      const newNearMe = nearParam === '1' || nearParam === 'true';
+      if (useNearMe !== newNearMe) {
+        setUseNearMe(newNearMe);
+      }
+    }
+    
     if (radiusParam) {
       const r = parseInt(radiusParam, 10);
-      if (!Number.isNaN(r)) setRadiusKm(Math.min(50, Math.max(1, r)));
+      if (!Number.isNaN(r)) {
+        const newRadius = Math.min(50, Math.max(1, r));
+        if (radiusKm !== newRadius) {
+          setRadiusKm(newRadius);
+        }
+      }
     }
 
-    if (catParam) setCategoryFilter(catParam);
-    else setCategoryFilter('all');
+    const newCategoryFilter = catParam || 'all';
+    if (categoryFilter !== newCategoryFilter) {
+      setCategoryFilter(newCategoryFilter);
+    }
   }, [location.pathname, location.search]);
 
-  // Sync state -> URL
+  // Sync state -> URL with change detection and debouncing
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const prev = params.toString();
+    const currentParams = new URLSearchParams(location.search);
+    const newParams = new URLSearchParams(location.search);
+    const prev = currentParams.toString();
     
     info('State→URL sync:', 'catalog', { activeTab, productKindFilter, prev });
 
-    if (activeTab === 'services') params.set('type', 'services');
-    else params.delete('type');
+    // Update params based on state
+    if (activeTab === 'services') newParams.set('type', 'services');
+    else newParams.delete('type');
 
-    if (productKindFilter !== 'all') params.set('filter', productKindFilter);
-    else params.delete('filter');
+    if (productKindFilter !== 'all') newParams.set('filter', productKindFilter);
+    else newParams.delete('filter');
 
-    if (query.trim()) params.set('q', query.trim());
-    else params.delete('q');
+    if (query.trim()) newParams.set('q', query.trim());
+    else newParams.delete('q');
 
-    if (sort !== 'newest') params.set('sort', sort);
-    else params.delete('sort');
+    if (sort !== 'newest') newParams.set('sort', sort);
+    else newParams.delete('sort');
 
-    if (useNearMe) params.set('near', '1');
-    else params.delete('near');
+    if (useNearMe) newParams.set('near', '1');
+    else newParams.delete('near');
 
-    if (useNearMe && radiusKm !== 10) params.set('radius', String(radiusKm));
-    else params.delete('radius');
+    if (useNearMe && radiusKm !== 10) newParams.set('radius', String(radiusKm));
+    else newParams.delete('radius');
 
-    if (categoryFilter !== 'all') params.set('category', categoryFilter);
-    else params.delete('category');
+    if (categoryFilter !== 'all') newParams.set('category', categoryFilter);
+    else newParams.delete('category');
 
-    const next = params.toString();
-    info('URL change:', 'catalog', { prev, next, willChange: next !== prev });
+    const next = newParams.toString();
+    
+    // Only update URL if there's actually a meaningful change
     if (next !== prev) {
-      setSearchParams(params, { replace: true });
+      info('URL change:', 'catalog', { prev, next, willChange: true, changes: {
+        type: currentParams.get('type') !== newParams.get('type'),
+        filter: currentParams.get('filter') !== newParams.get('filter'),
+        query: currentParams.get('q') !== newParams.get('q'),
+        sort: currentParams.get('sort') !== newParams.get('sort'),
+        near: currentParams.get('near') !== newParams.get('near'),
+        radius: currentParams.get('radius') !== newParams.get('radius'),
+        category: currentParams.get('category') !== newParams.get('category')
+      }});
+      
+      // Use a timeout to prevent rapid-fire updates that could cause loops
+      const timeoutId = setTimeout(() => {
+        setSearchParams(newParams, { replace: true });
+      }, 10);
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [activeTab, productKindFilter, query, sort, useNearMe, radiusKm, categoryFilter]);
+  }, [activeTab, productKindFilter, query, sort, useNearMe, radiusKm, categoryFilter, location.search]);
 
   const load = async () => {
     info("UnifiedCatalog: Starting data load", 'catalog');
