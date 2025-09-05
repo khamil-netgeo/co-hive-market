@@ -6,10 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import OrderCard from "@/components/orders/OrderCard";
+import { ORDER_STATUS_GROUPS, getStatusDisplay, isOrderInGroup } from "@/lib/orderStatus";
+import { useCartSync } from "@/hooks/useCartSync";
 
 interface OrderRow {
   id: string;
@@ -28,6 +29,7 @@ const cents = (n: number, currency: string) =>
 
 const Orders = () => {
   const [userId, setUserId] = useState<string | null>(null);
+  useCartSync(); // Enable cart synchronization
   const [orderThumbs, setOrderThumbs] = useState<Record<string, string>>({});
   const [summaries, setSummaries] = useState<Record<string, { title: string; count: number }>>({});
   const [vendorMap, setVendorMap] = useState<Record<string, string>>({});
@@ -254,47 +256,22 @@ const Orders = () => {
     };
   }, [orders]);
 
-  // Apply tab + search filters
+  // Apply tab + search filters using standardized status groups
   const filteredOrders = orders.filter((o) => {
     const s = (o.status || "").toLowerCase();
     let matchesTab = true;
+    
     if (tab === "to_pay") {
-      matchesTab = [
-        "pending",
-        "to_pay",
-        "awaiting_payment",
-        "payment_pending",
-        "created",
-        "unpaid",
-      ].includes(s);
+      matchesTab = isOrderInGroup(s, "TO_PAY");
     } else if (tab === "to_ship") {
-      matchesTab = [
-        "paid",
-        "processing",
-        "to_ship",
-        "awaiting_shipment",
-        "confirmed",
-        "packaging",
-        "ready_to_ship",
-      ].includes(s);
+      matchesTab = isOrderInGroup(s, "TO_SHIP");
     } else if (tab === "to_receive") {
-      matchesTab = [
-        "shipped",
-        "in_transit",
-        "out_for_delivery",
-        "to_receive",
-      ].includes(s) || (!!etaMap[o.id] && !["fulfilled", "completed", "delivered", "canceled", "cancelled", "refunded", "returned"].includes(s));
+      matchesTab = isOrderInGroup(s, "TO_RECEIVE") || 
+        (!!etaMap[o.id] && !isOrderInGroup(s, "COMPLETED") && !isOrderInGroup(s, "RETURNS"));
     } else if (tab === "completed") {
-      matchesTab = ["fulfilled", "completed", "delivered"].includes(s);
+      matchesTab = isOrderInGroup(s, "COMPLETED");
     } else if (tab === "returns") {
-      matchesTab = [
-        "return_requested",
-        "refund_requested",
-        "refunded",
-        "returned",
-        "canceled",
-        "cancelled",
-      ].includes(s);
+      matchesTab = isOrderInGroup(s, "RETURNS");
     }
     if (!matchesTab) return false;
 

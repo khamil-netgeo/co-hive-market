@@ -12,6 +12,8 @@ import { trackEasyParcel } from "@/lib/shipping";
 import LiveRiderMap from "@/components/order/LiveRiderMap";
 import OrderChatPanel from "@/components/order/OrderChatPanel";
 import MediaGallery from "@/components/common/MediaGallery";
+import { getStatusDisplay, isOrderInGroup } from "@/lib/orderStatus";
+import { usePaymentRetry } from "@/hooks/usePaymentRetry";
 
 interface OrderMeta {
   id: string;
@@ -32,6 +34,7 @@ export default function OrderTracker() {
   const navigate = useNavigate();
   const orderId = params.id || null;
   const { events, loading } = useOrderProgress(orderId);
+  const { retryPayment, isRetrying } = usePaymentRetry();
   const [order, setOrder] = useState<OrderMeta | null>(null);
   const [delivery, setDelivery] = useState<any | null>(null);
   const [orderItems, setOrderItems] = useState<any[]>([]);
@@ -126,32 +129,50 @@ export default function OrderTracker() {
           <Button variant="secondary" asChild>
             <a href="/orders">Back to Orders</a>
           </Button>
-          {order && order.status !== 'fulfilled' && order.status !== 'canceled' && (
-            <Button
-              onClick={async () => {
-                try {
-                  if (!orderId) return;
-                  const { error: updErr } = await supabase
-                    .from('orders')
-                    .update({ status: 'fulfilled', buyer_confirmed_at: new Date().toISOString() } as any)
-                    .eq('id', orderId);
-                  if (updErr) throw updErr;
-                  await supabase.from('order_progress_events').insert({
-                    order_id: orderId,
-                    event: 'buyer_confirmed_received',
-                    description: 'Buyer confirmed receiving the goods',
-                    metadata: {},
+          <div className="flex gap-2">
+            {order && isOrderInGroup(order.status, "TO_PAY") && (
+              <Button
+                variant="outline"
+                disabled={isRetrying}
+                onClick={async () => {
+                  if (!order || !orderId) return;
+                  await retryPayment({
+                    orderId,
+                    amount_cents: order.total_amount_cents,
+                    currency: order.currency,
                   });
-                  toast.success('Thanks for confirming!');
-                  setOrder({ ...(order as any), status: 'fulfilled' });
-                } catch (e: any) {
-                  toast('Confirmation failed', { description: e.message || String(e) });
-                }
-              }}
-            >
-              Confirm Received
-            </Button>
-          )}
+                }}
+              >
+                {isRetrying ? "Processing..." : "Retry Payment"}
+              </Button>
+            )}
+            {order && !isOrderInGroup(order.status, "COMPLETED") && !isOrderInGroup(order.status, "RETURNS") && (
+              <Button
+                onClick={async () => {
+                  try {
+                    if (!orderId) return;
+                    const { error: updErr } = await supabase
+                      .from('orders')
+                      .update({ status: 'fulfilled', buyer_confirmed_at: new Date().toISOString() } as any)
+                      .eq('id', orderId);
+                    if (updErr) throw updErr;
+                    await supabase.from('order_progress_events').insert({
+                      order_id: orderId,
+                      event: 'buyer_confirmed_received',
+                      description: 'Buyer confirmed receiving the goods',
+                      metadata: {},
+                    });
+                    toast.success('Thanks for confirming!');
+                    setOrder({ ...(order as any), status: 'fulfilled' });
+                  } catch (e: any) {
+                    toast('Confirmation failed', { description: e.message || String(e) });
+                  }
+                }}
+              >
+                Confirm Received
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -204,8 +225,8 @@ export default function OrderTracker() {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Status</span>
-                <Badge variant={order?.status === "completed" ? "default" : order?.status === "canceled" ? "destructive" : "secondary"}>
-                  {order?.status || "—"}
+                <Badge variant={isOrderInGroup(order?.status || "", "COMPLETED") ? "default" : isOrderInGroup(order?.status || "", "RETURNS") ? "destructive" : "secondary"}>
+                  {getStatusDisplay(order?.status || "")}
                 </Badge>
               </div>
               <Separator />

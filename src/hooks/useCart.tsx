@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 
 export type CartItem = {
   product_id: string;
@@ -51,7 +52,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const c = prev[0].currency;
         if (v !== item.vendor_id || c !== item.currency) {
           // Enforce single-vendor & single-currency cart to match current order model
-          return prev; // ignore add; UI should notify
+          toast.error("Cannot mix vendors", {
+            description: "Please checkout your current cart before adding items from a different vendor.",
+          });
+          return prev; // ignore add
         }
       }
       const i = prev.findIndex((x) => x.product_id === item.product_id);
