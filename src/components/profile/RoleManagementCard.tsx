@@ -148,50 +148,53 @@ export default function RoleManagementCard({
                       return (
                         <div
                           key={roleKey}
-                          className={`relative p-4 rounded-lg border-2 transition-colors ${
+                          className={`relative p-4 rounded-lg border transition-all duration-200 ${
                             hasRole 
-                              ? 'border-primary/20 bg-primary/5' 
-                              : 'border-dashed border-muted-foreground/30 hover:border-primary/50'
+                              ? 'border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm' 
+                              : 'border-dashed border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/20'
                           }`}
                         >
-                          <div className="flex items-start gap-3 mb-3">
-                            <div className={`p-2 rounded-lg ${config.bgColor}`}>
-                              <Icon className={`h-5 w-5 ${config.color}`} />
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2.5 rounded-lg ${config.bgColor} ring-1 ring-black/5`}>
+                                <Icon className={`h-5 w-5 ${config.color}`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-semibold text-sm">{config.label}</h4>
+                                  {hasRole && (
+                                    <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                  {config.description}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="font-medium">{config.label}</h4>
-                                {hasRole && (
-                                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                                )}
-                              </div>
-                              <p className="text-xs text-muted-foreground mb-2">
-                                {config.description}
-                              </p>
-                              <div className="text-xs font-medium">
-                                {stats}
-                              </div>
+                            
+                            <div className="text-xs font-medium text-center py-2 bg-muted/50 rounded-md">
+                              {stats}
                             </div>
                           </div>
                           
                           {hasRole ? (
-                            <div className="space-y-3">
-                              <div className="space-y-1">
-                                <div className="flex justify-between text-xs">
+                            <div className="space-y-3 mt-3">
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-xs text-muted-foreground">
                                   <span>Setup Progress</span>
-                                  <span>{progress}%</span>
+                                  <span className="font-medium">{progress}%</span>
                                 </div>
                                 <Progress value={progress} className="h-2" />
                               </div>
                               
                               <div className="flex gap-2">
-                                <Button size="sm" variant="secondary" asChild>
+                                <Button size="sm" variant="default" className="flex-1" asChild>
                                   <Link to={config.dashboardLink}>
                                     Dashboard
                                   </Link>
                                 </Button>
                                 {progress < 100 && (
-                                  <Button size="sm" variant="outline">
+                                  <Button size="sm" variant="outline" className="flex-1">
                                     <AlertCircle className="h-3 w-3 mr-1" />
                                     Complete
                                   </Button>
@@ -199,17 +202,19 @@ export default function RoleManagementCard({
                               </div>
                             </div>
                           ) : (
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="w-full"
-                              asChild
-                            >
-                              <Link to={`/getting-started?community=${communityId}&role=${roleKey}`}>
-                                <Plus className="h-3 w-3 mr-1" />
-                                Join as {config.label}
-                              </Link>
-                            </Button>
+                            <div className="mt-3">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="w-full hover:bg-primary hover:text-primary-foreground transition-colors"
+                                asChild
+                              >
+                                <Link to={`/getting-started?community=${communityId}&role=${roleKey}`}>
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Join as {config.label}
+                                </Link>
+                              </Button>
+                            </div>
                           )}
                         </div>
                       );
