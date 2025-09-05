@@ -21,13 +21,13 @@ export default function useIsVendor(): UseIsVendorResult {
         setIsVendor(false);
         return;
       }
-      const { data, error } = await supabase
-        .from("vendors")
-        .select("id", { count: "exact" })
+      const { count, error } = await supabase
+        .from("community_members")
+        .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .limit(1);
+        .eq("member_type", "vendor");
       if (error) throw error;
-      setIsVendor(!!data && data.length > 0);
+      setIsVendor((count ?? 0) > 0);
     } finally {
       setLoading(false);
     }

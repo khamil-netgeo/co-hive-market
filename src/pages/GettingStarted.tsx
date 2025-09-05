@@ -10,13 +10,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { logAudit } from "@/lib/audit";
 import { useProductionLogging } from "@/hooks/useProductionLogging";
+import useUserRoles from "@/hooks/useUserRoles";
+import UserRolesDisplay from "@/components/community/UserRolesDisplay";
 
 const GettingStarted = () => {
   const { user, loading, signOut } = useAuthRoles();
   const navigate = useNavigate();
   const [communities, setCommunities] = useState<any[]>([]);
   const [loadingCommunities, setLoadingCommunities] = useState(true);
-  const { info } = useProductionLogging();
+  const [joiningRole, setJoiningRole] = useState<{ communityId: string; role: string } | null>(null);
+  const { info, error: logError } = useProductionLogging();
+  const { getRolesForCommunity, refresh: refreshRoles } = useUserRoles();
 
   useEffect(() => {
     info("GettingStarted: Authentication state", 'auth', { user: user?.id, loading, loadingCommunities });
@@ -51,58 +55,25 @@ const GettingStarted = () => {
       return;
     }
 
+    setJoiningRole({ communityId, role: memberType });
+
     try {
-      // Check if user already has a membership in this community
-      const { data: existing, error: existingErr } = await supabase
+      // Check if user already has this specific role in this community
+      const { data: existingRole, error: existingErr } = await supabase
         .from("community_members")
         .select("id, member_type")
         .eq("community_id", communityId)
         .eq("user_id", user.id)
-        .limit(1)
+        .eq("member_type", memberType)
         .maybeSingle();
       if (existingErr) throw existingErr;
 
-      if (existing) {
-        // Already a member: update role if different
-        if (existing.member_type === memberType) {
-          toast.info(`Already a member as ${memberType}`);
-          return;
-        }
-        const { error: updateErr } = await supabase
-          .from("community_members")
-          .update({ member_type: memberType })
-          .eq("id", existing.id);
-        if (updateErr) throw updateErr;
-
-        // If switching to vendor, ensure a vendor profile exists
-        if (memberType === 'vendor') {
-          const { data: vendor, error: vSelErr } = await supabase
-            .from("vendors")
-            .select("id")
-            .eq("user_id", user.id)
-            .eq("community_id", communityId)
-            .limit(1)
-            .maybeSingle();
-          if (vSelErr) throw vSelErr;
-          if (!vendor) {
-            const { error: vInsErr } = await supabase
-              .from("vendors")
-              .insert({
-                user_id: user.id,
-                community_id: communityId,
-                display_name: user.email?.split('@')[0] || 'Vendor'
-              });
-            if (vInsErr) throw vInsErr;
-          }
-        }
-
-        logAudit('community.join', 'community', communityId, { memberType });
-        toast.success(`Updated your role to ${memberType}`);
-        navigate(memberType === 'delivery' ? '/rider' : '/');
+      if (existingRole) {
+        toast.info(`You already have the ${memberType} role in this community`);
         return;
       }
 
-      // No membership yet: insert a new one
+      // Insert the new role membership
       const { error: memberError } = await supabase
         .from("community_members")
         .insert({
@@ -125,17 +96,23 @@ const GettingStarted = () => {
       }
 
       logAudit('community.join', 'community', communityId, { memberType });
-      toast.success(`Successfully joined as ${memberType}!`);
+      toast.success(`Successfully added ${memberType} role!`);
+      
+      // Refresh user roles to update the UI
+      await refreshRoles();
+      
       navigate(memberType === 'delivery' ? '/rider' : '/');
     } catch (error: any) {
-      console.error("Error joining community:", error);
+      logError("Error joining community", 'community', error);
       if (typeof error.message === 'string' && error.message.toLowerCase().includes("duplicate")) {
-        toast.error("You're already a member of this community");
-      } else if (error.code === 'PGRST116' /* RLS or upsert conflict type cases */) {
+        toast.error("You already have this role in this community");
+      } else if (error.code === 'PGRST116') {
         toast.error("Permission denied while joining. Please sign in and try again.");
       } else {
         toast.error("Failed to join community");
       }
+    } finally {
+      setJoiningRole(null);
     }
   };
 
@@ -272,7 +249,7 @@ const GettingStarted = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-6">
                 {communities.map((community) => (
                   <Card key={community.id} className="hover:shadow-md transition-shadow">
                     <CardHeader>
@@ -285,37 +262,12 @@ const GettingStarted = () => {
                       <CardDescription>{community.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full sm:flex-1"
-                            onClick={() => handleJoinCommunity(community.id, 'buyer')}
-                            disabled={!user}
-                          >
-                            Join as Buyer
-                          </Button>
-                          <Button 
-                            variant="default" 
-                            size="sm" 
-                            className="w-full sm:flex-1"
-                            onClick={() => handleJoinCommunity(community.id, 'vendor')}
-                            disabled={!user}
-                          >
-                            Join as Vendor
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full sm:flex-1"
-                            onClick={() => handleJoinCommunity(community.id, 'delivery')}
-                            disabled={!user}
-                          >
-                            Join as Rider
-                          </Button>
-                        </div>
-                      </div>
+                      <UserRolesDisplay
+                        communityId={community.id}
+                        existingRoles={getRolesForCommunity(community.id)}
+                        onJoinRole={(role) => handleJoinCommunity(community.id, role)}
+                        loading={joiningRole?.communityId === community.id}
+                      />
                     </CardContent>
                   </Card>
                 ))}
