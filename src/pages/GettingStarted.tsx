@@ -421,13 +421,12 @@ const GettingStarted = () => {
 
             {useWizardMode ? (
               /* Wizard Mode */
-              <OnboardingWizard
-                communities={communities}
-                onJoinCommunity={handleJoinCommunity}
-                onMultiRoleJoin={handleMultiRoleSelect}
-                getUserRoles={getRolesForCommunity}
-                loading={joiningRole !== null}
-              />
+          <OnboardingWizard
+            communities={communities}
+            onComplete={handleMultiRoleSelect}
+            onBack={() => setUseWizardMode(false)}
+            loadingCommunities={joiningRole !== null}
+          />
             ) : (
               /* Classic Mode */
               <>

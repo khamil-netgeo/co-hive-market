@@ -17,6 +17,7 @@ interface UseUserRolesResult {
   refresh: () => Promise<void>;
   hasRoleInCommunity: (communityId: string, memberType: 'buyer' | 'vendor' | 'delivery') => boolean;
   getRolesForCommunity: (communityId: string) => string[];
+  joinCommunity: (communityId: string, memberType: 'buyer' | 'vendor' | 'delivery') => Promise<void>;
 }
 
 export default function useUserRoles(): UseUserRolesResult {
@@ -69,6 +70,33 @@ export default function useUserRoles(): UseUserRolesResult {
       .map(role => role.member_type);
   };
 
+  const joinCommunity = async (communityId: string, memberType: 'buyer' | 'vendor' | 'delivery') => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+      
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+
+      const { error } = await supabase
+        .from('community_members')
+        .insert({
+          user_id: userId,
+          community_id: communityId,
+          member_type: memberType
+        });
+
+      if (error) throw error;
+      
+      info(`Successfully joined community as ${memberType}`, 'auth', { communityId, memberType });
+      await fetchRoles(); // Refresh roles after joining
+    } catch (error: any) {
+      logError(`Failed to join community as ${memberType}`, 'auth', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchRoles();
   }, []);
@@ -78,6 +106,7 @@ export default function useUserRoles(): UseUserRolesResult {
     loading,
     refresh: fetchRoles,
     hasRoleInCommunity,
-    getRolesForCommunity
+    getRolesForCommunity,
+    joinCommunity
   };
 }
