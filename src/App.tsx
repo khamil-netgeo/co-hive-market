@@ -123,6 +123,7 @@ const App = () => (
                     <Route path="/feed" element={<Feed />} />
                     <Route path="/services" element={<Navigate to="/products?type=services" replace />} />
                     <Route path="/products" element={<UnifiedCatalog />} />
+                    <Route path="/product" element={<Navigate to="/products" replace />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/service/:id" element={<ServiceDetail />} />
                     <Route path="/cart" element={<Cart />} />
