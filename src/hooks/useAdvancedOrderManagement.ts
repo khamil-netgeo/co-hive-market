@@ -99,16 +99,14 @@ export function useAdvancedOrderManagement(): AdvancedOrderManagementHook {
         return false;
       }
 
-      const { error } = await supabase
-        .from('order_modifications')
-        .insert({
-          order_id: orderId,
-          modification_type: modificationType,
-          original_data: originalData,
-          new_data: newData,
-          reason: reason,
-          status: 'pending'
-        });
+      // Use raw SQL insert since the table types aren't updated yet
+      const { error } = await supabase.rpc('insert_order_modification', {
+        p_order_id: orderId,
+        p_modification_type: modificationType,
+        p_original_data: originalData,
+        p_new_data: newData,
+        p_reason: reason
+      });
 
       if (error) {
         console.error('Order modification request error:', error);
@@ -129,11 +127,9 @@ export function useAdvancedOrderManagement(): AdvancedOrderManagementHook {
 
   const getOrderModifications = useCallback(async (orderId: string): Promise<OrderModification[]> => {
     try {
-      const { data, error } = await supabase
-        .from('order_modifications')
-        .select('*')
-        .eq('order_id', orderId)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.rpc('get_order_modifications', {
+        p_order_id: orderId
+      });
 
       if (error) {
         console.error('Get order modifications error:', error);

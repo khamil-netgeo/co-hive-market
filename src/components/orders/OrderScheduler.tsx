@@ -79,11 +79,11 @@ export function OrderScheduler({ onScheduleCreated }: OrderSchedulerProps) {
 
     const cartData = {
       items: cart.items.map(item => ({
-        product_id: item.id,
+        product_id: item.product_id,
         quantity: item.quantity,
-        unit_price_cents: item.price * 100
+        unit_price_cents: item.price_cents
       })),
-      total_amount_cents: cart.total * 100
+      total_amount_cents: cart.subtotal_cents
     };
 
     const deliveryPreferences = {
@@ -228,14 +228,14 @@ export function OrderScheduler({ onScheduleCreated }: OrderSchedulerProps) {
               <h4 className="font-medium mb-2">Items to be ordered:</h4>
               <div className="space-y-2">
                 {cart.items.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
+                  <div key={item.product_id} className="flex justify-between text-sm">
                     <span>{item.name} x{item.quantity}</span>
-                    <span>${(item.price * item.quantity).toFixed(2)}</span>
+                    <span>${((item.price_cents * item.quantity) / 100).toFixed(2)}</span>
                   </div>
                 ))}
                 <div className="border-t pt-2 font-medium flex justify-between">
                   <span>Total:</span>
-                  <span>${cart.total.toFixed(2)}</span>
+                  <span>${(cart.subtotal_cents / 100).toFixed(2)}</span>
                 </div>
               </div>
             </div>

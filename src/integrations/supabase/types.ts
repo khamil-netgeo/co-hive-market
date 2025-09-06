@@ -1450,6 +1450,47 @@ export type Database = {
           },
         ]
       }
+      order_cancellations: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          processed_at: string | null
+          reason: string
+          refund_amount_cents: number | null
+          refund_type: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          processed_at?: string | null
+          reason: string
+          refund_amount_cents?: number | null
+          refund_type?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          processed_at?: string | null
+          reason?: string
+          refund_amount_cents?: number | null
+          refund_type?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_cancellations_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_chats: {
         Row: {
           content: string | null
@@ -1530,6 +1571,53 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_modifications: {
+        Row: {
+          applied_at: string | null
+          approved_at: string | null
+          created_at: string
+          id: string
+          modification_type: string
+          new_data: Json
+          order_id: string
+          original_data: Json
+          reason: string
+          status: string
+        }
+        Insert: {
+          applied_at?: string | null
+          approved_at?: string | null
+          created_at?: string
+          id?: string
+          modification_type: string
+          new_data?: Json
+          order_id: string
+          original_data?: Json
+          reason: string
+          status?: string
+        }
+        Update: {
+          applied_at?: string | null
+          approved_at?: string | null
+          created_at?: string
+          id?: string
+          modification_type?: string
+          new_data?: Json
+          order_id?: string
+          original_data?: Json
+          reason?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_modifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -2642,6 +2730,51 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vehicle_type?: string
+        }
+        Relationships: []
+      }
+      scheduled_orders: {
+        Row: {
+          buyer_user_id: string
+          cart_snapshot: Json
+          created_at: string
+          delivery_preferences: Json
+          end_date: string | null
+          id: string
+          next_execution_at: string | null
+          recurring_interval: number | null
+          recurring_type: string | null
+          scheduled_for: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_user_id: string
+          cart_snapshot?: Json
+          created_at?: string
+          delivery_preferences?: Json
+          end_date?: string | null
+          id?: string
+          next_execution_at?: string | null
+          recurring_interval?: number | null
+          recurring_type?: string | null
+          scheduled_for: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_user_id?: string
+          cart_snapshot?: Json
+          created_at?: string
+          delivery_preferences?: Json
+          end_date?: string | null
+          id?: string
+          next_execution_at?: string | null
+          recurring_interval?: number | null
+          recurring_type?: string | null
+          scheduled_for?: string
+          status?: string
+          updated_at?: string
         }
         Relationships: []
       }
