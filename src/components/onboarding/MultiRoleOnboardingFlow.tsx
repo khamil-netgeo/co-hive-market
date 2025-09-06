@@ -94,7 +94,7 @@ export default function MultiRoleOnboardingFlow({
   selectedCommunity 
 }: MultiRoleOnboardingFlowProps) {
   const [selectedRoles, setSelectedRoles] = useState<('buyer' | 'vendor' | 'delivery')[]>(['buyer']);
-  const [step, setStep] = useState<'select' | 'benefits' | 'confirm'>('select');
+  const [step, setStep] = useState<'select' | 'confirm'>('select'); // Simplified to 2 steps
 
   const toggleRole = (roleKey: string) => {
     const typedRoleKey = roleKey as 'buyer' | 'vendor' | 'delivery';
@@ -108,12 +108,6 @@ export default function MultiRoleOnboardingFlow({
 
   const handleContinue = () => {
     if (step === 'select') {
-      if (selectedRoles.length > 1) {
-        setStep('benefits');
-      } else {
-        setStep('confirm');
-      }
-    } else if (step === 'benefits') {
       setStep('confirm');
     } else {
       onRoleSelect(selectedRoles);
@@ -125,61 +119,7 @@ export default function MultiRoleOnboardingFlow({
     return total + time;
   }, 0);
 
-  if (step === 'benefits') {
-    return (
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold">Great Choice! 🎉</h2>
-          <p className="text-muted-foreground">
-            Having multiple roles unlocks additional benefits
-          </p>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          {multiRoleBenefits.map((benefit, index) => (
-            <Card key={index} className="text-center">
-              <CardContent className="pt-6">
-                <div className="mb-4 inline-flex p-3 rounded-full bg-primary/10">
-                  <benefit.icon className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">{benefit.title}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {benefit.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Card className="bg-gradient-subtle border-primary/20">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-primary/10">
-                <TrendingUp className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold mb-1">Multi-Role Bonus</h3>
-                <p className="text-sm text-muted-foreground">
-                  Members with 2+ roles get priority support and exclusive features
-                </p>
-              </div>
-              <Badge variant="secondary">Bonus</Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setStep('select')}>
-            Back to Selection
-          </Button>
-          <Button onClick={handleContinue} className="flex-1">
-            Continue Setup
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // Removed benefits step for simpler flow
 
   if (step === 'confirm') {
     return (
@@ -253,10 +193,13 @@ export default function MultiRoleOnboardingFlow({
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">Choose Your Roles</h2>
+        <h2 className="text-2xl font-bold">Multi-Role Setup</h2>
         <p className="text-muted-foreground">
-          Select how you'd like to participate in the community
+          Select multiple roles to maximize your community experience
         </p>
+        <div className="text-xs text-muted-foreground">
+          💡 Tip: Having multiple roles unlocks additional benefits and features
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

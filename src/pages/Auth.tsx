@@ -32,15 +32,21 @@ export default function Auth() {
 
   useEffect(() => {
     setSEO(
-      mode === "signin" ? "Login | Locca Co-op" : "Create Account | Locca Co-op",
-      "Securely sign in or create your Locca Co-op account to buy, sell, and join your community."
+      mode === "signin" ? "Login | CoopMarket" : "Join CoopMarket",
+      "Securely sign in or create your CoopMarket account to buy, sell, and join your community marketplace."
     );
-
-    // Do not auto-redirect on initial load; allow user to interact with the form
 
     // Keep session reactive (no heavy logic here)
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) { setRedirecting(true); window.location.replace("/"); }
+      if (event === "SIGNED_IN" && session) { 
+        setRedirecting(true); 
+        
+        // Check for stored redirect destination
+        const redirectTo = localStorage.getItem('postAuthRedirect') || '/getting-started';
+        localStorage.removeItem('postAuthRedirect');
+        
+        window.location.replace(redirectTo);
+      }
     });
     return () => {
       sub.subscription.unsubscribe();
@@ -87,7 +93,17 @@ export default function Auth() {
           </div>
         </div>
       )}
-      <h1 className="mb-6 text-2xl font-semibold">{mode === "signin" ? "Sign in" : "Create your account"}</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold mb-2">
+          {mode === "signin" ? "Welcome back" : "Join CoopMarket"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {mode === "signin" 
+            ? "Sign in to access your community marketplace" 
+            : "Create your account and start participating in community marketplaces"
+          }
+        </p>
+      </div>
       <form onSubmit={onSubmit} className="grid gap-4">
         <label className="grid gap-2">
           <span className="text-sm">Email</span>
