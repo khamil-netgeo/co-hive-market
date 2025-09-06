@@ -14,6 +14,7 @@ import useUserRoles from "@/hooks/useUserRoles";
 import UserRolesDisplay from "@/components/community/UserRolesDisplay";
 import MultiRoleOnboardingFlow from "@/components/onboarding/MultiRoleOnboardingFlow";
 import SimpleRoleSelector from "@/components/onboarding/SimpleRoleSelector";
+import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import { useErrorRecovery } from "@/hooks/useErrorRecovery";
 
 const GettingStarted = () => {
@@ -27,6 +28,7 @@ const GettingStarted = () => {
   const [autoProcessing, setAutoProcessing] = useState(false);
   const [autoProcessingTimeout, setAutoProcessingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [useWizardMode, setUseWizardMode] = useState(true); // New wizard mode state
   const { info, error: logError } = useProductionLogging();
   const { getRolesForCommunity, refresh: refreshRoles } = useUserRoles();
   const { retry, reset, isRetrying, retryCount } = useErrorRecovery();
@@ -368,14 +370,46 @@ const GettingStarted = () => {
           </div>
         ) : (
           <>
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-gradient-brand mb-4">
-                Choose Your Role
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Join a community marketplace and start participating as a buyer, vendor, or delivery rider.
-              </p>
+            {/* Toggle between wizard and classic mode */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
+                <Button
+                  variant={useWizardMode ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setUseWizardMode(true)}
+                >
+                  Guided Setup
+                </Button>
+                <Button
+                  variant={!useWizardMode ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setUseWizardMode(false)}
+                >
+                  Quick Join
+                </Button>
+              </div>
             </div>
+
+            {useWizardMode ? (
+              /* Wizard Mode */
+              <OnboardingWizard
+                communities={communities}
+                onJoinCommunity={handleJoinCommunity}
+                onMultiRoleJoin={handleMultiRoleSelect}
+                getUserRoles={getRolesForCommunity}
+                loading={joiningRole !== null}
+              />
+            ) : (
+              /* Classic Mode */
+              <>
+                <div className="text-center mb-12">
+                  <h1 className="text-4xl font-bold text-gradient-brand mb-4">
+                    Choose Your Role
+                  </h1>
+                  <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                    Join a community marketplace and start participating as a buyer, vendor, or delivery rider.
+                  </p>
+                </div>
 
           
           {user && (
@@ -414,174 +448,176 @@ const GettingStarted = () => {
             </div>
           )}
 
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <Card className="relative overflow-hidden">
-              <CardHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <ShoppingBag className="h-6 w-6 text-primary" />
-                  </div>
-                  <Badge variant="secondary">Buyer</Badge>
-                </div>
-                <CardTitle>Shop & Buy</CardTitle>
-                <CardDescription>
-                  Browse products and services from local vendors in your community
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm text-muted-foreground space-y-2 mb-4">
-                  <li>• Access to community marketplace</li>
-                  <li>• Member discounts on purchases</li>
-                  <li>• Support local businesses</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden border-primary/20">
-              <CardHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Users className="h-6 w-6 text-primary" />
-                  </div>
-                  <Badge className="bg-gradient-primary text-primary-foreground">Vendor</Badge>
-                </div>
-                <CardTitle>Sell & Serve</CardTitle>
-                <CardDescription>
-                  List your products and services to community members
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm text-muted-foreground space-y-2 mb-4">
-                  <li>• Create product listings</li>
-                  <li>• Offer service subscriptions</li>
-                  <li>• Connect with local customers</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden">
-              <CardHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Truck className="h-6 w-6 text-primary" />
-                  </div>
-                  <Badge variant="outline">Rider</Badge>
-                </div>
-                <CardTitle>Deliver & Earn</CardTitle>
-                <CardDescription>
-                  Provide delivery services for community orders
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm text-muted-foreground space-y-2 mb-4">
-                  <li>• Flexible delivery opportunities</li>
-                  <li>• Earn from local deliveries</li>
-                  <li>• Help your community</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-center">Available Communities</h2>
-            {loadingCommunities || isRetrying ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <p className="text-muted-foreground">
-                      {isRetrying ? `Loading communities... (Attempt ${retryCount + 1})` : "Loading communities..."}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : lastError && communities.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <div className="flex items-center justify-center gap-2 text-destructive mb-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <p className="font-medium">Failed to load communities</p>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">{lastError}</p>
-                  <Button onClick={handleRetryFetchCommunities} variant="outline" size="sm">
-                    Try Again
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : communities.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-muted-foreground">No communities available yet</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-6">
-                {communities.map((community) => (
-                  <Card key={community.id} className="hover:shadow-md transition-shadow">
+                <div className="grid md:grid-cols-3 gap-6 mb-12">
+                  <Card className="relative overflow-hidden">
                     <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        {community.name}
-                        <Badge variant="outline">
-                          {community.member_discount_percent}% discount
-                        </Badge>
-                      </CardTitle>
-                      <CardDescription>{community.description}</CardDescription>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <ShoppingBag className="h-6 w-6 text-primary" />
+                        </div>
+                        <Badge variant="secondary">Buyer</Badge>
+                      </div>
+                      <CardTitle>Shop & Buy</CardTitle>
+                      <CardDescription>
+                        Browse products and services from local vendors in your community
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {showMultiRoleFlow[community.id] ? (
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold">Enhanced Setup</h3>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => setShowMultiRoleFlow(prev => ({ ...prev, [community.id]: false }))}
-                              disabled={joiningRole?.communityId === community.id}
-                            >
-                              Simple Setup
-                            </Button>
-                          </div>
-                          <MultiRoleOnboardingFlow 
-                            onRoleSelect={(roles) => handleMultiRoleSelect(community.id, roles)}
-                            selectedCommunity={community.id}
-                          />
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold">Quick Join</h3>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => setShowMultiRoleFlow(prev => ({ ...prev, [community.id]: true }))}
-                              disabled={joiningRole?.communityId === community.id}
-                            >
-                              Multi-Role Setup
-                            </Button>
-                          </div>
-                          <SimpleRoleSelector
-                            onRoleSelect={(role) => handleJoinCommunity(community.id, role)}
-                            onMultiRoleSelect={() => setShowMultiRoleFlow(prev => ({ ...prev, [community.id]: true }))}
-                            existingRoles={getRolesForCommunity(community.id)}
-                            loading={joiningRole?.communityId === community.id}
-                          />
-                        </div>
-                      )}
+                      <ul className="text-sm text-muted-foreground space-y-2 mb-4">
+                        <li>• Access to community marketplace</li>
+                        <li>• Member discounts on purchases</li>
+                        <li>• Support local businesses</li>
+                      </ul>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            )}
-          </div>
 
-          <div className="text-center mt-12">
-            <Button variant="outline" asChild>
-              <Link to="/" className="flex items-center gap-2">
-                Back to Home
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
+                  <Card className="relative overflow-hidden border-primary/20">
+                    <CardHeader>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <Users className="h-6 w-6 text-primary" />
+                        </div>
+                        <Badge className="bg-gradient-primary text-primary-foreground">Vendor</Badge>
+                      </div>
+                      <CardTitle>Sell & Serve</CardTitle>
+                      <CardDescription>
+                        List your products and services to community members
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="text-sm text-muted-foreground space-y-2 mb-4">
+                        <li>• Create product listings</li>
+                        <li>• Offer service subscriptions</li>
+                        <li>• Connect with local customers</li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="relative overflow-hidden">
+                    <CardHeader>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <Truck className="h-6 w-6 text-primary" />
+                        </div>
+                        <Badge variant="outline">Rider</Badge>
+                      </div>
+                      <CardTitle>Deliver & Earn</CardTitle>
+                      <CardDescription>
+                        Provide delivery services for community orders
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="text-sm text-muted-foreground space-y-2 mb-4">
+                        <li>• Flexible delivery opportunities</li>
+                        <li>• Earn from local deliveries</li>
+                        <li>• Help your community</li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-semibold text-center">Available Communities</h2>
+                  {loadingCommunities || isRetrying ? (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <p className="text-muted-foreground">
+                            {isRetrying ? `Loading communities... (Attempt ${retryCount + 1})` : "Loading communities..."}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : lastError && communities.length === 0 ? (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <div className="flex items-center justify-center gap-2 text-destructive mb-4">
+                          <AlertCircle className="h-4 w-4" />
+                          <p className="font-medium">Failed to load communities</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-4">{lastError}</p>
+                        <Button onClick={handleRetryFetchCommunities} variant="outline" size="sm">
+                          Try Again
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : communities.length === 0 ? (
+                    <Card>
+                      <CardContent className="text-center py-12">
+                        <p className="text-muted-foreground">No communities available yet</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-6">
+                      {communities.map((community) => (
+                        <Card key={community.id} className="hover:shadow-md transition-shadow">
+                          <CardHeader>
+                            <CardTitle className="flex items-center justify-between">
+                              {community.name}
+                              <Badge variant="outline">
+                                {community.member_discount_percent}% discount
+                              </Badge>
+                            </CardTitle>
+                            <CardDescription>{community.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            {showMultiRoleFlow[community.id] ? (
+                              <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="text-lg font-semibold">Enhanced Setup</h3>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => setShowMultiRoleFlow(prev => ({ ...prev, [community.id]: false }))}
+                                    disabled={joiningRole?.communityId === community.id}
+                                  >
+                                    Simple Setup
+                                  </Button>
+                                </div>
+                                <MultiRoleOnboardingFlow 
+                                  onRoleSelect={(roles) => handleMultiRoleSelect(community.id, roles)}
+                                  selectedCommunity={community.id}
+                                />
+                              </div>
+                            ) : (
+                              <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="text-lg font-semibold">Quick Join</h3>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => setShowMultiRoleFlow(prev => ({ ...prev, [community.id]: true }))}
+                                    disabled={joiningRole?.communityId === community.id}
+                                  >
+                                    Multi-Role Setup
+                                  </Button>
+                                </div>
+                                <SimpleRoleSelector
+                                  onRoleSelect={(role) => handleJoinCommunity(community.id, role)}
+                                  onMultiRoleSelect={() => setShowMultiRoleFlow(prev => ({ ...prev, [community.id]: true }))}
+                                  existingRoles={getRolesForCommunity(community.id)}
+                                  loading={joiningRole?.communityId === community.id}
+                                />
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-center mt-12">
+                  <Button variant="outline" asChild>
+                    <Link to="/" className="flex items-center gap-2">
+                      Back to Home
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
