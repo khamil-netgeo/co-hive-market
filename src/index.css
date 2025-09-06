@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* TikTok-inspired light theme */
+    /* Enhanced TikTok-inspired light theme */
     --background: 0 0% 100%;
     --foreground: 0 0% 9%;
 
@@ -37,7 +37,7 @@ All colors MUST be HSL.
     --input: 0 0% 90%;
     --ring: 0 0% 9%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 0 0% 9%;
@@ -48,7 +48,7 @@ All colors MUST be HSL.
     --sidebar-border: 0 0% 90%;
     --sidebar-ring: 324 100% 58%;
 
-    /* TikTok-inspired brand colors */
+    /* Enhanced brand colors */
     --brand-1: 324 100% 58%; /* TikTok pink */
     --brand-2: 241 80% 62%;  /* TikTok blue */
     --brand-3: 290 100% 70%; /* Purple accent */
@@ -69,17 +69,24 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(var(--brand-1)), hsl(var(--brand-2)));
     --gradient-secondary: linear-gradient(135deg, hsl(var(--brand-2)), hsl(var(--brand-3)));
     --gradient-rainbow: linear-gradient(135deg, hsl(var(--brand-1)), hsl(var(--brand-3)), hsl(var(--brand-2)));
+    --gradient-success: linear-gradient(135deg, hsl(var(--brand-success)), hsl(142 71% 35%));
+    --gradient-warning: linear-gradient(135deg, hsl(var(--brand-warning)), hsl(38 92% 40%));
+    --gradient-elegant: linear-gradient(135deg, hsl(0 0% 96%), hsl(0 0% 100%));
+    
     --shadow-elegant: 0 20px 40px -12px hsl(var(--brand-1) / 0.25);
     --shadow-glow: 0 0 50px hsl(var(--brand-1) / 0.4);
     --shadow-neon: 0 0 20px hsl(var(--brand-1) / 0.8);
+    --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.1);
+    --shadow-brand: 0 10px 30px -10px hsl(var(--brand-1) / 0.3);
 
-    /* Motion & transitions */
+    /* Enhanced motion & transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
   .dark {
-    /* TikTok-inspired dark theme (default) */
+    /* Enhanced TikTok-inspired dark theme */
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
 
@@ -137,6 +144,57 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(var(--brand-1)), hsl(var(--brand-2)));
     --gradient-secondary: linear-gradient(135deg, hsl(var(--brand-2)), hsl(var(--brand-3)));
     --gradient-rainbow: linear-gradient(135deg, hsl(var(--brand-1)), hsl(var(--brand-3)), hsl(var(--brand-2)));
+    --gradient-success: linear-gradient(135deg, hsl(var(--brand-success)), hsl(142 71% 45%));
+    --gradient-warning: linear-gradient(135deg, hsl(var(--brand-warning)), hsl(38 92% 50%));
+    --gradient-elegant: linear-gradient(135deg, hsl(0 0% 8%), hsl(0 0% 14%));
+    
+    --shadow-elegant: 0 20px 40px -12px hsl(var(--brand-1) / 0.35);
+    --shadow-glow: 0 0 50px hsl(var(--brand-1) / 0.5);
+    --shadow-neon: 0 0 20px hsl(var(--brand-1) / 1);
+    --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.3);
+    --shadow-brand: 0 10px 30px -10px hsl(var(--brand-1) / 0.4);
+  }
+}
+
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+
+    --sidebar-background: 0 0% 3.9%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 324 100% 58%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 14.9%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 14.9%;
+    --sidebar-ring: 324 100% 58%;
+
+    /* Enhanced brand colors for dark */
+    --brand-1: 324 100% 68%; /* TikTok pink - brighter */
+    --brand-2: 241 80% 72%;  /* TikTok blue - brighter */
+    --brand-3: 290 100% 80%; /* Purple - brighter */
+    --brand-success: 142 71% 55%;
+    --brand-warning: 38 92% 60%;
+
+    /* Chart/legend palette (dark) */
+    --chart-1: 324 100% 68%;
+    --chart-2: 241 80% 72%;
+    --chart-3: 290 100% 80%;
+    --chart-4: 200 90% 70%;
+    --chart-5: 20 90% 70%;
+    --chart-6: 160 70% 55%;
+    --chart-7: 280 70% 65%;
+    --chart-8: 340 80% 65%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand-1)), hsl(var(--brand-2)));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--brand-2)), hsl(var(--brand-3)));
+    --gradient-rainbow: linear-gradient(135deg, hsl(var(--brand-1)), hsl(var(--brand-3)), hsl(var(--brand-2)));
     --shadow-elegant: 0 20px 40px -12px hsl(var(--brand-1) / 0.35);
     --shadow-glow: 0 0 50px hsl(var(--brand-1) / 0.5);
     --shadow-neon: 0 0 20px hsl(var(--brand-1) / 1);
@@ -149,31 +207,100 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     font-family: "Inter", ui-sans-serif, system-ui, -apple-system,
       "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji",
       "Segoe UI Emoji";
     font-weight: 400;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: "opsz" 32;
+    line-height: 1.6;
+  }
+
+  /* Enhanced typography hierarchy */
+  .h1 {
+    @apply text-4xl md:text-5xl font-bold tracking-tight font-heading;
+    line-height: 1.1;
+  }
+
+  .h2 {
+    @apply text-3xl md:text-4xl font-bold tracking-tight font-heading;
+    line-height: 1.2;
+  }
+
+  .h3 {
+    @apply text-2xl md:text-3xl font-semibold tracking-tight font-heading;
+    line-height: 1.3;
+  }
+
+  .h4 {
+    @apply text-xl md:text-2xl font-semibold tracking-tight font-heading;
+    line-height: 1.4;
+  }
+
+  .h5 {
+    @apply text-lg md:text-xl font-semibold tracking-tight font-heading;
+    line-height: 1.4;
+  }
+
+  .h6 {
+    @apply text-base md:text-lg font-semibold tracking-tight font-heading;
+    line-height: 1.4;
+  }
+
+  /* Text utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Focus styles */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
 }
 
 @layer components {
+  /* Enhanced gradient utilities */
   .bg-gradient-primary { background-image: var(--gradient-primary); }
   .bg-gradient-secondary { background-image: var(--gradient-secondary); }
   .bg-gradient-rainbow { background-image: var(--gradient-rainbow); }
+  .bg-gradient-success { background-image: var(--gradient-success); }
+  .bg-gradient-warning { background-image: var(--gradient-warning); }
+  .bg-gradient-elegant { background-image: var(--gradient-elegant); }
+  
+  /* Enhanced shadow utilities */
   .shadow-elegant { box-shadow: var(--shadow-elegant); }
   .shadow-glow { box-shadow: var(--shadow-glow); }
   .shadow-neon { box-shadow: var(--shadow-neon); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-brand { box-shadow: var(--shadow-brand); }
   
+  /* Enhanced text gradient utilities */
   .text-gradient-brand {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    background-size: 200% 200%;
   }
   
   .text-gradient-rainbow {
     background: var(--gradient-rainbow);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% 200%;
+  }
+
+  .text-gradient-success {
+    background: var(--gradient-success);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-gradient-warning {
+    background: var(--gradient-warning);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -184,30 +311,55 @@ All colors MUST be HSL.
     animation: gradient-shift 3s ease infinite;
   }
   
-  /* TikTok-style interactive elements */
+  /* Enhanced interactive elements */
   .hover-lift {
     transition: var(--transition-spring);
-    @apply hover:shadow-glow hover:-translate-y-2 hover:scale-105;
+    @apply hover:shadow-glow hover:-translate-y-1 hover:scale-105;
   }
   
   .hover-pulse {
     transition: var(--transition-smooth);
     @apply hover:shadow-neon;
-    animation: pulse-glow 2s ease-in-out infinite alternate;
+    animation: pulse-brand 2s ease-in-out infinite alternate;
+  }
+
+  .hover-glow {
+    transition: var(--transition-smooth);
+    @apply hover:shadow-brand hover:scale-102;
   }
   
-  .tiktok-card {
-    @apply relative overflow-hidden rounded-2xl border-0 bg-card/80 backdrop-blur-md transition-all duration-300 hover:bg-card hover:shadow-glow hover:scale-105;
+  /* Enhanced card styles */
+  .card-elegant {
+    @apply relative overflow-hidden rounded-2lg border bg-card/95 backdrop-blur-md shadow-soft transition-all duration-300 hover:shadow-elegant hover:scale-[1.02];
+  }
+
+  .card-brand {
+    @apply relative overflow-hidden rounded-2lg border-0 bg-gradient-elegant shadow-brand transition-all duration-300 hover:shadow-glow hover:scale-[1.02];
   }
   
-  .tiktok-button {
-    @apply relative overflow-hidden rounded-full font-medium transition-all duration-300 hover:shadow-glow hover:scale-105;
+  .card-interactive {
+    @apply relative overflow-hidden rounded-2lg border bg-card/80 backdrop-blur-md transition-all duration-300 hover:bg-card hover:shadow-glow hover:scale-105 cursor-pointer;
   }
   
-  .tiktok-input {
-    @apply rounded-2xl border-0 bg-muted/50 backdrop-blur-sm transition-all duration-300 focus:shadow-glow focus:scale-105;
+  /* Enhanced button styles */
+  .btn-brand {
+    @apply relative overflow-hidden rounded-2xl font-semibold transition-all duration-300 hover:shadow-glow hover:scale-105;
   }
   
+  .btn-elegant {
+    @apply relative overflow-hidden rounded-2xl border-2 bg-transparent backdrop-blur-sm font-medium transition-all duration-300 hover:shadow-brand hover:scale-105;
+  }
+  
+  /* Enhanced input styles */
+  .input-elegant {
+    @apply rounded-2xl border-0 bg-muted/50 backdrop-blur-sm transition-all duration-300 focus:shadow-glow focus:scale-[1.02] focus-ring;
+  }
+
+  .input-brand {
+    @apply rounded-2xl border-2 border-transparent bg-gradient-elegant transition-all duration-300 focus:border-brand-1 focus:shadow-brand focus:scale-[1.02] focus-ring;
+  }
+  
+  /* Enhanced animation utilities */
   .grid-fade-in > * {
     animation: fade-in-up 0.6s ease-out;
     animation-fill-mode: both;
@@ -219,16 +371,55 @@ All colors MUST be HSL.
   .grid-fade-in > *:nth-child(4) { animation-delay: 0.4s; }
   .grid-fade-in > *:nth-child(5) { animation-delay: 0.5s; }
   .grid-fade-in > *:nth-child(6) { animation-delay: 0.6s; }
+
+  .stagger-fade-in > * {
+    animation: fade-in-up 0.8s ease-out;
+    animation-fill-mode: both;
+  }
+
+  .stagger-fade-in > *:nth-child(odd) { animation-delay: 0.1s; }
+  .stagger-fade-in > *:nth-child(even) { animation-delay: 0.2s; }
   
-  /* Video overlay effects */
-  .video-overlay {
+  /* Enhanced overlay effects */
+  .overlay-gradient {
     background: linear-gradient(
       to top,
-      hsl(var(--background) / 0.9) 0%,
-      hsl(var(--background) / 0.6) 20%,
-      hsl(var(--background) / 0.1) 60%,
+      hsl(var(--background) / 0.95) 0%,
+      hsl(var(--background) / 0.7) 20%,
+      hsl(var(--background) / 0.3) 60%,
       transparent 100%
     );
+  }
+
+  .overlay-brand {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--brand-1) / 0.1) 0%,
+      hsl(var(--brand-2) / 0.05) 50%,
+      hsl(var(--brand-3) / 0.1) 100%
+    );
+  }
+
+  /* Status indication */
+  .status-indicator {
+    @apply relative;
+  }
+
+  .status-indicator::before {
+    content: '';
+    @apply absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-background;
+  }
+
+  .status-indicator.status-online::before {
+    @apply bg-brand-success;
+  }
+
+  .status-indicator.status-busy::before {
+    @apply bg-brand-warning;
+  }
+
+  .status-indicator.status-offline::before {
+    @apply bg-muted-foreground;
   }
 }
 
@@ -238,13 +429,13 @@ All colors MUST be HSL.
   100% { background-position: 0% 50%; }
 }
 
-@keyframes pulse-glow {
+@keyframes pulse-brand {
   0% { 
     box-shadow: 0 0 20px hsl(var(--brand-1) / 0.4);
     transform: scale(1);
   }
   100% { 
-    box-shadow: 0 0 30px hsl(var(--brand-1) / 0.8);
+    box-shadow: 0 0 40px hsl(var(--brand-1) / 0.8), 0 0 60px hsl(var(--brand-2) / 0.4);
     transform: scale(1.02);
   }
 }
@@ -257,5 +448,32 @@ All colors MUST be HSL.
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
