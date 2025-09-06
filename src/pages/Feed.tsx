@@ -11,6 +11,7 @@ import { useCommunity } from "@/context/CommunityContext";
 import LikeButton from "@/components/feed/LikeButton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFollowedVendors } from "@/hooks/useFollowedVendors";
+import { getProductUrl } from "@/lib/slugs";
 
 // TikTok-style vertical shopping feed (products + services)
 // Mobile-first, full-screen, swipeable interface
@@ -29,6 +30,7 @@ type FeedProduct = {
   product_kind?: string;
   perishable?: boolean;
   prep_time_minutes?: number;
+  slug?: string;
 };
 
 type FeedService = {
@@ -118,7 +120,7 @@ const { selected } = useCommunity();
 
           const productsQBase = supabase
             .from('products')
-            .select('id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes')
+            .select('id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes,slug')
             .not('video_url', 'is', null)
             .eq('status', 'active')
             .eq('community_id', selected.id)
@@ -189,7 +191,7 @@ const { selected } = useCommunity();
         const kindFilter = searchParams.get('filter');
         const productsQBase = supabase
           .from('products')
-          .select('id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes')
+          .select('id,name,description,price_cents,currency,vendor_id,community_id,video_url,created_at,status,product_kind,perishable,prep_time_minutes,slug')
           .not('video_url', 'is', null)
           .eq('status', 'active')
           .order('created_at', { ascending: false })
@@ -380,7 +382,7 @@ const { selected } = useCommunity();
   };
 
   const onPrimary = (it: FeedItem) => {
-    if (it.kind === "product") navigate(`/product/${it.id}`);
+    if (it.kind === "product") navigate(getProductUrl(it));
     else navigate(`/service/${it.id}`);
   };
 

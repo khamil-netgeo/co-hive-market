@@ -11,6 +11,7 @@ import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { Star, Flame, Clock, ShoppingCart, PlayCircle, Store, ArrowRight } from "lucide-react";
 import { useVendorFollow } from "@/hooks/useVendorFollow";
+import { getProductUrl } from "@/lib/slugs";
 
 interface VendorProfile {
   id: string;
@@ -37,6 +38,7 @@ interface ProductItem extends BaseItem {
   type: "product";
   stock_qty?: number | null;
   community_id?: string | null;
+  slug?: string;
 }
 
 interface ServiceItem extends BaseItem {
@@ -228,7 +230,7 @@ export default function StoreFront() {
                   size="icon" 
                   variant="secondary" 
                   className="h-8 w-8 bg-black/50 backdrop-blur-sm hover:bg-black/70 border-0" 
-                  onClick={() => navigate(it.type === "product" ? `/product/${it.id}` : `/service/${it.id}`)} 
+                  onClick={() => navigate(it.type === "product" ? getProductUrl(it) : `/service/${it.id}`)} 
                   aria-label="Watch video"
                 >
                   <PlayCircle className="h-4 w-4 text-white" />
@@ -403,7 +405,7 @@ export default function StoreFront() {
           ) : (
             sorted.map((it) => (
               <div key={`${it.type}-${it.id}`} className="rounded-lg border bg-card overflow-hidden hover-scale">
-                <Link to={it.type === "product" ? `/product/${it.id}` : `/service/${it.id}`} aria-label={it.name}>
+                <Link to={it.type === "product" ? getProductUrl(it) : `/service/${it.id}`} aria-label={it.name}>
                   <ProductImage imageUrls={it.image_urls || []} productName={it.name} className="w-full aspect-square object-cover" />
                 </Link>
                 <div className="p-3 space-y-2">

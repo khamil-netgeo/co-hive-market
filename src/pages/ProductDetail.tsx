@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { isValidUUID } from "@/lib/slugs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { setSEOAdvanced } from "@/lib/seo";
@@ -43,6 +44,7 @@ interface Product {
   allow_easyparcel?: boolean;
   allow_rider_delivery?: boolean;
   prep_time_minutes?: number;
+  slug?: string;
 }
 
 interface Vendor { id: string; member_discount_override_percent: number | null }
@@ -77,11 +79,15 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
     try {
       setLoading(true);
       
+      // Determine if the identifier is a UUID (legacy ID) or a slug
+      const isUUID = isValidUUID(id || '');
+      const queryField = isUUID ? 'id' : 'slug';
+      
       // Load product
       const { data: productData, error: productError } = await supabase
         .from("products")
         .select("*")
-        .eq("id", id)
+        .eq(queryField, id)
         .eq("status", "active")
         .single();
 
@@ -89,6 +95,12 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
       if (!productData) {
         toast.error("Product not found");
         navigate('/catalog');
+        return;
+      }
+
+      // If accessed via legacy ID, redirect to slug URL
+      if (isUUID && productData.slug) {
+        navigate(`/product/${productData.slug}`, { replace: true });
         return;
       }
 
@@ -375,7 +387,7 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
                     )}
                   </div>
                   <div className="flex-shrink-0 self-start">
-                    <ShareButtons title={product.name} url={(typeof window !== 'undefined' ? window.location.origin : '') + `/product/${product.id}` } />
+                    <ShareButtons title={product.name} url={(typeof window !== 'undefined' ? window.location.origin : '') + `/product/${product.slug || product.id}` } />
                   </div>
                 </div>
 

@@ -9,6 +9,7 @@ import { SectionErrorBoundary } from "@/components/error/SectionErrorBoundary";
 import { LoadingErrorState } from "@/components/error/LoadingErrorState";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { useRetryOperation } from "@/hooks/useRetryOperation";
+import { getProductUrl } from "@/lib/slugs";
 
 // Lightweight inline shop feed for the products page
 // Randomized TikTok-style vertical shorts inside a fixed-height area
@@ -22,6 +23,7 @@ type FeedProduct = {
   vendor_id: string;
   community_id?: string | null;
   video_url: string;
+  slug?: string;
 };
 
 type FeedService = {
@@ -81,7 +83,7 @@ function InlineShopFeedContent() {
         const [productsRes, servicesRes] = await Promise.all([
           supabase
             .from("products")
-            .select("id,name,price_cents,currency,vendor_id,community_id,video_url,status")
+            .select("id,name,price_cents,currency,vendor_id,community_id,video_url,status,slug")
             .eq("status", "active")
             .not("video_url", "is", null)
             .range(prodFrom, prodTo),
@@ -102,6 +104,7 @@ function InlineShopFeedContent() {
           vendor_id: p.vendor_id,
           community_id: p.community_id,
           video_url: p.video_url,
+          slug: p.slug,
         }));
         const svcs: FeedService[] = ((servicesRes.data as any[]) || []).map((s) => ({
           kind: "service",
@@ -240,7 +243,7 @@ function InlineShopFeedContent() {
                       <div className="flex items-center gap-2 shrink-0">
                         {it.kind === "product" ? (
                           <Button asChild size="sm" variant="secondary" aria-label="View product">
-                            <Link to={`/product/${it.id}`}>View</Link>
+                            <Link to={getProductUrl(it)}>View</Link>
                           </Button>
                         ) : (
                           <Button asChild size="sm" variant="secondary" aria-label="View service">
@@ -251,7 +254,7 @@ function InlineShopFeedContent() {
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <LikeButton targetType={it.kind === "product" ? "product" : "service"} targetId={it.id} />
-                      <ShareButtons title={it.name} url={(typeof window !== 'undefined' ? window.location.origin : '') + `/${it.kind === 'product' ? 'product' : 'service'}/${it.id}` } />
+                      <ShareButtons title={it.name} url={(typeof window !== 'undefined' ? window.location.origin : '') + `/${it.kind === 'product' ? 'product' : 'service'}/${it.kind === 'product' ? (it.slug || it.id) : it.id}` } />
                     </div>
                   </div>
                 </article>

@@ -6,6 +6,7 @@ import { Star, Heart, ShoppingBag, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import MediaGallery from "@/components/common/MediaGallery";
+import { getProductUrl } from "@/lib/slugs";
 
 interface ProductRow {
   id: string;
@@ -19,6 +20,7 @@ interface ProductRow {
   pickup_lat?: number | null;
   pickup_lng?: number | null;
   prep_time_minutes?: number | null;
+  slug?: string;
 }
 
 interface ServiceRow {
@@ -42,7 +44,7 @@ const FeaturedListings = () => {
         const [{ data: prodData }, { data: svcData }] = await Promise.all([
           supabase
             .from("products")
-            .select("id,name,description,price_cents,currency,status,image_urls,allow_rider_delivery,pickup_lat,pickup_lng,prep_time_minutes")
+            .select("id,name,description,price_cents,currency,status,image_urls,allow_rider_delivery,pickup_lat,pickup_lng,prep_time_minutes,slug")
             .eq("status", "active")
             .order("created_at", { ascending: false })
             .limit(8),
@@ -125,7 +127,7 @@ const FeaturedListings = () => {
           {(loading ? Array.from({ length: 4 }) : products).map((p: any, index: number) => (
             <Card key={p?.id ?? index} className="group overflow-hidden border-0 shadow-md hover:shadow-elegant transition-all animate-fade-in-up relative cursor-pointer" style={{ animationDelay: `${index * 0.1}s` }}>
               {/* Make entire card clickable */}
-              {!loading && p?.id && <Link to={`/product/${p.id}`} className="absolute inset-0" aria-label={`View ${p.name}`} />}
+              {!loading && p?.id && <Link to={getProductUrl(p)} className="absolute inset-0" aria-label={`View ${p.name}`} />}
               <div className="relative overflow-hidden">
                 <MediaGallery
                   images={p?.image_urls || []}
@@ -155,7 +157,7 @@ const FeaturedListings = () => {
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-primary">{loading ? "" : fmt(p.price_cents, p.currency)}</span>
                   <Button size="sm" className="h-7 px-3 text-xs" asChild>
-                    <Link to={loading ? '#' : `/product/${p.id}`} aria-disabled={loading} onClick={(e) => loading && e.preventDefault()}>
+                    <Link to={loading ? '#' : getProductUrl(p)} aria-disabled={loading} onClick={(e) => loading && e.preventDefault()}>
                       <ShoppingBag className="h-3 w-3 mr-1" />
                       View
                     </Link>
