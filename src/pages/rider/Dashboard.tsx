@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import StandardDashboardLayout from "@/components/layout/StandardDashboardLayout";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import RiderStatusCard from "@/components/rider/RiderStatusCard";
 import useIsRider from "@/hooks/useIsRider";
 import { useDeliveryAssignments } from "@/hooks/useDeliveryAssignments";
 import { Link } from "react-router-dom";
 import useRiderLiveTracking from "@/hooks/useRiderLiveTracking";
+import { Truck, Package, DollarSign, Clock } from "lucide-react";
 
 const RiderDashboard = () => {
   const { isRider, loading: riderLoading } = useIsRider();
@@ -80,107 +82,109 @@ const RiderDashboard = () => {
     }
   };
 
-  return (
-    <main className="min-h-screen bg-background">
-      <section className="container py-8 md:py-10">
-        <header className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight">Rider Dashboard</h1>
-          <p className="mt-2 text-muted-foreground">
-            Welcome back! Here's your activity overview.
-          </p>
-        </header>
+  const riderStats = [
+    {
+      title: "Total Deliveries",
+      value: stats.totalDeliveries.toString(),
+      description: "Completed deliveries",
+      icon: <Package className="h-4 w-4" />
+    },
+    {
+      title: "Pending Assignments",
+      value: stats.pendingAssignments.toString(),
+      description: "Awaiting pickup",
+      icon: <Clock className="h-4 w-4" />
+    },
+    {
+      title: "Available Balance",
+      value: formatCurrency(stats.availableBalance),
+      description: "Ready for payout",
+      icon: <DollarSign className="h-4 w-4" />
+    },
+    {
+      title: "Status",
+      value: isRider ? "Active" : "Inactive",
+      description: "Rider status",
+      icon: <Truck className="h-4 w-4" />
+    }
+  ];
 
-        {signedIn === false && (
-          <div className="flex flex-col items-start gap-3 rounded-md border p-4">
-            <p className="text-sm text-muted-foreground">
+  const actions = (
+    <div className="flex gap-2">
+      <Button asChild>
+        <Link to="/rider/assignments">View Assignments</Link>
+      </Button>
+      <Button variant="outline" asChild>
+        <Link to="/rider/profile">Update Profile</Link>
+      </Button>
+    </div>
+  );
+
+  if (signedIn === false) {
+    return (
+      <StandardDashboardLayout title="Rider Dashboard" subtitle="Please sign in to access your rider dashboard">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-muted-foreground mb-4">
               Please sign in to access the Rider Dashboard.
             </p>
             <Button asChild>
               <Link to="/auth">Sign in</Link>
             </Button>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+      </StandardDashboardLayout>
+    );
+  }
 
-        {signedIn && !riderLoading && !isRider && (
-          <div className="mb-6 rounded-md border p-4">
-            <p className="text-sm text-muted-foreground">
+  if (signedIn && !riderLoading && !isRider) {
+    return (
+      <StandardDashboardLayout title="Rider Dashboard" subtitle="Join as a rider to start delivering">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-muted-foreground mb-4">
               You haven't joined as a rider yet. Join a community as a rider to start delivering.
             </p>
-            <div className="mt-3">
-              <Button variant="secondary" asChild>
-                <Link to="/getting-started">Become a Rider</Link>
-              </Button>
-            </div>
+            <Button asChild>
+              <Link to="/getting-started">Become a Rider</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </StandardDashboardLayout>
+    );
+  }
+
+  return (
+    <StandardDashboardLayout
+      title="Rider Dashboard"
+      subtitle="Monitor your deliveries and manage your rider activities"
+      stats={riderStats}
+      actions={actions}
+    >
+      {/* Status Overview */}
+      <RiderStatusCard />
+
+      {/* Quick Actions */}
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Button asChild>
+              <Link to="/rider/assignments">View Assignments</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/rider/deliveries">My Deliveries</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/rider/profile">Update Profile</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/rider/payouts">Request Payout</Link>
+            </Button>
           </div>
-        )}
-
-        <div className="space-y-6">
-          {/* Status Overview */}
-          <RiderStatusCard />
-
-          {/* Quick Stats */}
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Total Deliveries</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalDeliveries}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Pending Assignments</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.pendingAssignments}</div>
-                {stats.pendingAssignments > 0 && (
-                  <Button asChild size="sm" className="mt-2">
-                    <Link to="/rider/assignments">View Assignments</Link>
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Available Balance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(stats.availableBalance)}</div>
-                <Button asChild size="sm" className="mt-2" variant="outline">
-                  <Link to="/rider/payouts">Manage Payouts</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <Button asChild>
-                  <Link to="/rider/assignments">View Assignments</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/rider/deliveries">My Deliveries</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/rider/profile">Update Profile</Link>
-                </Button>
-                <Button asChild variant="outline">
-                  <Link to="/rider/payouts">Request Payout</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-    </main>
+        </CardContent>
+      </Card>
+    </StandardDashboardLayout>
   );
 };
 

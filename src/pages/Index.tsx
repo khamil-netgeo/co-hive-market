@@ -1,9 +1,6 @@
 import { useEffect } from "react";
-import SiteHeader from "@/components/layout/SiteHeader";
+import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
-import AppTopbar from "@/components/layout/AppTopbar";
-import AppSidebar from "@/components/layout/AppSidebar";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { toast } from "sonner";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
@@ -60,26 +57,9 @@ const Index = () => {
     </main>
   );
 
-  if (user) {
-    // Logged in: use sidebar layout
-    return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          <AppSidebar />
-          <SidebarInset>
-            <AppTopbar />
-            {content}
-            <SiteFooter />
-          </SidebarInset>
-        </div>
-      </SidebarProvider>
-    );
-  }
-
-  // Not logged in: use standalone header
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
+    <div className="min-h-screen flex flex-col">
+      <UnifiedHeader showNavigation />
       {content}
       <SiteFooter />
     </div>

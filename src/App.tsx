@@ -28,6 +28,7 @@ import ServiceIntelligence from "./pages/vendor/ServiceIntelligence";
 import ServiceAutomation from "./pages/vendor/ServiceAutomation";
 import Riders from "./pages/Riders";
 import Layout from "@/components/layout/Layout";
+import UnifiedHeader from "@/components/layout/UnifiedHeader";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import RequireAdmin from "./components/auth/RequireAdmin";
@@ -101,12 +102,10 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+        <BrowserRouter>
           <Routes>
-            {/* Keep the landing page standalone to avoid double header/hero */}
             <Route path="/" element={<Index />} />
 
-            {/* Shared layout for all other routes */}
             <Route element={<Layout />}>
               <Route path="/getting-started" element={<GettingStarted />} />
               <Route path="/auth" element={<Auth />} />

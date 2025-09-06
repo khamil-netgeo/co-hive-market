@@ -1,7 +1,7 @@
 import { PropsWithChildren } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import SiteFooter from "./SiteFooter";
-import AppTopbar from "./AppTopbar";
+import UnifiedHeader from "./UnifiedHeader";
 import AppSidebar from "./AppSidebar";
 import RoleSpecificSidebar from "./RoleSpecificSidebar";
 import RoleBreadcrumbs from "@/components/navigation/RoleBreadcrumbs";
@@ -23,7 +23,7 @@ const Layout = ({ children }: PropsWithChildren) => {
       <div className="min-h-screen flex w-full">
         {useRoleSpecificSidebar ? <RoleSpecificSidebar /> : <AppSidebar />}
         <SidebarInset className="min-w-0 w-full overflow-x-hidden flex flex-col">
-          <AppTopbar />
+          <UnifiedHeader showSidebarTrigger />
           <RoleBreadcrumbs />
           <main className="flex-1 min-w-0 p-0">
             {children ?? <Outlet />}
