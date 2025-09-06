@@ -6,9 +6,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { setSEO } from "@/lib/seo";
-import { Package, ListOrdered, BarChart3, Wallet, Plus, Eye, Pencil } from "lucide-react";
+import { Package, ListOrdered, BarChart3, Wallet, Plus, Eye, Pencil, TrendingUp, TrendingDown, AlertTriangle, Clock } from "lucide-react";
 import MediaGallery from "@/components/common/MediaGallery";
+import { useVendorAnalytics } from "@/hooks/useVendorAnalytics";
 
 interface Product {
   id: string;
@@ -41,6 +43,9 @@ export default function VendorDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Use the enhanced analytics hook
+  const { stats, loading: statsLoading, error: statsError, refetch: refetchStats } = useVendorAnalytics(vendor?.id || null);
 
   useEffect(() => {
     setSEO("Vendor Dashboard — Overview", "Manage your listings and track performance");
@@ -146,6 +151,17 @@ export default function VendorDashboard() {
   const activeProducts = products.filter((p) => p.status === "active").length;
   const activeServices = services.filter((s) => s.status === "active").length;
 
+  // Format percentage with sign and color
+  const formatPercentage = (value: number) => {
+    const sign = value >= 0 ? '+' : '';
+    const color = value >= 0 ? 'text-green-600' : 'text-red-600';
+    return (
+      <span className={color}>
+        {sign}{value.toFixed(1)}%
+      </span>
+    );
+  };
+
   return (
     <main className="container py-8 space-y-8">
       {/* Header */}
@@ -172,25 +188,69 @@ export default function VendorDashboard() {
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {/* Enhanced Stats Overview */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{products.length}</div>
+            <div className="text-2xl font-bold">
+              {statsLoading ? '...' : formatPrice(stats?.totalRevenue || 0)}
+            </div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              {stats?.weekOverWeekGrowth !== undefined && (
+                <>
+                  {stats.weekOverWeekGrowth >= 0 ? (
+                    <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 mr-1 text-red-600" />
+                  )}
+                  {formatPercentage(stats.weekOverWeekGrowth)} vs last week
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <ListOrdered className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {statsLoading ? '...' : stats?.totalOrders || 0}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {activeProducts} active
+              {stats?.pendingOrders || 0} pending • {stats?.completedOrders || 0} completed
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Services</CardTitle>
+            <CardTitle className="text-sm font-medium">Products</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{products.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {activeProducts} active
+              {stats?.lowStockCount && stats.lowStockCount > 0 && (
+                <span className="text-orange-600 ml-2">
+                  • {stats.lowStockCount} low stock
+                </span>
+              )}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Services</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{services.length}</div>
@@ -199,28 +259,119 @@ export default function VendorDashboard() {
             </p>
           </CardContent>
         </Card>
+      </div>
 
+      {/* Alerts Section */}
+      {(stats?.lowStockCount && stats.lowStockCount > 0) || (stats?.pendingOrders && stats.pendingOrders > 0) ? (
+        <div className="space-y-4">
+          {stats.lowStockCount > 0 && (
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>{stats.lowStockCount} products</strong> are running low on stock.{' '}
+                <Link to="/vendor/inventory" className="underline">
+                  Manage inventory
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {stats.pendingOrders > 0 && (
+            <Alert>
+              <Clock className="h-4 w-4" />
+              <AlertDescription>
+                You have <strong>{stats.pendingOrders} pending orders</strong> that need attention.{' '}
+                <Link to="/vendor/orders" className="underline">
+                  View orders
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+      ) : null}
+
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Quick Links</CardTitle>
-            <ListOrdered className="h-4 w-4 text-muted-foreground" />
+          <CardHeader>
+            <CardTitle className="text-base">Recent Orders</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button variant="outline" size="sm" asChild className="w-full justify-start">
-              <Link to="/vendor/orders">View Orders</Link>
-            </Button>
+            {statsLoading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : stats?.recentOrders && stats.recentOrders.length > 0 ? (
+              <>
+                {stats.recentOrders.slice(0, 3).map((order) => (
+                  <div key={order.id} className="flex items-center justify-between text-sm">
+                    <span className="font-mono text-xs">
+                      {order.id.slice(0, 8)}...
+                    </span>
+                    <Badge variant="outline" className="text-xs">
+                      {order.status}
+                    </Badge>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" asChild className="w-full">
+                  <Link to="/vendor/orders">View All Orders</Link>
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No recent orders</p>
+            )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Performance</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          <CardHeader>
+            <CardTitle className="text-base">Top Products</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Button variant="outline" size="sm" asChild className="w-full justify-start">
-              <Link to="/vendor/analytics">View Analytics</Link>
-            </Button>
+            {statsLoading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : stats?.topProducts && stats.topProducts.length > 0 ? (
+              <>
+                {stats.topProducts.slice(0, 3).map((product) => (
+                  <div key={product.id} className="flex items-center justify-between text-sm">
+                    <span className="truncate flex-1">{product.name}</span>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      {product.total_sales} sold
+                    </span>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" asChild className="w-full">
+                  <Link to="/vendor/analytics">View Analytics</Link>
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No sales data yet</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Low Stock Alert</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {statsLoading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : stats?.lowStockProducts && stats.lowStockProducts.length > 0 ? (
+              <>
+                {stats.lowStockProducts.slice(0, 3).map((product) => (
+                  <div key={product.id} className="flex items-center justify-between text-sm">
+                    <span className="truncate flex-1">{product.name}</span>
+                        <span className="text-xs text-orange-600 ml-2">
+                          {product.stock_qty} left
+                        </span>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" asChild className="w-full">
+                  <Link to="/vendor/inventory">Manage Stock</Link>
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">All products in stock</p>
+            )}
           </CardContent>
         </Card>
       </div>

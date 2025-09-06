@@ -191,9 +191,21 @@ export default function VendorProducts() {
                     <p className="text-lg font-semibold">
                       {formatPrice(product.price_cents, product.currency)}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      Stock: {product.stock_qty} units
-                    </p>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">
+                        Stock: {product.stock_qty || 0} units
+                      </span>
+                      {(product.stock_qty || 0) <= 5 && product.stock_qty > 0 && (
+                        <Badge variant="secondary" className="text-orange-600">
+                          Low Stock
+                        </Badge>
+                      )}
+                      {product.stock_qty === 0 && (
+                        <Badge variant="destructive">
+                          Out of Stock
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   {product.category && (
                     <Badge variant="outline">{product.category}</Badge>
