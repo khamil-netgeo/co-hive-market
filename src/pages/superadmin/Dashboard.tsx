@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { setSEO } from "@/lib/seo";
 import { supabase } from "@/integrations/supabase/client";
+import StandardDashboardLayout from "@/components/layout/StandardDashboardLayout";
+import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +24,7 @@ import {
   Megaphone
 } from "lucide-react";
 import WatchAnalyticsCard from "./components/WatchAnalyticsCard";
+
 interface DashboardStats {
   totalUsers: number;
   totalVendors: number;
@@ -117,85 +120,50 @@ const SuperAdminDashboard = () => {
   ];
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Activity className="h-8 w-8 animate-spin mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton showStats showHeader showActions statCount={4} cardCount={3} />;
   }
 
+  const superAdminStats = [
+    {
+      title: "Total Users",
+      value: stats.totalUsers.toLocaleString(),
+      description: `+${stats.recentSignups} new this week`,
+      icon: <Users className="h-4 w-4" />
+    },
+    {
+      title: "Active Vendors",
+      value: stats.totalVendors.toLocaleString(),
+      description: "Marketplace sellers",
+      icon: <Store className="h-4 w-4" />
+    },
+    {
+      title: "Total Revenue",
+      value: formatCurrency(stats.totalRevenue),
+      description: `From ${stats.totalOrders} orders`,
+      icon: <DollarSign className="h-4 w-4" />
+    },
+    {
+      title: "System Health",
+      value: "Healthy",
+      description: `${stats.pendingReports} pending reports`,
+      icon: <Activity className="h-4 w-4" />
+    }
+  ];
+
+  const actions = (
+    <Badge variant="secondary" className="flex items-center gap-1">
+      <Globe className="h-3 w-3" />
+      Global Control
+    </Badge>
+  );
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Super Admin Dashboard</h1>
-          <p className="text-muted-foreground">Monitor platform health and manage global settings</p>
-        </div>
-        <Badge variant="secondary" className="flex items-center gap-1">
-          <Globe className="h-3 w-3" />
-          Global Control
-        </Badge>
-      </div>
-
-      {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              +{stats.recentSignups} new this week
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Vendors</CardTitle>
-            <Store className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalVendors.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              Marketplace sellers
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">
-              From {stats.totalOrders} orders
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Health</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">Healthy</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.pendingReports} pending reports
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
+    <StandardDashboardLayout
+      title="Super Admin Dashboard"
+      subtitle="Monitor platform health and manage global settings"
+      stats={superAdminStats}
+      actions={actions}
+    >
       {/* Platform Overview */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Platform Stats */}
@@ -328,7 +296,7 @@ const SuperAdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </StandardDashboardLayout>
   );
 };
 
