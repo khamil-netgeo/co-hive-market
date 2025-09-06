@@ -36,6 +36,12 @@ const GettingStarted = () => {
   const { getRolesForCommunity, refresh: refreshRoles } = useUserRoles();
   const { retry, reset, isRetrying, retryCount } = useErrorRecovery();
   const { hasProgress, canResume, initializeProgress, clearProgress } = useOnboardingProgress();
+  // Simplified recommendations for demo - just show first 2 communities
+  const recommendations = communities.slice(0, 2).map(community => ({
+    community,
+    score: 85,
+    reasons: [`${community.member_discount_percent}% member discount`, 'Growing community', 'Active listings']
+  }));
 
   // Require authentication first
   useEffect(() => {
