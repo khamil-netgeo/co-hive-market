@@ -156,50 +156,6 @@ All colors MUST be HSL.
   }
 }
 
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-
-    --sidebar-background: 0 0% 3.9%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 324 100% 58%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 0 0% 14.9%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 14.9%;
-    --sidebar-ring: 324 100% 58%;
-
-    /* Enhanced brand colors for dark */
-    --brand-1: 324 100% 68%; /* TikTok pink - brighter */
-    --brand-2: 241 80% 72%;  /* TikTok blue - brighter */
-    --brand-3: 290 100% 80%; /* Purple - brighter */
-    --brand-success: 142 71% 55%;
-    --brand-warning: 38 92% 60%;
-
-    /* Chart/legend palette (dark) */
-    --chart-1: 324 100% 68%;
-    --chart-2: 241 80% 72%;
-    --chart-3: 290 100% 80%;
-    --chart-4: 200 90% 70%;
-    --chart-5: 20 90% 70%;
-    --chart-6: 160 70% 55%;
-    --chart-7: 280 70% 65%;
-    --chart-8: 340 80% 65%;
-
-    --gradient-primary: linear-gradient(135deg, hsl(var(--brand-1)), hsl(var(--brand-2)));
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--brand-2)), hsl(var(--brand-3)));
-    --gradient-rainbow: linear-gradient(135deg, hsl(var(--brand-1)), hsl(var(--brand-3)), hsl(var(--brand-2)));
-    --shadow-elegant: 0 20px 40px -12px hsl(var(--brand-1) / 0.35);
-    --shadow-glow: 0 0 50px hsl(var(--brand-1) / 0.5);
-    --shadow-neon: 0 0 20px hsl(var(--brand-1) / 1);
-  }
-
 @layer base {
   * {
     @apply border-border;
