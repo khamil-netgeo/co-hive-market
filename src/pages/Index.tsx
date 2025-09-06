@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { setSEO } from "@/lib/seo";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { useProductionLogging } from "@/hooks/useProductionLogging";
+import { SEOHead } from "@/components/seo/SEOHead";
 import Hero from "./index/Hero";
 import Explore from "./index/Explore";
 import FeaturedListings from "./index/FeaturedListings";
@@ -58,11 +59,29 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <UnifiedHeader showNavigation />
-      {content}
-      <SiteFooter />
-    </div>
+    <>
+      <SEOHead 
+        title="CoopMarket - Community-Driven Marketplace"
+        description="Buy, sell, and deliver in a community-powered marketplace for products, services, time and learning."
+        keywords={["marketplace", "community", "local vendors", "cooperative", "e-commerce", "local shopping"]}
+        schema={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "CoopMarket",
+          url: window.location.origin,
+          potentialAction: {
+            "@type": "SearchAction",
+            target: `${window.location.origin}/catalog?q={search_term_string}`,
+            "query-input": "required name=search_term_string",
+          }
+        }}
+      />
+      <div className="min-h-screen flex flex-col">
+        <UnifiedHeader showNavigation />
+        {content}
+        <SiteFooter />
+      </div>
+    </>
   );
 };
 
