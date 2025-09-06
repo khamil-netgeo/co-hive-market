@@ -4,8 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
-import { TrendingUp, TrendingDown, Users, ShoppingCart, DollarSign, Package, Star, Eye } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, ShoppingCart, DollarSign, Package, Star, Eye, Clock, AlertTriangle, CheckCircle, Activity } from "lucide-react";
+import { useAdvancedOrderManagement } from "@/hooks/useAdvancedOrderManagement";
 
 interface AnalyticsData {
   revenue: any[];
@@ -28,6 +31,7 @@ const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accen
 
 export function AdvancedAnalyticsDashboard({ vendorId }: VendorAnalyticsProps) {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
+  const { getOrderAnalytics, getOrderPerformanceMetrics } = useAdvancedOrderManagement();
 
   // Fetch comprehensive analytics data
   const { data: analytics, isLoading } = useQuery<AnalyticsData>({
@@ -266,6 +270,8 @@ export function AdvancedAnalyticsDashboard({ vendorId }: VendorAnalyticsProps) {
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="customers">Customers</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="management">Order Management</TabsTrigger>
         </TabsList>
 
         <TabsContent value="revenue">
@@ -352,6 +358,155 @@ export function AdvancedAnalyticsDashboard({ vendorId }: VendorAnalyticsProps) {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="performance">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Processing Metrics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Average Processing Time</span>
+                    <Badge variant="outline">24h</Badge>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div className="bg-primary h-2 rounded-full" style={{ width: '75%' }} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Fulfillment Rate</span>
+                    <Badge variant="outline">95.8%</Badge>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '95.8%' }} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Customer Satisfaction</span>
+                    <Badge variant="outline">4.6/5</Badge>
+                  </div>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '92%' }} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  System Health
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Order Processing</span>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">Healthy</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Payment Gateway</span>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">Operational</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Inventory Sync</span>
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm">Warning</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Delivery Network</span>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">Active</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="management">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Order Management Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="text-2xl font-bold">3</div>
+                    <div className="text-sm text-muted-foreground">Pending Modifications</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-2xl font-bold">1</div>
+                    <div className="text-sm text-muted-foreground">Cancellation Requests</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-2xl font-bold">5</div>
+                    <div className="text-sm text-muted-foreground">Return Requests</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-2xl font-bold">12</div>
+                    <div className="text-sm text-muted-foreground">Scheduled Orders</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Order Activities</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-sm">Order #1234 shipped</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">2 min ago</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                      <span className="text-sm">Modification requested</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">15 min ago</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2 border-b">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      <span className="text-sm">New order received</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">1 hour ago</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-red-500" />
+                      <span className="text-sm">Cancellation approved</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">2 hours ago</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

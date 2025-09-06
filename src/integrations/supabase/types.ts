@@ -3855,6 +3855,51 @@ export type Database = {
           vehicle_type: string
         }[]
       }
+      get_order_cancellations: {
+        Args: { p_order_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          order_id: string
+          processed_at: string
+          reason: string
+          refund_amount_cents: number
+          refund_type: string
+          status: string
+        }[]
+      }
+      get_order_modifications: {
+        Args: { p_order_id: string }
+        Returns: {
+          applied_at: string
+          approved_at: string
+          created_at: string
+          id: string
+          modification_type: string
+          new_data: Json
+          order_id: string
+          original_data: Json
+          reason: string
+          status: string
+        }[]
+      }
+      get_scheduled_orders: {
+        Args: { p_user_id: string }
+        Returns: {
+          buyer_user_id: string
+          cart_snapshot: Json
+          created_at: string
+          delivery_preferences: Json
+          end_date: string
+          id: string
+          next_execution_at: string
+          recurring_interval: number
+          recurring_type: string
+          scheduled_for: string
+          status: string
+          updated_at: string
+        }[]
+      }
       get_vendor_follower_count: {
         Args: { vendor_id_param: string }
         Returns: number
@@ -3865,6 +3910,37 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      insert_order_cancellation: {
+        Args: {
+          p_order_id: string
+          p_reason: string
+          p_refund_amount_cents: number
+          p_refund_type: string
+        }
+        Returns: undefined
+      }
+      insert_order_modification: {
+        Args: {
+          p_modification_type: string
+          p_new_data: Json
+          p_order_id: string
+          p_original_data: Json
+          p_reason: string
+        }
+        Returns: undefined
+      }
+      insert_scheduled_order: {
+        Args: {
+          p_buyer_user_id: string
+          p_cart_snapshot: Json
+          p_delivery_preferences: Json
+          p_end_date?: string
+          p_recurring_interval?: number
+          p_recurring_type?: string
+          p_scheduled_for: string
+        }
+        Returns: string
       }
       is_manager_of_community: {
         Args: { _community_id: string; _user_id: string }
