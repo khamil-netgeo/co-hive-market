@@ -2159,6 +2159,7 @@ export type Database = {
           restocking_fee_percent: number
           return_window_days: number
           returnable: boolean
+          slug: string | null
           status: Database["public"]["Enums"]["product_status"]
           stock_qty: number
           updated_at: string
@@ -2196,6 +2197,7 @@ export type Database = {
           restocking_fee_percent?: number
           return_window_days?: number
           returnable?: boolean
+          slug?: string | null
           status?: Database["public"]["Enums"]["product_status"]
           stock_qty?: number
           updated_at?: string
@@ -2233,6 +2235,7 @@ export type Database = {
           restocking_fee_percent?: number
           return_window_days?: number
           returnable?: boolean
+          slug?: string | null
           status?: Database["public"]["Enums"]["product_status"]
           stock_qty?: number
           updated_at?: string
@@ -3860,6 +3863,10 @@ export type Database = {
           user_id: string
           vehicle_type: string
         }[]
+      }
+      generate_slug: {
+        Args: { input_text: string }
+        Returns: string
       }
       get_order_cancellations: {
         Args: { p_order_id: string }
