@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import SimpleRoleSelector from "./SimpleRoleSelector";
 import MultiRoleOnboardingFlow from "./MultiRoleOnboardingFlow";
+import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 
 interface Community {
   id: string;
@@ -70,6 +71,35 @@ export default function OnboardingWizard({
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
   const [showMultiRole, setShowMultiRole] = useState(false);
   const [recommendedCommunity, setRecommendedCommunity] = useState<Community | null>(null);
+  const { 
+    progress: onboardingProgress, 
+    initializeProgress, 
+    updateStep, 
+    updateCommunitySelection, 
+    updateRoleSelection,
+    completeOnboarding,
+    recordError 
+  } = useOnboardingProgress();
+
+  // Initialize progress tracking
+  useEffect(() => {
+    if (!onboardingProgress) {
+      initializeProgress('wizard');
+    }
+  }, [onboardingProgress, initializeProgress]);
+
+  // Restore wizard state from progress
+  useEffect(() => {
+    if (onboardingProgress) {
+      setCurrentStep(onboardingProgress.currentStep);
+      if (onboardingProgress.selectedCommunity) {
+        const community = communities.find(c => c.id === onboardingProgress.selectedCommunity);
+        if (community) {
+          setSelectedCommunity(community);
+        }
+      }
+    }
+  }, [onboardingProgress, communities]);
 
   // Get recommended community based on activity and recency
   useEffect(() => {
@@ -110,34 +140,51 @@ export default function OnboardingWizard({
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      updateStep(nextStep, true); // Mark current step as completed
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      updateStep(prevStep);
     }
   };
 
   const handleCommunitySelect = (community: Community) => {
     setSelectedCommunity(community);
+    updateCommunitySelection(community.id);
     handleNext();
   };
 
-  const handleRoleSelect = (role: 'buyer' | 'vendor' | 'delivery') => {
+  const handleRoleSelect = async (role: 'buyer' | 'vendor' | 'delivery') => {
     if (selectedCommunity) {
-      onJoinCommunity(selectedCommunity.id, role);
+      try {
+        updateRoleSelection([role]);
+        await onJoinCommunity(selectedCommunity.id, role);
+        await completeOnboarding([role], selectedCommunity.id);
+      } catch (error: any) {
+        recordError(currentStep, error.message || 'Failed to join community');
+      }
     }
   };
 
-  const handleMultiRoleSelect = (roles: ('buyer' | 'vendor' | 'delivery')[]) => {
+  const handleMultiRoleSelect = async (roles: ('buyer' | 'vendor' | 'delivery')[]) => {
     if (selectedCommunity) {
-      onMultiRoleJoin(selectedCommunity.id, roles);
+      try {
+        updateRoleSelection(roles);
+        await onMultiRoleJoin(selectedCommunity.id, roles);
+        await completeOnboarding(roles, selectedCommunity.id);
+      } catch (error: any) {
+        recordError(currentStep, error.message || 'Failed to join with multiple roles');
+      }
     }
   };
 
-  const progress = ((currentStep + 1) / steps.length) * 100;
+  const progressPercentage = ((currentStep + 1) / steps.length) * 100;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -174,7 +221,7 @@ export default function OnboardingWizard({
         </div>
         
         <div className="max-w-md mx-auto">
-          <Progress value={progress} className="h-2" />
+          <Progress value={progressPercentage} className="h-2" />
           <p className="text-xs text-muted-foreground mt-1">
             Step {currentStep + 1} of {steps.length}
           </p>

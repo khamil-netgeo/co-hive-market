@@ -15,7 +15,10 @@ import UserRolesDisplay from "@/components/community/UserRolesDisplay";
 import MultiRoleOnboardingFlow from "@/components/onboarding/MultiRoleOnboardingFlow";
 import SimpleRoleSelector from "@/components/onboarding/SimpleRoleSelector";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import OnboardingResumeCard from "@/components/onboarding/OnboardingResumeCard";
+import OnboardingAnalyticsProvider from "@/components/onboarding/OnboardingAnalyticsProvider";
 import { useErrorRecovery } from "@/hooks/useErrorRecovery";
+import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 
 const GettingStarted = () => {
   const { user, loading, signOut } = useAuthRoles();
@@ -32,6 +35,7 @@ const GettingStarted = () => {
   const { info, error: logError } = useProductionLogging();
   const { getRolesForCommunity, refresh: refreshRoles } = useUserRoles();
   const { retry, reset, isRetrying, retryCount } = useErrorRecovery();
+  const { hasProgress, canResume, initializeProgress, clearProgress } = useOnboardingProgress();
 
   // Require authentication first
   useEffect(() => {
@@ -369,21 +373,46 @@ const GettingStarted = () => {
             </Card>
           </div>
         ) : (
-          <>
+          <OnboardingAnalyticsProvider>
+            {/* Show resume card if user has progress */}
+            {canResume && useWizardMode && (
+              <div className="mb-8">
+                <OnboardingResumeCard
+                  onResume={() => {
+                    // Resume wizard mode - progress will be restored automatically
+                  }}
+                  onRestart={() => {
+                    clearProgress();
+                    initializeProgress('wizard');
+                  }}
+                />
+              </div>
+            )}
+
             {/* Toggle between wizard and classic mode */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center gap-2 p-1 bg-muted rounded-lg">
                 <Button
                   variant={useWizardMode ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setUseWizardMode(true)}
+                  onClick={() => {
+                    setUseWizardMode(true);
+                    if (!hasProgress) {
+                      initializeProgress('wizard');
+                    }
+                  }}
                 >
                   Guided Setup
                 </Button>
                 <Button
                   variant={!useWizardMode ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setUseWizardMode(false)}
+                  onClick={() => {
+                    setUseWizardMode(false);
+                    if (!hasProgress) {
+                      initializeProgress('classic');
+                    }
+                  }}
                 >
                   Quick Join
                 </Button>
@@ -618,7 +647,7 @@ const GettingStarted = () => {
                 </div>
               </>
             )}
-          </>
+          </OnboardingAnalyticsProvider>
         )}
       </div>
     </main>
