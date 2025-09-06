@@ -1,87 +1,84 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { 
-  Users, 
-  MapPin, 
-  Star, 
-  TrendingUp, 
   ArrowRight, 
   ArrowLeft,
-  CheckCircle2,
-  Clock,
-  DollarSign
+  CheckCircle2, 
+  Users, 
+  DollarSign, 
+  MapPin, 
+  TrendingUp,
+  Star,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
-import SimpleRoleSelector from "./SimpleRoleSelector";
+import useUserRoles from "@/hooks/useUserRoles";
 import MultiRoleOnboardingFlow from "./MultiRoleOnboardingFlow";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileOnboardingShell from "./MobileOnboardingShell";
+import TouchOptimizedCommunityCard from "./TouchOptimizedCommunityCard";
+import MobileRoleSelector from "./MobileRoleSelector";
+import { RoleSelectionStep, CompletionStep } from "./StepComponents";
 
 interface Community {
   id: string;
   name: string;
-  description: string;
+  description?: string;
+  logo_url?: string;
   member_discount_percent: number;
-  member_count?: number;
-  is_active?: boolean;
-  location?: string;
-  created_at: string;
 }
 
 interface OnboardingWizardProps {
   communities: Community[];
-  onJoinCommunity: (communityId: string, role: 'buyer' | 'vendor' | 'delivery') => void;
-  onMultiRoleJoin: (communityId: string, roles: ('buyer' | 'vendor' | 'delivery')[]) => void;
-  getUserRoles: (communityId: string) => string[];
-  loading: boolean;
+  onComplete: (communityId: string, roles: string[]) => void;
+  onBack: () => void;
+  userId?: string;
+  autoSelectCommunity?: string;
+  autoSelectRole?: string;
+  loadingCommunities?: boolean;
 }
 
 const steps = [
-  { 
-    id: 'welcome', 
-    title: 'Welcome to CoopMarket', 
-    description: 'Let\'s get you set up in a community marketplace'
-  },
-  { 
-    id: 'community', 
-    title: 'Choose Your Community', 
-    description: 'Select the community marketplace you\'d like to join'
-  },
-  { 
-    id: 'role', 
-    title: 'Select Your Role', 
-    description: 'Choose how you\'d like to participate'
-  },
-  { 
-    id: 'complete', 
-    title: 'All Set!', 
-    description: 'Your account is ready to go'
-  }
+  { title: "Welcome", description: "Get started with community marketplaces" },
+  { title: "Choose Community", description: "Select a local community to join" },
+  { title: "Select Role", description: "Choose how you want to participate" },
+  { title: "Complete", description: "Finish setting up your account" }
 ];
 
 export default function OnboardingWizard({
   communities,
-  onJoinCommunity,
-  onMultiRoleJoin,
-  getUserRoles,
-  loading
+  onComplete,
+  onBack,
+  userId,
+  autoSelectCommunity,
+  autoSelectRole,
+  loadingCommunities = false
 }: OnboardingWizardProps) {
+  const { joinCommunity } = useUserRoles();
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedCommunity, setSelectedCommunity] = useState<Community | null>(null);
-  const [showMultiRole, setShowMultiRole] = useState(false);
   const [recommendedCommunity, setRecommendedCommunity] = useState<Community | null>(null);
-  const { 
+  const [singleRole, setSingleRole] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+
+  const {
     progress: onboardingProgress, 
     initializeProgress, 
-    updateStep, 
-    updateCommunitySelection, 
+    updateStep,
+    updateCommunitySelection,
     updateRoleSelection,
     completeOnboarding,
-    recordError 
+    recordError
   } = useOnboardingProgress();
 
-  // Initialize progress tracking
+  // Initialize onboarding progress
   useEffect(() => {
     if (!onboardingProgress) {
       initializeProgress('wizard');
@@ -101,100 +98,160 @@ export default function OnboardingWizard({
     }
   }, [onboardingProgress, communities]);
 
-  // Get recommended community based on activity and recency
+  // Auto-select community and role if provided
   useEffect(() => {
-    if (communities.length > 0) {
-      // Sort by most recent and active communities
-      const sorted = [...communities].sort((a, b) => {
-        const scoreA = calculateCommunityScore(a);
-        const scoreB = calculateCommunityScore(b);
-        return scoreB - scoreA;
-      });
-      
-      setRecommendedCommunity(sorted[0]);
-      
-      // Auto-select recommended community for faster onboarding
-      if (!selectedCommunity) {
-        setSelectedCommunity(sorted[0]);
+    if (autoSelectCommunity && communities.length > 0) {
+      const community = communities.find(c => c.id === autoSelectCommunity);
+      if (community) {
+        setSelectedCommunity(community);
+        updateCommunitySelection(community.id);
       }
     }
-  }, [communities, selectedCommunity]);
-
-  const calculateCommunityScore = (community: Community) => {
-    let score = 0;
-    
-    // Prefer newer communities (more likely to be active)
-    const daysSinceCreated = (Date.now() - new Date(community.created_at).getTime()) / (1000 * 60 * 60 * 24);
-    score += Math.max(0, 100 - daysSinceCreated); // Higher score for newer communities
-    
-    // Prefer communities with higher discounts
-    score += community.member_discount_percent * 2;
-    
-    // Add bonus for having member counts if available
-    if (community.member_count) {
-      score += Math.min(community.member_count * 0.1, 50); // Cap bonus at 50
+    if (autoSelectRole) {
+      setSingleRole(autoSelectRole);
+      updateRoleSelection([autoSelectRole]);
     }
-    
-    return score;
-  };
+  }, [autoSelectCommunity, autoSelectRole, communities, updateCommunitySelection, updateRoleSelection]);
 
-  const handleNext = () => {
-    if (currentStep < steps.length - 1) {
-      const nextStep = currentStep + 1;
-      setCurrentStep(nextStep);
-      updateStep(nextStep, true); // Mark current step as completed
+  // Set recommended community
+  useEffect(() => {
+    if (communities.length > 0 && !recommendedCommunity) {
+      // Auto-select recommended community for faster onboarding
+      const recommended = communities[0]; // Simple logic for now
+      setRecommendedCommunity(recommended);
+    }
+  }, [communities, recommendedCommunity]);
+
+  const progressPercentage = ((currentStep + 1) / steps.length) * 100;
+
+  const handleNext = async () => {
+    setError(null);
+    updateStep(currentStep + 1, true);
+
+    if (currentStep === 2) {
+      // Final step - complete onboarding
+      if (!selectedCommunity || !singleRole) {
+        recordError(currentStep, "Missing community or role selection");
+        setError("Please select both a community and role");
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        await joinCommunity(selectedCommunity.id, singleRole as 'buyer' | 'vendor' | 'delivery');
+        await completeOnboarding([singleRole], selectedCommunity.id);
+        
+        // Move to completion step
+        setCurrentStep(3);
+        updateStep(3, true);
+        
+        // Auto-redirect after showing completion
+        setTimeout(() => {
+          onComplete(selectedCommunity.id, [singleRole]);
+        }, 2000);
+      } catch (error: any) {
+        console.error('Error completing onboarding:', error);
+        const errorMessage = error.message || "Failed to complete setup";
+        recordError(currentStep, errorMessage);
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setCurrentStep(prev => prev + 1);
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      const prevStep = currentStep - 1;
-      setCurrentStep(prevStep);
-      updateStep(prevStep);
+      setCurrentStep(prev => prev - 1);
+      updateStep(currentStep - 1);
+    } else {
+      onBack();
     }
   };
 
   const handleCommunitySelect = (community: Community) => {
     setSelectedCommunity(community);
     updateCommunitySelection(community.id);
-    handleNext();
+    setError(null);
   };
 
-  const handleRoleSelect = async (role: 'buyer' | 'vendor' | 'delivery') => {
-    if (selectedCommunity) {
-      try {
-        updateRoleSelection([role]);
-        await onJoinCommunity(selectedCommunity.id, role);
-        await completeOnboarding([role], selectedCommunity.id);
-      } catch (error: any) {
-        recordError(currentStep, error.message || 'Failed to join community');
-      }
+  const stepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <WelcomeStep onNext={handleNext} />
+        );
+      case 1:
+        return (
+          <CommunitySelectionStep 
+            communities={communities}
+            selectedCommunity={selectedCommunity}
+            recommendedCommunity={recommendedCommunity}
+            onCommunitySelect={handleCommunitySelect}
+            onNext={handleNext}
+            onBack={handleBack}
+            isLoading={isLoading}
+          />
+        );
+      case 2:
+        return (
+          <RoleSelectionStep
+            singleRole={singleRole}
+            onRoleSelect={setSingleRole}
+            onNext={handleNext}
+            onBack={handleBack}
+            isLoading={isLoading}
+          />
+        );
+      case 3:
+        return (
+          <CompletionStep 
+            selectedCommunity={selectedCommunity}
+            selectedRole={singleRole}
+            isLoading={isLoading}
+          />
+        );
+      default:
+        return null;
     }
   };
 
-  const handleMultiRoleSelect = async (roles: ('buyer' | 'vendor' | 'delivery')[]) => {
-    if (selectedCommunity) {
-      try {
-        updateRoleSelection(roles);
-        await onMultiRoleJoin(selectedCommunity.id, roles);
-        await completeOnboarding(roles, selectedCommunity.id);
-      } catch (error: any) {
-        recordError(currentStep, error.message || 'Failed to join with multiple roles');
-      }
-    }
-  };
-
-  const progressPercentage = ((currentStep + 1) / steps.length) * 100;
+  if (isMobile) {
+    return (
+      <MobileOnboardingShell
+        currentStep={currentStep}
+        totalSteps={steps.length}
+        title={steps[currentStep].title}
+        subtitle={steps[currentStep].description}
+        onBack={currentStep > 0 ? handleBack : undefined}
+        className="max-w-lg mx-auto"
+      >
+        {stepContent()}
+        {error && (
+          <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <div className="flex items-center gap-2 text-destructive text-sm">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </div>
+          </div>
+        )}
+      </MobileOnboardingShell>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Progress Header */}
-      <div className="text-center space-y-4">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      {/* Desktop Header */}
+      <div className="text-center py-8 space-y-4">
+        {/* Progress Steps */}
+        <div className="flex items-center justify-center mb-6">
+          {steps.map((_, index) => (
+            <div key={index} className="flex items-center">
               <div className={`
-                w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
+                w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors
                 ${index <= currentStep 
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-muted text-muted-foreground'
@@ -228,226 +285,296 @@ export default function OnboardingWizard({
         </div>
       </div>
 
-      {/* Step Content */}
+      {/* Desktop Step Content */}
       <div className="min-h-[400px]">
-        {currentStep === 0 && (
-          <Card className="max-w-2xl mx-auto">
-            <CardContent className="pt-8 pb-8 text-center space-y-6">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <Users className="h-8 w-8 text-primary" />
-              </div>
-              
-              <div className="space-y-2">
-                <h2 className="text-2xl font-semibold">Welcome to Community Marketplaces</h2>
-                <p className="text-muted-foreground max-w-lg mx-auto">
-                  Join a local community where members buy, sell, and deliver products and services to each other. 
-                  Get member discounts and support your local economy.
-                </p>
-              </div>
+        {stepContent()}
 
-              <div className="grid md:grid-cols-3 gap-4 mt-6">
-                <div className="text-center space-y-2">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto">
-                    <DollarSign className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div className="text-sm font-medium">Member Discounts</div>
-                  <div className="text-xs text-muted-foreground">Save on every purchase</div>
-                </div>
-                
-                <div className="text-center space-y-2">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mx-auto">
-                    <MapPin className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div className="text-sm font-medium">Local Focus</div>
-                  <div className="text-xs text-muted-foreground">Support local businesses</div>
-                </div>
-                
-                <div className="text-center space-y-2">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto">
-                    <TrendingUp className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div className="text-sm font-medium">Earn Income</div>
-                  <div className="text-xs text-muted-foreground">Sell or deliver</div>
-                </div>
-              </div>
-
-              <Button onClick={handleNext} className="w-full max-w-xs mx-auto">
-                Get Started
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
-        {currentStep === 1 && (
-          <div className="space-y-6">
-            {recommendedCommunity && (
-              <Card className="border-primary/50 bg-primary/5">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Star className="h-5 w-5 text-primary" />
-                      Recommended for You
-                    </CardTitle>
-                    <Badge variant="secondary">Best Match</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-lg font-semibold">{recommendedCommunity.name}</h3>
-                      <p className="text-muted-foreground text-sm">{recommendedCommunity.description}</p>
-                    </div>
-                    
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4 text-green-600" />
-                        <span>{recommendedCommunity.member_discount_percent}% member discount</span>
-                      </div>
-                      {recommendedCommunity.member_count && (
-                        <div className="flex items-center gap-1">
-                          <Users className="h-4 w-4 text-blue-600" />
-                          <span>{recommendedCommunity.member_count} members</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <Button 
-                      onClick={() => handleCommunitySelect(recommendedCommunity)}
-                      className="w-full"
-                    >
-                      Join {recommendedCommunity.name}
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-center">
-                {recommendedCommunity ? 'Or choose a different community:' : 'Choose your community:'}
-              </h3>
-              
-              <div className="grid gap-4 md:grid-cols-2">
-                {communities
-                  .filter(c => c.id !== recommendedCommunity?.id)
-                  .map((community) => (
-                    <Card 
-                      key={community.id} 
-                      className={`cursor-pointer transition-all hover:border-primary/50 ${
-                        selectedCommunity?.id === community.id ? 'border-primary ring-2 ring-primary/20' : ''
-                      }`}
-                      onClick={() => setSelectedCommunity(community)}
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base">{community.name}</CardTitle>
-                          <Badge variant="outline">
-                            {community.member_discount_percent}% off
-                          </Badge>
-                        </div>
-                        <CardDescription className="text-sm">
-                          {community.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <Button 
-                          variant={selectedCommunity?.id === community.id ? "default" : "outline"}
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCommunitySelect(community);
-                          }}
-                          className="w-full"
-                        >
-                          {selectedCommunity?.id === community.id ? "Selected" : "Select"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ))}
-              </div>
+        {error && (
+          <div className="mt-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg max-w-2xl mx-auto">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="h-4 w-4" />
+              {error}
             </div>
           </div>
         )}
 
-        {currentStep === 2 && selectedCommunity && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  Joining: {selectedCommunity.name}
-                </CardTitle>
-                <CardDescription>
-                  You'll get {selectedCommunity.member_discount_percent}% member discount on all purchases
-                </CardDescription>
-              </CardHeader>
-            </Card>
+        {/* Desktop Navigation */}
+        <div className="flex justify-between items-center max-w-2xl mx-auto mt-8">
+          <Button 
+            variant="outline" 
+            onClick={handleBack}
+            disabled={currentStep === 0 || isLoading}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          
+          <div className="text-sm text-muted-foreground">
+            Step {currentStep + 1} of {steps.length}
+          </div>
+          
+          <div className="w-20" /> {/* Spacer */}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-            {showMultiRole ? (
-              <MultiRoleOnboardingFlow 
-                onRoleSelect={handleMultiRoleSelect}
-                selectedCommunity={selectedCommunity.id}
-              />
-            ) : (
-              <SimpleRoleSelector
-                onRoleSelect={handleRoleSelect}
-                onMultiRoleSelect={() => setShowMultiRole(true)}
-                existingRoles={getUserRoles(selectedCommunity.id)}
-                loading={loading}
-              />
-            )}
+// Individual Step Components
+function WelcomeStep({ onNext }: { onNext: () => void }) {
+  const isMobile = useIsMobile();
+  
+  if (isMobile) {
+    return (
+      <div className="text-center space-y-6 py-8">
+        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+          <Users className="h-10 w-10 text-primary" />
+        </div>
+        
+        <div className="space-y-3">
+          <h2 className="text-xl font-semibold">Welcome to Community Marketplaces</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Join a local community where members buy, sell, and deliver products and services to each other. 
+            Get member discounts and support your local economy.
+          </p>
+        </div>
+
+        <div className="grid gap-4 mt-8">
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <DollarSign className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <div className="text-sm font-medium">Member Discounts</div>
+              <div className="text-xs text-muted-foreground">Save on every purchase</div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <MapPin className="h-5 w-5 text-green-600" />
+            </div>
+            <div>
+              <div className="text-sm font-medium">Local Focus</div>
+              <div className="text-xs text-muted-foreground">Support local businesses</div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 text-left">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <div className="text-sm font-medium">Earn Income</div>
+              <div className="text-xs text-muted-foreground">Sell or deliver for others</div>
+            </div>
+          </div>
+        </div>
+
+        <Button onClick={onNext} className="w-full mt-8" size="lg">
+          Get Started
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <Card className="max-w-2xl mx-auto">
+      <CardContent className="pt-8 pb-8 text-center space-y-6">
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+          <Users className="h-8 w-8 text-primary" />
+        </div>
+        
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold">Welcome to Community Marketplaces</h2>
+          <p className="text-muted-foreground max-w-lg mx-auto">
+            Join a local community where members buy, sell, and deliver products and services to each other. 
+            Get member discounts and support your local economy.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4 mt-6">
+          <div className="text-center space-y-2">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto">
+              <DollarSign className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="text-sm font-medium">Member Discounts</div>
+            <div className="text-xs text-muted-foreground">Save on every purchase</div>
+          </div>
+          
+          <div className="text-center space-y-2">
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mx-auto">
+              <MapPin className="h-5 w-5 text-green-600" />
+            </div>
+            <div className="text-sm font-medium">Local Focus</div>
+            <div className="text-xs text-muted-foreground">Support local businesses</div>
+          </div>
+          
+          <div className="text-center space-y-2">
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+            </div>
+            <div className="text-sm font-medium">Earn Income</div>
+            <div className="text-xs text-muted-foreground">Sell or deliver</div>
+          </div>
+        </div>
+
+        <Button onClick={onNext} className="w-full max-w-xs mx-auto">
+          Get Started
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function CommunitySelectionStep({ 
+  communities, 
+  selectedCommunity, 
+  recommendedCommunity,
+  onCommunitySelect,
+  onNext,
+  onBack,
+  isLoading 
+}: {
+  communities: Community[];
+  selectedCommunity: Community | null;
+  recommendedCommunity: Community | null;
+  onCommunitySelect: (community: Community) => void;
+  onNext: () => void;
+  onBack: () => void;
+  isLoading: boolean;
+}) {
+  const isMobile = useIsMobile();
+  
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {recommendedCommunity && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Star className="h-5 w-5 text-primary" />
+              <span className="text-sm font-medium text-primary">Recommended for You</span>
+            </div>
+            <TouchOptimizedCommunityCard
+              community={recommendedCommunity}
+              isSelected={selectedCommunity?.id === recommendedCommunity.id}
+              isRecommended={true}
+              onSelect={() => onCommunitySelect(recommendedCommunity)}
+              showJoinButton={true}
+            />
           </div>
         )}
 
-        {currentStep === 3 && (
-          <Card className="max-w-2xl mx-auto">
-            <CardContent className="pt-8 pb-8 text-center space-y-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="h-8 w-8 text-green-600" />
-              </div>
-              
-              <div className="space-y-2">
-                <h2 className="text-2xl font-semibold">Welcome to the Community!</h2>
-                <p className="text-muted-foreground">
-                  Your account is set up and ready. You can now start exploring the marketplace.
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>Account setup completed in under 2 minutes</span>
-              </div>
-            </CardContent>
-          </Card>
+        {communities.filter(c => c.id !== recommendedCommunity?.id).length > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">
+              Other Communities
+            </h3>
+            <div className="space-y-3">
+              {communities
+                .filter(c => c.id !== recommendedCommunity?.id)
+                .map((community) => (
+                  <TouchOptimizedCommunityCard
+                    key={community.id}
+                    community={community}
+                    isSelected={selectedCommunity?.id === community.id}
+                    onSelect={() => onCommunitySelect(community)}
+                    showJoinButton={true}
+                  />
+                ))}
+            </div>
+          </div>
         )}
-      </div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <Button 
-          variant="outline" 
-          onClick={handleBack}
-          disabled={currentStep === 0}
-          className={currentStep === 0 ? "invisible" : ""}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-
-        <div className="flex-1" />
-
-        {currentStep < 2 && currentStep > 0 && (
+        {selectedCommunity && (
           <Button 
-            onClick={handleNext}
-            disabled={currentStep === 1 && !selectedCommunity}
+            onClick={onNext} 
+            disabled={isLoading}
+            className="w-full mt-6"
+            size="lg"
           >
-            Continue
-            <ArrowRight className="h-4 w-4 ml-2" />
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Joining...
+              </>
+            ) : (
+              <>
+                Continue with {selectedCommunity.name}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </>
+            )}
           </Button>
         )}
       </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto">
+      {recommendedCommunity && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-primary" />
+                Recommended for You
+              </CardTitle>
+              <Badge variant="secondary">Best Match</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <TouchOptimizedCommunityCard
+              community={recommendedCommunity}
+              isSelected={selectedCommunity?.id === recommendedCommunity.id}
+              isRecommended={true}
+              onSelect={() => onCommunitySelect(recommendedCommunity)}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {communities.filter(c => c.id !== recommendedCommunity?.id).length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Other Communities</h3>
+          <div className="grid gap-4">
+            {communities
+              .filter(c => c.id !== recommendedCommunity?.id)
+              .map((community) => (
+                <TouchOptimizedCommunityCard
+                  key={community.id}
+                  community={community}
+                  isSelected={selectedCommunity?.id === community.id}
+                  onSelect={() => onCommunitySelect(community)}
+                />
+              ))}
+          </div>
+        </div>
+      )}
+
+      {selectedCommunity && (
+        <div className="flex justify-center">
+          <Button 
+            onClick={onNext} 
+            disabled={isLoading}
+            size="lg"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Joining...
+              </>
+            ) : (
+              <>
+                Continue with {selectedCommunity.name}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
