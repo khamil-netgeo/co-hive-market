@@ -8,8 +8,9 @@ import VideoUploadDialog from "@/components/media/VideoUploadDialog";
 import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
+import { getProductUrl } from "@/lib/slugs";
 
-interface Product { id: string; name: string; price_cents: number; currency: string; status: string; video_url?: string | null; image_urls?: string[] | null }
+interface Product { id: string; name: string; price_cents: number; currency: string; status: string; video_url?: string | null; image_urls?: string[] | null; slug?: string; }
 interface Service { id: string; name: string; price_cents: number; currency: string; status: string; video_url?: string | null; image_urls?: string[] | null }
 
 export default function CreatorStudio() {
@@ -113,7 +114,7 @@ export default function CreatorStudio() {
                       <Link to={type === 'product' ? `/vendor/products/${item.id}/edit` : `/vendor/services/${item.id}/edit`}>Edit</Link>
                     </Button>
                     <Button asChild size="sm" variant="outline" className="flex-1">
-                      <Link to={type === 'product' ? `/product/${item.id}` : `/service/${item.id}`}>Preview</Link>
+                      <Link to={type === 'product' ? getProductUrl(item) : `/service/${item.id}`}>Preview</Link>
                     </Button>
                   </div>
                 </div>

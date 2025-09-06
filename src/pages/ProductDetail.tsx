@@ -348,7 +348,7 @@ const [deliveryMethod, setDeliveryMethod] = useState<'rider' | 'easyparcel' | 'p
         <Breadcrumbs
           items={[
             { label: "Home", href: "/" },
-            { label: "Catalog", href: "/catalog" },
+            { label: "Products", href: "/products" },
             { label: product.name },
           ]}
           className="mb-2 sm:mb-3 md:mb-4 text-xs sm:text-sm px-1 sm:px-0"

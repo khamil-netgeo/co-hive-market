@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { setSEOAdvanced } from "@/lib/seo";
+import { getProductUrl } from "@/lib/slugs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -214,7 +215,7 @@ export default function OrderDetail() {
                       <TableRow key={it.id}>
                         <TableCell>
                           {it.products?.id ? (
-                            <Link className="underline underline-offset-2" to={`/product/${it.products.id}`}>
+                            <Link className="underline underline-offset-2" to={getProductUrl(it.products)}>
                               {it.products.name}
                             </Link>
                           ) : (

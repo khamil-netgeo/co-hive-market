@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { toast } from "sonner";
 import { setSEO } from "@/lib/seo";
+import { getProductUrl } from "@/lib/slugs";
 import StandardDashboardLayout from "@/components/layout/StandardDashboardLayout";
 import { DashboardSkeleton } from "@/components/ui/dashboard-skeleton";
 import { Button } from "@/components/ui/button";
@@ -287,7 +288,7 @@ export default function VendorDashboard() {
                           </Link>
                         </Button>
                         <Button variant="outline" size="sm" asChild>
-                          <Link to={`/product/${product.id}`}>
+                          <Link to={getProductUrl(product)}>
                             <Eye className="h-4 w-4" />
                           </Link>
                         </Button>
