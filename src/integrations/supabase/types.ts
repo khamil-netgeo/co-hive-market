@@ -2544,6 +2544,7 @@ export type Database = {
           id: string
           quality_rating: number | null
           rating: number
+          response_date: string | null
           service_rating: number | null
           status: Database["public"]["Enums"]["review_status"]
           target_id: string
@@ -2552,6 +2553,7 @@ export type Database = {
           updated_at: string
           user_id: string
           value_rating: number | null
+          vendor_response: string | null
         }
         Insert: {
           body?: string | null
@@ -2561,6 +2563,7 @@ export type Database = {
           id?: string
           quality_rating?: number | null
           rating: number
+          response_date?: string | null
           service_rating?: number | null
           status?: Database["public"]["Enums"]["review_status"]
           target_id: string
@@ -2569,6 +2572,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           value_rating?: number | null
+          vendor_response?: string | null
         }
         Update: {
           body?: string | null
@@ -2578,6 +2582,7 @@ export type Database = {
           id?: string
           quality_rating?: number | null
           rating?: number
+          response_date?: string | null
           service_rating?: number | null
           status?: Database["public"]["Enums"]["review_status"]
           target_id?: string
@@ -2586,6 +2591,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           value_rating?: number | null
+          vendor_response?: string | null
         }
         Relationships: []
       }

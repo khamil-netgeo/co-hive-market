@@ -69,6 +69,7 @@ import VendorProducts from "./pages/vendor/VendorProducts";
 import ServiceForm from "./pages/vendor/ServiceForm";
 import Cart from "./pages/Cart";
 import VendorSettings from "./pages/vendor/VendorSettings";
+import VendorReviews from "./pages/vendor/VendorReviews";
 import Checkout from "./pages/Checkout";
 import CheckoutNew from "./pages/CheckoutNew";
 import DeliveryDetails from "./pages/DeliveryDetails";
@@ -163,6 +164,7 @@ const App = () => (
               <Route path="/vendor/calendar" element={<VendorCalendar />} />
               <Route path="/vendor/payouts" element={<VendorPayouts />} />
               <Route path="/vendor/inventory" element={<Inventory />} />
+              <Route path="/vendor/reviews" element={<VendorReviews />} />
               <Route path="/vendor/settings" element={<VendorSettings />} />
               <Route path="/vendor/returns" element={<VendorReturnRequests />} />
               <Route path="/vendor/cancellations" element={<VendorCancellationRequests />} />

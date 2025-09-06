@@ -11,26 +11,18 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Star, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 
-interface Review {
+interface ReviewData {
   id: string;
   rating: number;
   title: string;
   body: string;
   created_at: string;
   user_id: string;
-  product_id?: string;
-  service_id?: string;
+  target_type: 'product' | 'service';
+  target_id: string;
   vendor_response?: string;
   response_date?: string;
-  profiles?: {
-    display_name: string;
-  };
-  products?: {
-    name: string;
-  };
-  services?: {
-    name: string;
-  };
+  itemName?: string;
 }
 
 export default function VendorReviews() {
@@ -68,28 +60,87 @@ export default function VendorReviews() {
     queryFn: async () => {
       if (vendorIds.length === 0) return [];
       
-      const { data, error } = await supabase
-        .from('reviews')
-        .select(`
-          id,
-          rating,
-          title,
-          body,
-          created_at,
-          user_id,
-          product_id,
-          service_id,
-          vendor_response,
-          response_date,
-          profiles!reviews_user_id_fkey(display_name),
-          products(name, vendor_id),
-          services(name, vendor_id)
-        `)
-        .or(`products.vendor_id.in.(${vendorIds.join(',')}),services.vendor_id.in.(${vendorIds.join(',')})`)
-        .order('created_at', { ascending: false });
+      const allReviews: ReviewData[] = [];
+      
+      // Get product IDs for this vendor
+      const { data: vendorProducts } = await supabase
+        .from('products')
+        .select('id, name')
+        .in('vendor_id', vendorIds);
+      
+      const productIds = vendorProducts?.map(p => p.id) || [];
+      
+      if (productIds.length > 0) {
+        const { data: productReviews } = await supabase
+          .from('reviews')
+          .select(`
+            id,
+            rating,
+            title,
+            body,
+            created_at,
+            user_id,
+            target_type,
+            target_id,
+            vendor_response,
+            response_date
+          `)
+          .eq('target_type', 'product')
+          .in('target_id', productIds)
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data as Review[];
+        if (productReviews) {
+          for (const review of productReviews) {
+            const product = vendorProducts?.find(p => p.id === review.target_id);
+            
+            allReviews.push({
+              ...review,
+              itemName: product?.name || 'Unknown Product'
+            });
+          }
+        }
+      }
+
+      // Get service IDs for this vendor
+      const { data: vendorServices } = await supabase
+        .from('vendor_services')
+        .select('id, name')
+        .in('vendor_id', vendorIds);
+      
+      const serviceIds = vendorServices?.map(s => s.id) || [];
+      
+      if (serviceIds.length > 0) {
+        const { data: serviceReviews } = await supabase
+          .from('reviews')
+          .select(`
+            id,
+            rating,
+            title,
+            body,
+            created_at,
+            user_id,
+            target_type,
+            target_id,
+            vendor_response,
+            response_date
+          `)
+          .eq('target_type', 'service')
+          .in('target_id', serviceIds)
+          .order('created_at', { ascending: false });
+
+        if (serviceReviews) {
+          for (const review of serviceReviews) {
+            const service = vendorServices?.find(s => s.id === review.target_id);
+            
+            allReviews.push({
+              ...review,
+              itemName: service?.name || 'Unknown Service'
+            });
+          }
+        }
+      }
+
+      return allReviews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
     enabled: vendorIds.length > 0,
     refetchOnWindowFocus: false,
@@ -122,8 +173,8 @@ export default function VendorReviews() {
     }
   };
 
-  const getAverageRating = () => {
-    if (!reviews || reviews.length === 0) return 0;
+  const getAverageRating = (): string => {
+    if (!reviews || reviews.length === 0) return "0";
     const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
     return (sum / reviews.length).toFixed(1);
   };
@@ -162,7 +213,7 @@ export default function VendorReviews() {
           <CardContent>
             <div className="text-2xl font-bold flex items-center gap-2">
               {getAverageRating()}
-              <RatingStars rating={parseFloat(getAverageRating())} size="sm" />
+              <RatingStars value={parseFloat(getAverageRating())} size="sm" readOnly />
             </div>
             <p className="text-xs text-muted-foreground">
               Based on {reviews?.length || 0} reviews
@@ -205,14 +256,14 @@ export default function VendorReviews() {
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-3">
-                    <RatingStars rating={review.rating} size="sm" />
+                    <RatingStars value={review.rating} size="sm" readOnly />
                     <Badge variant="outline">
-                      {review.products?.name || review.services?.name}
+                      {review.itemName}
                     </Badge>
                   </div>
                   <h3 className="font-semibold">{review.title}</h3>
                   <p className="text-sm text-muted-foreground">
-                    By {review.profiles?.display_name || 'Anonymous'} • {' '}
+                    By Customer • {' '}
                     {new Date(review.created_at).toLocaleDateString()}
                   </p>
                 </div>
