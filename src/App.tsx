@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProductionErrorBoundary } from "@/components/common/ProductionErrorBoundary";
 import { AccessibilityProvider } from "@/components/common/AccessibilityProvider";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -103,9 +104,10 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
         <AccessibilityProvider>
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+            <SidebarProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<Index />} />
 
@@ -330,7 +332,8 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Route>
                 </Routes>
-            </BrowserRouter>
+              </BrowserRouter>
+            </SidebarProvider>
           </TooltipProvider>
         </AccessibilityProvider>
       </ThemeProvider>

@@ -61,8 +61,8 @@ const superAdminItems = [
 ];
 
 export default function AppSidebar() {
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
+  const sidebarContext = useSidebar();
+  const collapsed = sidebarContext?.state === "collapsed";
   const location = useLocation();
   const { user, isAdmin, isSuperadmin } = useAuthRoles();
   const currentPath = location.pathname;
