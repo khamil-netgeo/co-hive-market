@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import { Link } from "react-router-dom";
 import MediaGallery from "@/components/common/MediaGallery";
+import { getProductUrl } from "@/lib/slugs";
 
 interface Product {
   id: string;
@@ -158,32 +159,34 @@ export default function VendorProducts() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
-            <Card key={product.id} className="relative">
-              <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                <MediaGallery 
-                  images={product.image_urls || []} 
-                  videos={product.video_url ? [product.video_url] : []}
-                  alt={product.name}
-                  aspect="video"
-                  showThumbnails={false}
-                />
-              </div>
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{product.name}</CardTitle>
-                    <CardDescription className="mt-1">
-                      {product.description || "No description"}
-                    </CardDescription>
-                  </div>
-                  <Badge 
-                    variant={product.status === "active" ? "default" : "secondary"}
-                    className="ml-2"
-                  >
-                    {product.status}
-                  </Badge>
+            <Card key={product.id} className="relative group hover:shadow-lg transition-shadow cursor-pointer">
+              <Link to={getProductUrl(product)} className="block">
+                <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                  <MediaGallery 
+                    images={product.image_urls || []} 
+                    videos={product.video_url ? [product.video_url] : []}
+                    alt={product.name}
+                    aspect="video"
+                    showThumbnails={false}
+                  />
                 </div>
-              </CardHeader>
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg group-hover:text-primary transition-colors">{product.name}</CardTitle>
+                      <CardDescription className="mt-1">
+                        {product.description || "No description"}
+                      </CardDescription>
+                    </div>
+                    <Badge 
+                      variant={product.status === "active" ? "default" : "secondary"}
+                      className="ml-2"
+                    >
+                      {product.status}
+                    </Badge>
+                  </div>
+                </CardHeader>
+              </Link>
               
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -212,23 +215,28 @@ export default function VendorProducts() {
                   )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="flex-1"
+                  >
+                    <Link to={getProductUrl(product)}>
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Link>
+                  </Button>
+                  
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => toggleProductStatus(product.id, product.status)}
-                    className="flex-1"
                   >
                     {product.status === "active" ? (
-                      <>
-                        <EyeOff className="h-4 w-4 mr-1" />
-                        Hide
-                      </>
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <>
-                        <Eye className="h-4 w-4 mr-1" />
-                        Show
-                      </>
+                      <Eye className="h-4 w-4" />
                     )}
                   </Button>
                   
