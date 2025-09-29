@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import useUserRoles from "@/hooks/useUserRoles";
+import { visibleCount } from "@/lib/format";
 
 type RoleType = 'buyer' | 'vendor' | 'delivery';
 
@@ -64,7 +65,7 @@ const roleNavigationConfig: Record<RoleType, RoleNavigationConfig> = {
     routes: [
       { title: "Dashboard", url: "/vendor/dashboard", icon: Home },
       { title: "Products", url: "/vendor/products", icon: Package },
-      { title: "Orders", url: "/vendor/orders", icon: ShoppingCart, badge: "new" },
+      { title: "Orders", url: "/vendor/orders", icon: ShoppingCart },
       { title: "Analytics", url: "/vendor/analytics", icon: BarChart3 },
       { title: "Services", url: "/vendor/services", icon: Calendar },
       { title: "Payouts", url: "/vendor/payouts", icon: CreditCard },
@@ -78,7 +79,7 @@ const roleNavigationConfig: Record<RoleType, RoleNavigationConfig> = {
     color: "text-orange-600", 
     routes: [
       { title: "Hub", url: "/rider", icon: Home },
-      { title: "Available Deliveries", url: "/rider/assignments", icon: MapPin, badge: "5" },
+      { title: "Available Deliveries", url: "/rider/assignments", icon: MapPin },
       { title: "My Deliveries", url: "/rider/deliveries", icon: Truck },
       { title: "Earnings", url: "/rider/payouts", icon: CreditCard },
       { title: "Performance", url: "/rider/dashboard", icon: BarChart3 },
@@ -153,13 +154,16 @@ export default function RoleSpecificSidebar({ currentRole }: RoleSpecificSidebar
                 <div className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded-md">
                   {config.label}
                 </div>
-                {(() => {
-                  const communitiesCount = roles.filter(r => r.member_type === activeRole).length;
-                  return communitiesCount > 0 ? (
+{(() => {
+                  // Count distinct communities for this role
+                  const distinctCommunities = new Set(
+                    roles.filter(r => r.member_type === activeRole).map(r => r.community_id)
+                  );
+                  return visibleCount(distinctCommunities.size, count => (
                     <div className="text-xs text-muted-foreground">
-                      {communitiesCount} communities
+                      {count} {count === 1 ? 'community' : 'communities'}
                     </div>
-                  ) : null;
+                  ));
                 })()}
               </div>
             </div>

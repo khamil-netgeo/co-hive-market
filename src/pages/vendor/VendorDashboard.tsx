@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Package, ListOrdered, BarChart3, Wallet, Plus, Eye, Pencil, AlertTriangle } from "lucide-react";
 import MediaGallery from "@/components/common/MediaGallery";
 import { useVendorAnalytics } from "@/hooks/useVendorAnalytics";
+import { visibleCount, joinNonEmpty } from "@/lib/format";
 
 interface Product {
   id: string;
@@ -176,22 +177,25 @@ export default function VendorDashboard() {
     {
       title: "Total Orders",
       value: statsLoading ? "..." : (stats?.totalOrders || 0).toString(),
-      description: [
-        (stats?.pendingOrders || 0) > 0 ? `${stats.pendingOrders} pending` : null,
-        (stats?.completedOrders || 0) > 0 ? `${stats.completedOrders} completed` : null
-      ].filter(Boolean).join(' • ') || "No orders yet",
+      description: joinNonEmpty([
+        visibleCount(stats?.pendingOrders, count => `${count} pending`),
+        visibleCount(stats?.completedOrders, count => `${count} completed`)
+      ]) || "No orders yet",
       icon: <ListOrdered className="h-4 w-4" />
     },
     {
       title: "Products",
       value: products.length.toString(),
-      description: activeProducts > 0 ? `${activeProducts} active${stats?.lowStockCount && stats.lowStockCount > 0 ? ` • ${stats.lowStockCount} low stock` : ''}` : stats?.lowStockCount && stats.lowStockCount > 0 ? `${stats.lowStockCount} low stock` : "No active products",
+      description: joinNonEmpty([
+        visibleCount(activeProducts, count => `${count} active`),
+        visibleCount(stats?.lowStockCount, count => `${count} low stock`)
+      ]) || "No products yet",
       icon: <Package className="h-4 w-4" />
     },
     {
       title: "Services",
       value: services.length.toString(),
-      description: activeServices > 0 ? `${activeServices} active` : "No active services",
+      description: visibleCount(activeServices, count => `${count} active`) || "No services yet",
       icon: <BarChart3 className="h-4 w-4" />
     }
   ];
