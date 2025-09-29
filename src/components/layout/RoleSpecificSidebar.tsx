@@ -153,9 +153,14 @@ export default function RoleSpecificSidebar({ currentRole }: RoleSpecificSidebar
                 <div className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded-md">
                   {config.label}
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {roles.filter(r => r.member_type === activeRole).length} communities
-                </div>
+                {(() => {
+                  const communitiesCount = roles.filter(r => r.member_type === activeRole).length;
+                  return communitiesCount > 0 ? (
+                    <div className="text-xs text-muted-foreground">
+                      {communitiesCount} communities
+                    </div>
+                  ) : null;
+                })()}
               </div>
             </div>
           </div>
