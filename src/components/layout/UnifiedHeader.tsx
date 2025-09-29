@@ -27,9 +27,9 @@ export default function UnifiedHeader({ showSidebarTrigger = false, showNavigati
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4 min-w-0">
+      <div className="container flex h-16 items-center justify-between min-w-0" style={{paddingLeft: showSidebarTrigger ? '0.5rem' : '1rem', paddingRight: '1rem'}}>
         <div className="flex items-center gap-3 min-w-0">
-          {showSidebarTrigger && <SidebarTrigger className="ml-0 shrink-0" />}
+          {showSidebarTrigger && <SidebarTrigger className="-ml-1 shrink-0" />}
           
           <Link to="/" className="inline-flex items-center gap-2">
             <div className="h-7 w-7 rounded-md bg-gradient-primary" aria-hidden />
