@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useCommunity } from "@/context/CommunityContext";
 import { logAudit } from "@/lib/audit";
+import CommunityMembershipCard from "@/components/communities/CommunityMembershipCard";
+import AvailableCommunityCard from "@/components/communities/AvailableCommunityCard";
 
 interface Community { id: string; name: string; description: string | null; member_discount_percent: number; coop_fee_percent: number; community_fee_percent: number }
 
@@ -42,6 +44,15 @@ export default function Communities() {
   const getUserRolesInCommunity = (communityId: string) => {
     return myMemberships.filter(m => m.community_id === communityId).map(m => m.member_type);
   };
+
+  // Group memberships by community
+  const groupedMemberships = myMemberships.reduce((acc, membership) => {
+    if (!acc[membership.community_id]) {
+      acc[membership.community_id] = [];
+    }
+    acc[membership.community_id].push(membership);
+    return acc;
+  }, {} as Record<string, typeof myMemberships>);
 
   const getButtonState = (communityId: string, memberType: MemberType) => {
     const hasRole = getUserRoleInCommunity(communityId, memberType);
@@ -274,142 +285,119 @@ export default function Communities() {
       )}
 
       {(user && (loadingMemberships || myMemberships.length > 0)) && (
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Your memberships</CardTitle>
-            <CardDescription>Communities you have joined</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loadingMemberships ? (
-              <p className="text-sm text-muted-foreground">Loading…</p>
-            ) : myMemberships.length === 0 ? (
-              <p className="text-sm text-muted-foreground">You haven’t joined any communities yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {myMemberships.map((m) => {
-                  const c = communities.find((x) => x.id === m.community_id);
-                  const isActive = selected.id === m.community_id;
-                  const isManager = (m.member_type as any) === 'manager';
-                  return (
-                    <div key={m.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border rounded-md p-3">
-                      <div className="flex items-center gap-2">
-                        <Link to={`/communities/${m.community_id}`} className="font-medium hover:underline">{c?.name ?? 'Community'}</Link>
-                        {isActive && <Badge variant="secondary">Active</Badge>}
-                        <Badge variant="outline">{m.member_type}</Badge>
-                      </div>
-                      <div className="flex gap-2">
-                        {!isActive && (
-                          <Button size="sm" variant="outline" onClick={() => handleSetActive(m.community_id)}>Set active</Button>
-                        )}
-                        {isManager && (
-                          <Button size="sm" asChild>
-                            <Link to={`/communities/${m.community_id}/manage`}>Manage</Link>
-                          </Button>
-                        )}
-                        <Button size="sm" variant="ghost" onClick={() => handleLeave(m.id, m.community_id)}>Leave</Button>
-                      </div>
+        <div className="mb-8">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2">Your Communities</h2>
+            <p className="text-sm text-muted-foreground">
+              Communities you've joined and your roles within them
+            </p>
+          </div>
+          
+          {loadingMemberships ? (
+            <Card>
+              <CardContent className="py-8">
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <span className="ml-3 text-muted-foreground">Loading your communities...</span>
+                </div>
+              </CardContent>
+            </Card>
+          ) : Object.keys(groupedMemberships).length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center">
+                <div className="max-w-sm mx-auto">
+                  <div className="mb-4">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                      <ArrowRight className="h-8 w-8 text-muted-foreground" />
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Communities</CardTitle>
-          <CardDescription>Publicly visible</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : communities.length === 0 ? (
-            <div className="text-sm text-muted-foreground">
-              No communities yet.
-              {canManage ? (
-                <span className="ml-1">Use the form above to create one.</span>
-              ) : (
-                <span className="ml-1">Ask an admin to create one.</span>
-              )}
-            </div>
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">No communities yet</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Join a community below to start saving with member discounts and connect with local vendors.
+                  </p>
+                  <Button variant="outline" onClick={() => {
+                    document.querySelector('#available-communities')?.scrollIntoView({ 
+                      behavior: 'smooth' 
+                    });
+                  }}>
+                    Browse Communities
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
-              {communities.map((c) => (
-                <Card key={c.id} className="hover:shadow-lg hover:bg-accent/5 transition-all duration-200 cursor-pointer group">
-                  <CardHeader>
-                    <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                      <Link to={`/communities/${c.id}`} className="hover:underline group-hover:text-primary transition-colors">{c.name}</Link>
-                      <Badge variant="outline" className="self-start sm:self-auto">{c.member_discount_percent}% discount</Badge>
-                    </CardTitle>
-                    <CardDescription className="group-hover:text-foreground transition-colors">{c.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {(() => {
-                        const buyerState = getButtonState(c.id, 'buyer');
-                        return (
-                          <Button 
-                            size="sm" 
-                            variant={buyerState.variant}
-                            onClick={() => handleJoin(c.id, 'buyer')} 
-                            disabled={!user || buyerState.disabled} 
-                            className="flex-1 min-w-[100px] sm:flex-none"
-                          >
-                            {buyerState.icon && <Check className="h-3 w-3 mr-1" />}
-                            {buyerState.text}
-                          </Button>
-                        );
-                      })()}
-                      {(() => {
-                        const vendorState = getButtonState(c.id, 'vendor');
-                        return (
-                          <Button 
-                            size="sm" 
-                            variant={vendorState.variant}
-                            onClick={() => handleJoin(c.id, 'vendor')} 
-                            disabled={!user || vendorState.disabled} 
-                            className="flex-1 min-w-[100px] sm:flex-none"
-                          >
-                            {vendorState.icon && <Check className="h-3 w-3 mr-1" />}
-                            {vendorState.text}
-                          </Button>
-                        );
-                      })()}
-                      {(() => {
-                        const riderState = getButtonState(c.id, 'delivery');
-                        return (
-                          <Button 
-                            size="sm" 
-                            variant={riderState.variant}
-                            onClick={() => handleJoin(c.id, 'delivery')} 
-                            disabled={!user || riderState.disabled} 
-                            className="flex-1 min-w-[100px] sm:flex-none"
-                          >
-                            {riderState.icon && <Check className="h-3 w-3 mr-1" />}
-                            {riderState.text}
-                          </Button>
-                        );
-                      })()}
-                      <Button size="sm" variant="ghost" asChild className="flex-1 min-w-[120px] sm:flex-none group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                        <Link to={`/communities/${c.id}`} className="flex items-center gap-1">
-                          View details <ArrowRight className="h-3 w-3" />
-                        </Link>
-                      </Button>
-                      {!user && (
-                        <Button size="sm" variant="ghost" asChild className="flex-1 min-w-[80px] sm:flex-none">
-                          <Link to="/auth">Sign in</Link>
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="grid gap-4 md:grid-cols-2">
+              {Object.entries(groupedMemberships).map(([communityId, memberships]) => {
+                const community = communities.find(c => c.id === communityId);
+                const isActive = selected.id === communityId;
+                
+                if (!community) return null;
+                
+                return (
+                  <CommunityMembershipCard
+                    key={communityId}
+                    community={community}
+                    memberships={memberships}
+                    isActive={isActive}
+                    onSetActive={() => handleSetActive(communityId)}
+                    onLeave={(membershipId) => handleLeave(membershipId, communityId)}
+                  />
+                );
+              })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      )}
+
+      <div id="available-communities">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">Discover Communities</h2>
+          <p className="text-sm text-muted-foreground">
+            Join communities to unlock member discounts and connect with local vendors
+          </p>
+        </div>
+
+        {loading ? (
+          <Card>
+            <CardContent className="py-8">
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-3 text-muted-foreground">Loading communities...</span>
+              </div>
+            </CardContent>
+          </Card>
+        ) : communities.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <div className="max-w-sm mx-auto">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                  <ArrowRight className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">No communities available</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {canManage ? (
+                    "Use the form above to create the first community."
+                  ) : (
+                    "Communities will appear here once they're created by an admin."
+                  )}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2">
+            {communities.map((community) => (
+              <AvailableCommunityCard
+                key={community.id}
+                community={community}
+                user={user}
+                getButtonState={getButtonState}
+                onJoin={handleJoin}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </main>
   );
 }
