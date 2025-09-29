@@ -176,38 +176,34 @@ const App = () => (
                   <Route path="/rider/profile" element={<RiderProfile />} />
 
                   {/* Admin Routes */}
-                  <Route element={<RequireAdmin />}>
-                    <Route element={<AdminLayout />}>
-                      <Route path="/admin/dashboard" element={<Dashboard />} />
-                      <Route path="/admin/kyc" element={<AdminKYC />} />
-                      <Route path="/admin/kyc-requirements" element={<AdminKYCRequirements />} />
-                      <Route path="/admin/finance" element={<Finance />} />
-                    </Route>
+                  <Route element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
+                    <Route path="/admin/dashboard" element={<Dashboard />} />
+                    <Route path="/admin/kyc" element={<AdminKYC />} />
+                    <Route path="/admin/kyc-requirements" element={<AdminKYCRequirements />} />
+                    <Route path="/admin/finance" element={<Finance />} />
                   </Route>
 
                   {/* Super Admin Routes */}
-                  <Route element={<RequireSuperadmin />}>
-                    <Route element={<SuperAdminLayout />}>
-                      <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
-                      <Route path="/superadmin/users-roles" element={<UsersRoles />} />
-                      <Route path="/superadmin/roles-management" element={<RolesManagement />} />
-                      <Route path="/superadmin/categories" element={<Categories />} />
-                      <Route path="/superadmin/categories-management" element={<CategoriesManagement />} />
-                      <Route path="/superadmin/verification" element={<Verification />} />
-                      <Route path="/superadmin/financial-control" element={<FinancialControl />} />
-                      <Route path="/superadmin/platform-management" element={<PlatformManagement />} />
-                      <Route path="/superadmin/global-settings" element={<GlobalSettings />} />
-                      <Route path="/superadmin/feature-flags" element={<FeatureFlags />} />
-                      <Route path="/superadmin/audit-logs" element={<AuditLogs />} />
-                      <Route path="/superadmin/communications" element={<Communications />} />
-                      <Route path="/superadmin/announcements" element={<Announcements />} />
-                      <Route path="/superadmin/content-reports" element={<ContentReports />} />
-                      <Route path="/superadmin/page-content" element={<PageContentManagement />} />
-                      <Route path="/superadmin/testimonials" element={<TestimonialsManagement />} />
-                      <Route path="/superadmin/statistics" element={<StatisticsManagement />} />
-                      <Route path="/superadmin/process-steps" element={<ProcessStepsManagement />} />
-                      <Route path="/superadmin/trust-management" element={<TrustManagement />} />
-                    </Route>
+                  <Route element={<RequireSuperadmin><SuperAdminLayout /></RequireSuperadmin>}>
+                    <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
+                    <Route path="/superadmin/users-roles" element={<UsersRoles />} />
+                    <Route path="/superadmin/roles-management" element={<RolesManagement />} />
+                    <Route path="/superadmin/categories" element={<Categories />} />
+                    <Route path="/superadmin/categories-management" element={<CategoriesManagement />} />
+                    <Route path="/superadmin/verification" element={<Verification />} />
+                    <Route path="/superadmin/financial-control" element={<FinancialControl />} />
+                    <Route path="/superadmin/platform-management" element={<PlatformManagement />} />
+                    <Route path="/superadmin/global-settings" element={<GlobalSettings />} />
+                    <Route path="/superadmin/feature-flags" element={<FeatureFlags />} />
+                    <Route path="/superadmin/audit-logs" element={<AuditLogs />} />
+                    <Route path="/superadmin/communications" element={<Communications />} />
+                    <Route path="/superadmin/announcements" element={<Announcements />} />
+                    <Route path="/superadmin/content-reports" element={<ContentReports />} />
+                    <Route path="/superadmin/page-content" element={<PageContentManagement />} />
+                    <Route path="/superadmin/testimonials" element={<TestimonialsManagement />} />
+                    <Route path="/superadmin/statistics" element={<StatisticsManagement />} />
+                    <Route path="/superadmin/process-steps" element={<ProcessStepsManagement />} />
+                    <Route path="/superadmin/trust-management" element={<TrustManagement />} />
                   </Route>
                 </Route>
 
