@@ -149,9 +149,6 @@ function RoleCard({ role, isSelected, onSelect, isMobile }: RoleCardProps) {
                   </Badge>
                 )}
               </div>
-              {isSelected && (
-                <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 animate-in zoom-in-75 duration-200" />
-              )}
             </div>
             
             <p className="text-muted-foreground leading-relaxed flex-grow text-sm mb-3">
