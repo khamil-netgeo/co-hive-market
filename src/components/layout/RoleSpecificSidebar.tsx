@@ -144,13 +144,18 @@ export default function RoleSpecificSidebar({ currentRole }: RoleSpecificSidebar
       <SidebarContent>
         <div className="p-4 border-b">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg bg-muted`}>
-              <Icon className={`h-5 w-5 ${config.color}`} />
+            <div className="p-3 rounded-xl bg-gradient-to-br from-brand-1 via-brand-2 to-brand-3 text-white shadow-lg">
+              <div className="text-lg font-bold">CM</div>
             </div>
-            <div>
-              <div className="font-semibold">{config.label} Mode</div>
-              <div className="text-xs text-muted-foreground">
-                {roles.filter(r => r.member_type === activeRole).length} communities
+            <div className="flex-1">
+              <div className="text-sm font-medium">CoopMarket</div>
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded-md">
+                  {config.label}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {roles.filter(r => r.member_type === activeRole).length} communities
+                </div>
               </div>
             </div>
           </div>
