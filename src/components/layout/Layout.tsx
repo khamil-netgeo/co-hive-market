@@ -25,7 +25,7 @@ const Layout = ({ children }: PropsWithChildren) => {
         <SidebarInset className="min-w-0 w-full overflow-x-hidden flex flex-col">
           <UnifiedHeader showSidebarTrigger />
           <RoleBreadcrumbs />
-          <main className="flex-1 min-w-0 p-0" id="main-content">
+          <main className="flex-1 min-w-0 p-0">
             {children ?? <Outlet />}
           </main>
           <SiteFooter />

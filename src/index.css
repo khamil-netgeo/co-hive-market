@@ -502,21 +502,3 @@ All colors MUST be HSL.
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
-
-/* Skip link */
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 6px;
-  background: hsl(var(--background));
-  color: hsl(var(--foreground));
-  padding: 8px;
-  text-decoration: none;
-  border-radius: 4px;
-  border: 2px solid hsl(var(--border));
-  z-index: 1000;
-}
-
-.skip-link:focus {
-  top: 6px;
-}

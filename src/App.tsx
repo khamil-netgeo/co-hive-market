@@ -106,10 +106,6 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <a href="#main-content" className="skip-link">
-                Skip to main content
-              </a>
-              <div id="main-content">
                 <Routes>
                   <Route path="/" element={<Index />} />
 
@@ -334,7 +330,6 @@ const App = () => (
                     <Route path="*" element={<NotFound />} />
                   </Route>
                 </Routes>
-              </div>
             </BrowserRouter>
           </TooltipProvider>
         </AccessibilityProvider>
