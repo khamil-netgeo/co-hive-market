@@ -182,13 +182,13 @@ export default function VendorDashboard() {
     {
       title: "Products",
       value: products.length.toString(),
-      description: `${activeProducts} active${stats?.lowStockCount && stats.lowStockCount > 0 ? ` • ${stats.lowStockCount} low stock` : ''}`,
+      description: activeProducts > 0 ? `${activeProducts} active${stats?.lowStockCount && stats.lowStockCount > 0 ? ` • ${stats.lowStockCount} low stock` : ''}` : stats?.lowStockCount && stats.lowStockCount > 0 ? `${stats.lowStockCount} low stock` : "No active products",
       icon: <Package className="h-4 w-4" />
     },
     {
       title: "Services",
       value: services.length.toString(),
-      description: `${activeServices} active`,
+      description: activeServices > 0 ? `${activeServices} active` : "No active services",
       icon: <BarChart3 className="h-4 w-4" />
     }
   ];
