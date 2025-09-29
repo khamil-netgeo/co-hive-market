@@ -138,7 +138,7 @@ export default function RoleManagementCard({
                     </Badge>
                   </div>
                   
-                   <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                   <div className="space-y-4">
                      {Object.entries(roleConfig).map(([roleKey, config]) => {
                        const hasRole = communityRoles.some(role => role.member_type === roleKey);
                        const progress = hasRole ? getRoleProgress(roleKey as any) : 0;
@@ -148,73 +148,73 @@ export default function RoleManagementCard({
                        return (
                          <div
                            key={roleKey}
-                           className={`relative h-full p-5 rounded-xl border transition-all duration-300 ${
+                           className={`relative p-6 rounded-xl border transition-all duration-300 ${
                              hasRole 
-                               ? 'border-primary/30 bg-gradient-to-br from-primary/8 to-primary/12 shadow-lg hover:shadow-xl' 
+                               ? 'border-primary/30 bg-gradient-to-r from-primary/8 to-primary/12 shadow-lg hover:shadow-xl' 
                                : 'border-dashed border-muted-foreground/40 hover:border-primary/60 hover:bg-muted/30 hover:shadow-md'
                            }`}
                          >
-                           <div className="flex flex-col h-full">
-                             {/* Header Section */}
-                             <div className="flex items-start gap-3 mb-4">
-                               <div className={`p-3 rounded-xl ${config.bgColor} ring-2 ring-white/50 shadow-sm`}>
-                                 <Icon className={`h-6 w-6 ${config.color}`} />
+                           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+                             {/* Left Side - Icon and Role Name */}
+                             <div className="flex items-center gap-4 min-w-0 flex-shrink-0">
+                               <div className={`p-4 rounded-xl ${config.bgColor} ring-2 ring-white/50 shadow-sm`}>
+                                 <Icon className={`h-7 w-7 ${config.color}`} />
                                </div>
-                               <div className="flex-1 min-w-0">
-                                 <div className="flex items-center gap-2 mb-2">
-                                   <h4 className="font-bold text-base leading-tight">{config.label}</h4>
+                               <div>
+                                 <div className="flex items-center gap-2 mb-1">
+                                   <h4 className="font-bold text-lg leading-tight">{config.label}</h4>
                                    {hasRole && (
-                                     <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                                     <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0" />
                                    )}
                                  </div>
-                                 <p className="text-sm text-muted-foreground leading-relaxed">
+                                 <p className="text-sm text-muted-foreground">
                                    {config.description}
                                  </p>
                                </div>
                              </div>
-                             
-                             {/* Stats Section */}
-                             <div className="mb-4 flex-grow">
-                               <div className={`text-sm font-semibold text-center py-3 rounded-lg ${
+
+                             {/* Center - Stats and Progress */}
+                             <div className="flex-1 min-w-0 space-y-3 w-full sm:w-auto">
+                               <div className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold ${
                                  hasRole 
-                                   ? 'bg-primary/10 text-primary border border-primary/20' 
+                                   ? 'bg-primary/15 text-primary border border-primary/30' 
                                    : 'bg-muted/60 text-muted-foreground border border-muted'
                                }`}>
                                  {stats}
                                </div>
+                               
+                               {hasRole && (
+                                 <div className="space-y-2">
+                                   <div className="flex justify-between text-sm font-medium">
+                                     <span className="text-muted-foreground">Setup Progress</span>
+                                     <span className="text-primary">{progress}%</span>
+                                   </div>
+                                   <Progress value={progress} className="h-2 bg-muted/30" />
+                                 </div>
+                               )}
                              </div>
-                             
-                             {/* Progress and Actions Section */}
-                             <div className="mt-auto space-y-4">
+
+                             {/* Right Side - Actions */}
+                             <div className="flex gap-3 flex-shrink-0 w-full sm:w-auto">
                                {hasRole ? (
                                  <>
-                                   <div className="space-y-3">
-                                     <div className="flex justify-between text-sm font-medium">
-                                       <span className="text-muted-foreground">Setup Progress</span>
-                                       <span className="text-primary">{progress}%</span>
-                                     </div>
-                                     <Progress value={progress} className="h-3 bg-muted/30" />
-                                   </div>
-                                   
-                                   <div className="flex gap-2">
-                                     <Button size="sm" variant="default" className="flex-1 font-medium" asChild>
-                                       <Link to={config.dashboardLink}>
-                                         Dashboard
-                                       </Link>
+                                   <Button size="default" variant="default" className="font-medium flex-1 sm:flex-initial" asChild>
+                                     <Link to={config.dashboardLink}>
+                                       Dashboard
+                                     </Link>
+                                   </Button>
+                                   {progress < 100 && (
+                                     <Button size="default" variant="outline" className="font-medium flex-1 sm:flex-initial">
+                                       <AlertCircle className="h-4 w-4 mr-2" />
+                                       Complete
                                      </Button>
-                                     {progress < 100 && (
-                                       <Button size="sm" variant="outline" className="flex-1 font-medium">
-                                         <AlertCircle className="h-4 w-4 mr-1" />
-                                         Complete
-                                       </Button>
-                                     )}
-                                   </div>
+                                   )}
                                  </>
                                ) : (
                                  <Button 
-                                   size="sm" 
+                                   size="default"
                                    variant="outline" 
-                                   className="w-full font-medium py-3 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200"
+                                   className="font-medium hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 flex-1 sm:flex-initial"
                                    asChild
                                  >
                                    <Link to={`/getting-started?community=${communityId}&role=${roleKey}`}>
