@@ -17,6 +17,9 @@ import KycRequirements from "@/components/kyc/KycRequirements";
 import DeliveryPreferenceSelector from "@/components/delivery/DeliveryPreferenceSelector";
 import RoleManagementCard from "@/components/profile/RoleManagementCard";
 import CommunityRoleStats from "@/components/profile/CommunityRoleStats";
+import PageLayout from "@/components/layout/PageLayout";
+import PageHeader from "@/components/layout/PageHeader";
+import SectionLayout from "@/components/layout/SectionLayout";
 
 interface Membership { community_id: string; member_type: string }
 interface Community { id: string; name: string }
@@ -129,29 +132,23 @@ export default function Profile() {
   const userIdShort = useMemo(() => user?.id ? `${user.id.slice(0, 8)}…` : "", [user?.id]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container max-w-7xl mx-auto px-4 py-6 md:py-8 lg:py-12">
-        {/* Header */}
-        <header className="mb-8 lg:mb-12">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                My Profile
-              </h1>
-              <p className="text-muted-foreground mt-2 text-base md:text-lg">
-                Manage your account, roles, and preferences across communities
-              </p>
-            </div>
-            <Button asChild variant="default" size="lg" className="w-fit">
-              <Link to="/catalog">Browse Catalog</Link>
-            </Button>
-          </div>
-        </header>
+    <PageLayout variant="narrow" background="gradient">
+      <PageHeader
+        title="My Profile"
+        description="Manage your account, roles, and preferences across communities"
+        size="large"
+        actions={
+          <Button asChild variant="default" size="lg" className="w-fit">
+            <Link to="/catalog">Browse Catalog</Link>
+          </Button>
+        }
+      />
 
-        {/* Main Content Grid */}
-        <div className="space-y-8 lg:space-y-12">
-          {/* Top Section - Account Overview & Role Management */}
-          <section className="grid gap-6 lg:grid-cols-3 lg:gap-8">
+      {/* Main Content Grid */}
+      <div className="space-y-8 lg:space-y-12">
+        {/* Top Section - Account Overview & Role Management */}
+        <SectionLayout spacing="large">
+          <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
             {/* Account Info - spans 1 column */}
             <Card className="lg:col-span-1 border-2 hover:border-primary/20 transition-colors duration-200">
               <CardHeader className="pb-4">
@@ -206,44 +203,43 @@ export default function Profile() {
                 deliveriesCount={0}
               />
             </div>
-          </section>
+          </div>
+        </SectionLayout>
 
-          {/* Community Performance Stats */}
-          <section>
-            <CommunityRoleStats communitiesById={communitiesById} />
-          </section>
+        {/* Community Performance Stats */}
+        <SectionLayout>
+          <CommunityRoleStats communitiesById={communitiesById} />
+        </SectionLayout>
 
-          {/* Identity Verification Section */}
-          <section>
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Identity & Verification</h2>
-              <p className="text-muted-foreground">Upload your profile photo and complete identity verification</p>
-            </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
-              <AvatarUploader />
-              <KycUploader />
-            </div>
-          </section>
+        {/* Identity Verification Section */}
+        <SectionLayout
+          title="Identity & Verification"
+          description="Upload your profile photo and complete identity verification"
+        >
+          <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
+            <AvatarUploader />
+            <KycUploader />
+          </div>
+        </SectionLayout>
 
-          {/* Role Requirements */}
-          <section>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl">Role-specific Requirements</CardTitle>
-                <CardDescription>Complete additional requirements for your active roles</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <KycRequirements role="buyer" />
-              </CardContent>
-            </Card>
-          </section>
+        {/* Role Requirements */}
+        <SectionLayout>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Role-specific Requirements</CardTitle>
+              <CardDescription>Complete additional requirements for your active roles</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <KycRequirements role="buyer" />
+            </CardContent>
+          </Card>
+        </SectionLayout>
 
-          {/* Location & Address */}
-          <section>
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Address & Location</h2>
-              <p className="text-muted-foreground">Set your delivery address and precise location for better service</p>
-            </div>
+        {/* Location & Address */}
+        <SectionLayout
+          title="Address & Location"
+          description="Set your delivery address and precise location for better service"
+        >
             <Card className="border-2">
               <CardContent className="p-6 lg:p-8">
                 <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
@@ -354,15 +350,14 @@ export default function Profile() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          </section>
+          </Card>
+        </SectionLayout>
 
-          {/* Vendor Management */}
-          <section>
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Vendor Management</h2>
-              <p className="text-muted-foreground">Manage your vendor accounts and store settings</p>
-            </div>
+        {/* Vendor Management */}
+        <SectionLayout
+          title="Vendor Management"
+          description="Manage your vendor accounts and store settings"
+        >
             <Card className="border-2">
               <CardContent className="p-6">
                 {loadingData ? (
@@ -408,18 +403,16 @@ export default function Profile() {
                 )}
               </CardContent>
             </Card>
-          </section>
+        </SectionLayout>
 
-          {/* Delivery Preferences */}
-          <section>
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Delivery Preferences</h2>
-              <p className="text-muted-foreground">Configure your delivery and pickup preferences</p>
-            </div>
-            <DeliveryPreferenceSelector />
-          </section>
-        </div>
+        {/* Delivery Preferences */}
+        <SectionLayout
+          title="Delivery Preferences"
+          description="Configure your delivery and pickup preferences"
+        >
+          <DeliveryPreferenceSelector />
+        </SectionLayout>
       </div>
-    </main>
+    </PageLayout>
   );
 }

@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { setSEO } from "@/lib/seo";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import OrderCard from "@/components/orders/OrderCard";
 import { ORDER_STATUS_GROUPS, getStatusDisplay, isOrderInGroup } from "@/lib/orderStatus";
 import { useCartSync } from "@/hooks/useCartSync";
+import PageLayout from "@/components/layout/PageLayout";
+import PageHeader from "@/components/layout/PageHeader";
 
 interface OrderRow {
   id: string;
@@ -287,21 +288,21 @@ const Orders = () => {
   });
 
   return (
-    <main className="container py-8">
-      <header className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">My Purchases</h1>
-          <p className="text-sm text-muted-foreground">Track orders, shipments, returns, and refunds.</p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button variant="secondary" asChild className="w-full sm:w-auto">
-            <a href="/products">Go to Catalog</a>
-          </Button>
-          <Button variant="outline" onClick={() => refetch()} className="w-full sm:w-auto">
-            Refresh
-          </Button>
-        </div>
-      </header>
+    <PageLayout>
+      <PageHeader
+        title="My Purchases"
+        description="Track orders, shipments, returns, and refunds."
+        actions={
+          <>
+            <Button variant="secondary" asChild className="w-full sm:w-auto">
+              <a href="/products">Go to Catalog</a>
+            </Button>
+            <Button variant="outline" onClick={() => refetch()} className="w-full sm:w-auto">
+              Refresh
+            </Button>
+          </>
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -379,10 +380,10 @@ const Orders = () => {
                 ))}
               </section>
             </div>
-          )}
+      )}
         </CardContent>
       </Card>
-    </main>
+    </PageLayout>
   );
 };
 

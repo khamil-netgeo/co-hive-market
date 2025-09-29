@@ -1,3 +1,9 @@
+// Layout Components
+export { default as PageLayout } from "@/components/layout/PageLayout";
+export { default as PageHeader } from "@/components/layout/PageHeader";
+export { default as SectionLayout } from "@/components/layout/SectionLayout";
+export { default as StandardDashboardLayout } from "@/components/layout/StandardDashboardLayout";
+
 // UI Components Index
 export { Button } from './button';
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
