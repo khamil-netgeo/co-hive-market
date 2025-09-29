@@ -6,7 +6,7 @@ import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import useIsVendor from "@/hooks/useIsVendor";
 import useIsRider from "@/hooks/useIsRider";
-import { ShoppingCart, MessageSquare, LifeBuoy, PanelLeft, Sun, Moon, Users } from "lucide-react";
+import { ShoppingCart, MessageSquare, LifeBuoy, Sun, Moon, Users } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
 import { useTheme } from "next-themes";
 import CommunitySelector from "@/components/community/CommunitySelector";
@@ -22,7 +22,7 @@ export default function UnifiedHeader({ showSidebarTrigger = false, showNavigati
   const { isRider } = useIsRider();
   const navigate = useNavigate();
   const { count } = useCart();
-  const { toggleSidebar } = useSidebar();
+  
   const { setTheme, resolvedTheme } = useTheme();
   const initials = (user?.email?.[0] || "?").toUpperCase();
   const username = user?.email?.split('@')[0] || "";
@@ -93,12 +93,6 @@ export default function UnifiedHeader({ showSidebarTrigger = false, showNavigati
                 <DropdownMenuSeparator />
                 
                 {/* App controls */}
-                {showSidebarTrigger && (
-                  <DropdownMenuItem onSelect={() => toggleSidebar()}>
-                    <PanelLeft className="mr-2 h-4 w-4" />
-                    Toggle Sidebar
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuItem onSelect={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
                   {resolvedTheme === "dark" ? (
                     <>
