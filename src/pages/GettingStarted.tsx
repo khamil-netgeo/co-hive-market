@@ -17,6 +17,7 @@ import SimpleRoleSelector from "@/components/onboarding/SimpleRoleSelector";
 import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 import OnboardingResumeCard from "@/components/onboarding/OnboardingResumeCard";
 import OnboardingAnalyticsProvider from "@/components/onboarding/OnboardingAnalyticsProvider";
+import ExistingUserMessage from "@/components/auth/ExistingUserMessage";
 import { useErrorRecovery } from "@/hooks/useErrorRecovery";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 
@@ -43,7 +44,7 @@ const GettingStarted = () => {
     reasons: [`${community.member_discount_percent}% member discount`, 'Growing community', 'Active listings']
   }));
 
-  // Require authentication first
+  // Require authentication first and check if user already has roles
   useEffect(() => {
     if (!loading && !user) {
       // Store intended destination for post-auth redirect
@@ -380,6 +381,9 @@ const GettingStarted = () => {
           </div>
         ) : (
           <OnboardingAnalyticsProvider>
+            {/* Show existing user message if they already have roles */}
+            <ExistingUserMessage userName={user.email?.split('@')[0] || 'User'} />
+
             {/* Show resume card if user has progress */}
             {canResume && useWizardMode && (
               <div className="mb-8">
