@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Loader2, ArrowRight, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import MobileRoleSelector from './MobileRoleSelector';
 
@@ -32,10 +32,10 @@ export function RoleSelectionStep({
 
   if (isMobile) {
     return (
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="text-lg font-semibold">Choose Your Role</h2>
-          <p className="text-sm text-muted-foreground">
+      <div className="space-y-8">
+        <div className="text-center space-y-3">
+          <h2 className="text-xl font-bold text-foreground">Choose Your Role</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
             Select how you'd like to participate in the community
           </p>
         </div>
@@ -49,59 +49,66 @@ export function RoleSelectionStep({
         />
 
         {singleRole && (
-          <Button 
-            onClick={onNext} 
-            disabled={isLoading}
-            className="w-full mt-6"
-            size="lg"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Setting up...
-              </>
-            ) : (
-              <>
-                Continue as {singleRole}
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </>
-            )}
-          </Button>
+          <div className="pt-4">
+            <Button 
+              onClick={onNext} 
+              disabled={isLoading}
+              className="w-full h-14 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Setting up your account...
+                </>
+              ) : (
+                <>
+                  Continue as {singleRole.charAt(0).toUpperCase() + singleRole.slice(1)}
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
         )}
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-semibold">Choose Your Role</h2>
-        <p className="text-muted-foreground">
-          Select how you'd like to participate in the community
+    <div className="max-w-4xl mx-auto space-y-8 px-4">
+      <div className="text-center space-y-4">
+        <h2 className="text-3xl font-bold text-foreground">Choose Your Role</h2>
+        <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
+          Select how you'd like to participate in the community and start your journey
         </p>
       </div>
 
-      <MobileRoleSelector
-        selectedRoles={singleRole ? [singleRole] : []}
-        onRoleToggle={(roleId) => {
-          onRoleSelect(singleRole === roleId ? '' : roleId);
-        }}
-        multiSelect={false}
-      />
+      <div className="py-4">
+        <MobileRoleSelector
+          selectedRoles={singleRole ? [singleRole] : []}
+          onRoleToggle={(roleId) => {
+            onRoleSelect(singleRole === roleId ? '' : roleId);
+          }}
+          multiSelect={false}
+        />
+      </div>
 
-      <div className="flex justify-between items-center pt-4">
-        <Button variant="outline" onClick={onBack} disabled={isLoading}>
+      <div className="flex justify-between items-center pt-6">
+        <Button variant="outline" onClick={onBack} disabled={isLoading} className="px-8 py-3">
+          <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         
         <Button 
           onClick={onNext} 
           disabled={!singleRole || isLoading}
+          className="px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-200"
+          size="lg"
         >
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Setting up...
+              Setting up your account...
             </>
           ) : (
             <>

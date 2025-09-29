@@ -243,77 +243,82 @@ export default function OnboardingWizard({
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      {/* Desktop Header */}
-      <div className="text-center py-8 space-y-4">
-        {/* Progress Steps */}
-        <div className="flex items-center justify-center mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+      {/* Desktop Header - Enhanced */}
+      <div className="text-center py-12 space-y-6">
+        {/* Progress Steps - Enhanced */}
+        <div className="flex items-center justify-center mb-8">
           {steps.map((_, index) => (
             <div key={index} className="flex items-center">
               <div className={`
-                w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors
+                w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 shadow-lg
                 ${index <= currentStep 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted text-muted-foreground'
+                  ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-primary/25' 
+                  : 'bg-gradient-to-br from-muted to-muted/80 text-muted-foreground shadow-muted/25'
                 }
               `}>
                 {index < currentStep ? (
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className="h-5 w-5" />
                 ) : (
                   index + 1
                 )}
               </div>
               {index < steps.length - 1 && (
-                <div className={`w-12 h-0.5 mx-2 ${
-                  index < currentStep ? 'bg-primary' : 'bg-muted'
+                <div className={`w-16 h-1 mx-3 rounded-full transition-all duration-300 ${
+                  index < currentStep ? 'bg-gradient-to-r from-primary to-primary/80' : 'bg-muted'
                 }`} />
               )}
             </div>
           ))}
         </div>
         
-        <div>
-          <h1 className="text-3xl font-bold">{steps[currentStep].title}</h1>
-          <p className="text-muted-foreground">{steps[currentStep].description}</p>
+        <div className="space-y-3">
+          <h1 className="text-4xl font-bold text-foreground">{steps[currentStep].title}</h1>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
+            {steps[currentStep].description}
+          </p>
         </div>
         
-        <div className="max-w-md mx-auto">
-          <Progress value={progressPercentage} className="h-2" />
-          <p className="text-xs text-muted-foreground mt-1">
+        <div className="max-w-lg mx-auto space-y-2">
+          <Progress value={progressPercentage} className="h-3 bg-muted/50" />
+          <p className="text-sm text-muted-foreground font-medium">
             Step {currentStep + 1} of {steps.length}
           </p>
         </div>
       </div>
 
-      {/* Desktop Step Content */}
-      <div className="min-h-[400px]">
-        {stepContent()}
+      {/* Desktop Step Content - Enhanced */}
+      <div className="min-h-[500px] pb-12">
+        <div className="max-w-6xl mx-auto px-6">
+          {stepContent()}
+        </div>
 
         {error && (
-          <div className="mt-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg max-w-2xl mx-auto">
-            <div className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              {error}
+          <div className="mt-8 p-5 bg-destructive/10 border border-destructive/20 rounded-xl max-w-2xl mx-auto shadow-lg">
+            <div className="flex items-center gap-3 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+              <span className="font-medium">{error}</span>
             </div>
           </div>
         )}
 
-        {/* Desktop Navigation */}
-        <div className="flex justify-between items-center max-w-2xl mx-auto mt-8">
+        {/* Desktop Navigation - Enhanced */}
+        <div className="flex justify-between items-center max-w-4xl mx-auto mt-12 px-6">
           <Button 
             variant="outline" 
             onClick={handleBack}
             disabled={currentStep === 0 || isLoading}
+            className="px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-200"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
           
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground font-medium bg-muted/50 px-4 py-2 rounded-full">
             Step {currentStep + 1} of {steps.length}
           </div>
           
-          <div className="w-20" /> {/* Spacer */}
+          <div className="w-24" /> {/* Spacer */}
         </div>
       </div>
     </div>

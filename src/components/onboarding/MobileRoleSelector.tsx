@@ -53,9 +53,9 @@ export default function MobileRoleSelector({
   const isMobile = useIsMobile();
 
   if (!isMobile) {
-    // Return desktop version - simplified grid
+    // Return desktop version - enhanced grid
     return (
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {roles.map((role) => (
           <RoleCard
             key={role.id}
@@ -70,7 +70,7 @@ export default function MobileRoleSelector({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4 px-1">
       {roles.map((role) => (
         <RoleCard
           key={role.id}
@@ -82,15 +82,16 @@ export default function MobileRoleSelector({
       ))}
       
       {multiSelect && selectedRoles.length > 0 && (
-        <div className="mt-6 p-4 bg-primary/5 rounded-lg border border-primary/20">
-          <div className="text-sm font-medium text-primary mb-2">
+        <div className="mt-8 p-5 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/20 shadow-sm">
+          <div className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" />
             Selected Roles ({selectedRoles.length})
           </div>
           <div className="flex flex-wrap gap-2">
             {selectedRoles.map((roleId) => {
               const role = roles.find(r => r.id === roleId);
               return role ? (
-                <Badge key={roleId} variant="default" className="text-xs">
+                <Badge key={roleId} variant="default" className="text-xs px-3 py-1 font-medium">
                   {role.title}
                 </Badge>
               ) : null;
@@ -113,63 +114,68 @@ function RoleCard({ role, isSelected, onSelect, isMobile }: RoleCardProps) {
   return (
     <Card 
       className={cn(
-        "cursor-pointer transition-all duration-200",
-        isMobile ? "p-4 active:scale-[0.98]" : "p-6 hover:shadow-lg",
-        isSelected && "ring-2 ring-primary ring-offset-2 bg-primary/5",
-        role.recommended && !isSelected && "border-primary/30 bg-primary/2"
+        "cursor-pointer transition-all duration-300 group relative overflow-hidden",
+        isMobile 
+          ? "p-5 active:scale-[0.97] shadow-sm hover:shadow-md min-h-[140px]" 
+          : "p-8 hover:shadow-xl hover:-translate-y-1 min-h-[200px]",
+        isSelected && "ring-2 ring-primary ring-offset-2 bg-gradient-to-br from-primary/8 to-primary/5 shadow-lg",
+        role.recommended && !isSelected && "border-primary/40 bg-gradient-to-br from-primary/5 to-primary/2 shadow-md",
+        !isSelected && !role.recommended && "hover:border-primary/20 hover:bg-primary/2"
       )}
       onClick={onSelect}
     >
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-4 h-full">
         {/* Icon */}
         <div className={cn(
-          "rounded-lg flex items-center justify-center flex-shrink-0",
-          isMobile ? "w-12 h-12" : "w-14 h-14",
+          "rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm transition-all duration-300",
+          isMobile ? "w-14 h-14" : "w-16 h-16",
           isSelected 
-            ? "bg-primary text-primary-foreground" 
-            : "bg-primary/10 text-primary"
+            ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg group-hover:scale-105" 
+            : "bg-gradient-to-br from-primary/15 to-primary/10 text-primary group-hover:bg-primary/20"
         )}>
           {role.icon}
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className={cn(
-              "font-semibold",
-              isMobile ? "text-base" : "text-lg"
-            )}>
-              {role.title}
-            </h3>
-            {role.recommended && (
-              <Badge variant="secondary" className="text-xs">
-                Popular
-              </Badge>
-            )}
+        <div className="flex-1 min-w-0 flex flex-col h-full">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className={cn(
+                "font-bold text-foreground",
+                isMobile ? "text-lg leading-tight" : "text-xl"
+              )}>
+                {role.title}
+              </h3>
+              {role.recommended && (
+                <Badge variant="secondary" className="text-xs font-semibold bg-gradient-to-r from-primary/15 to-primary/10 text-primary border-primary/20">
+                  Popular
+                </Badge>
+              )}
+            </div>
             {isSelected && (
-              <CheckCircle2 className="h-4 w-4 text-primary ml-auto flex-shrink-0" />
+              <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 animate-in zoom-in-75 duration-200" />
             )}
           </div>
           
           <p className={cn(
-            "text-muted-foreground leading-relaxed",
-            isMobile ? "text-sm line-clamp-2" : "text-sm"
+            "text-muted-foreground leading-relaxed flex-grow",
+            isMobile ? "text-sm mb-3" : "text-base mb-4"
           )}>
             {role.description}
           </p>
 
-          {/* Benefits - more compact on mobile */}
-          <div className="mt-3">
+          {/* Benefits - enhanced styling */}
+          <div className="mt-auto">
             <div className={cn(
-              "flex gap-1",
-              isMobile ? "flex-col space-y-1" : "flex-wrap"
+              "flex gap-2",
+              isMobile ? "flex-wrap" : "flex-wrap"
             )}>
-              {role.benefits.slice(0, isMobile ? 2 : 3).map((benefit, index) => (
+              {role.benefits.slice(0, isMobile ? 3 : 3).map((benefit, index) => (
                 <span 
                   key={index}
                   className={cn(
-                    "text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground",
-                    isMobile && "text-xs"
+                    "text-xs px-3 py-1.5 bg-gradient-to-r from-muted to-muted/80 rounded-full text-muted-foreground font-medium transition-colors hover:bg-primary/10 hover:text-primary",
+                    isMobile ? "text-xs" : "text-xs"
                   )}
                 >
                   {benefit}
@@ -179,6 +185,15 @@ function RoleCard({ role, isSelected, onSelect, isMobile }: RoleCardProps) {
           </div>
         </div>
       </div>
+      
+      {/* Selection indicator */}
+      {isSelected && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-2 right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+            <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
