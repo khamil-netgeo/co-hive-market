@@ -4,13 +4,19 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
+  "relative w-full rounded-lg border p-4 transition-all duration-200 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
+        default: "bg-background text-foreground border-border shadow-soft",
         destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+          "border-destructive/50 bg-destructive/5 text-destructive dark:border-destructive [&>svg]:text-destructive shadow-soft",
+        success:
+          "border-brand-success/50 bg-brand-success/5 text-brand-success [&>svg]:text-brand-success shadow-soft",
+        warning:
+          "border-brand-warning/50 bg-brand-warning/5 text-brand-warning [&>svg]:text-brand-warning shadow-soft",
+        info:
+          "border-brand-1/50 bg-brand-1/5 text-brand-1 [&>svg]:text-brand-1 shadow-soft",
       },
     },
     defaultVariants: {
