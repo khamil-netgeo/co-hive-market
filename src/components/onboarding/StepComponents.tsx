@@ -93,31 +93,33 @@ export function RoleSelectionStep({
         />
       </div>
 
-      <div className="flex justify-between items-center pt-6">
-        <Button variant="outline" onClick={onBack} disabled={isLoading} className="px-8 py-3">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        
-        <Button 
-          onClick={onNext} 
-          disabled={!singleRole || isLoading}
-          className="px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-200"
-          size="lg"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Setting up your account...
-            </>
-          ) : (
-            <>
-              Complete Setup
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </>
-          )}
-        </Button>
-      </div>
+      {!isMobile && (
+        <div className="flex justify-between items-center pt-6">
+          <Button variant="outline" onClick={onBack} disabled={isLoading} className="px-8 py-3">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          
+          <Button 
+            onClick={onNext} 
+            disabled={!singleRole || isLoading}
+            className="px-8 py-3 shadow-lg hover:shadow-xl transition-all duration-200"
+            size="lg"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Setting up your account...
+              </>
+            ) : (
+              <>
+                Complete Setup
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
