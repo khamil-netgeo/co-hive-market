@@ -121,6 +121,7 @@ const App = () => (
                   <Route path="/communities/:id/members" element={<CommunityMembers />} />
                   <Route path="/communities/:id/contribute" element={<Contribute />} />
                   <Route path="/community-payment-success" element={<CommunityPaymentSuccess />} />
+                  <Route path="/products" element={<Navigate to="/catalog" replace />} />
                   <Route path="/catalog" element={<Catalog />} />
                   <Route path="/unified-catalog" element={<UnifiedCatalog />} />
                   <Route path="/services" element={<Services />} />
