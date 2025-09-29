@@ -176,7 +176,10 @@ export default function VendorDashboard() {
     {
       title: "Total Orders",
       value: statsLoading ? "..." : (stats?.totalOrders || 0).toString(),
-      description: `${stats?.pendingOrders || 0} pending • ${stats?.completedOrders || 0} completed`,
+      description: [
+        (stats?.pendingOrders || 0) > 0 ? `${stats.pendingOrders} pending` : null,
+        (stats?.completedOrders || 0) > 0 ? `${stats.completedOrders} completed` : null
+      ].filter(Boolean).join(' • ') || "No orders yet",
       icon: <ListOrdered className="h-4 w-4" />
     },
     {
