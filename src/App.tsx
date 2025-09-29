@@ -6,7 +6,6 @@ import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProductionErrorBoundary } from "@/components/common/ProductionErrorBoundary";
 import { AccessibilityProvider } from "@/components/common/AccessibilityProvider";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -104,236 +103,118 @@ const App = () => (
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
         <AccessibilityProvider>
           <TooltipProvider>
-            <SidebarProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/auth" element={<Auth />} />
+                
+                {/* Routes that use Layout wrapper */}
+                <Route element={<Layout />}>
+                  <Route index element={<Index />} />
+                  <Route path="/chat" element={<ChatPage />} />
+                  <Route path="/communities" element={<Communities />} />
+                  <Route path="/communities/:id" element={<CommunityDetail />} />
+                  <Route path="/communities/:id/feed" element={<CommunityFeed />} />
+                  <Route path="/communities/:id/manage" element={<CommunityManage />} />
+                  <Route path="/communities/:id/members" element={<CommunityMembers />} />
+                  <Route path="/communities/:id/contribute" element={<Contribute />} />
+                  <Route path="/community-payment-success" element={<CommunityPaymentSuccess />} />
+                  <Route path="/catalog" element={<Catalog />} />
+                  <Route path="/unified-catalog" element={<UnifiedCatalog />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/feed" element={<Feed />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/checkout-new" element={<CheckoutNew />} />
+                  <Route path="/payment-success" element={<PaymentSuccess />} />
+                  <Route path="/payment-canceled" element={<PaymentCanceled />} />
+                  <Route path="/orders" element={<Orders />} />
+                  <Route path="/order-tracker/:orderId" element={<OrderTracker />} />
+                  <Route path="/delivery-details/:orderId" element={<DeliveryDetails />} />
+                  <Route path="/request-return/:orderId" element={<RequestReturn />} />
+                  <Route path="/request-cancellation/:orderId" element={<RequestCancellation />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/support" element={<SupportPage />} />
+                  <Route path="/getting-started" element={<GettingStarted />} />
+                  <Route path="/products/:productId" element={<ProductDetail />} />
+                  <Route path="/services/:serviceId" element={<ServiceDetail />} />
+                  <Route path="/store/:vendorId" element={<StoreFront />} />
+                  <Route path="/riders" element={<Riders />} />
 
-                  <Route element={<Layout />}>
-                    <Route path="/getting-started" element={<GettingStarted />} />
-                    <Route path="/auth" element={<Auth />} />
-                    
-                    <Route path="/catalog" element={<Navigate to="/products" replace />} />
-                    <Route path="/food" element={<Navigate to="/products?filter=prepared_food" replace />} />
-                    <Route path="/groceries" element={<Navigate to="/products?filter=grocery" replace />} />
-                    <Route path="/feed" element={<Feed />} />
-                    <Route path="/services" element={<Navigate to="/products?type=services" replace />} />
-                    <Route path="/products" element={<UnifiedCatalog />} />
-                    <Route path="/product" element={<Navigate to="/products" replace />} />
-                    <Route path="/product/:id" element={<ProductDetail />} />
-                    <Route path="/service/:id" element={<ServiceDetail />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/delivery-details" element={<DeliveryDetails />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/checkout-new" element={<CheckoutNew />} />
-                    <Route path="/orders" element={<Orders />} />
-                    <Route path="/orders/:id" element={<OrderTracker />} />
-                    <Route path="/orders/:id/return" element={<RequestReturn />} />
-                    <Route path="/orders/:id/cancel" element={<RequestCancellation />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="/communities" element={<Communities />} />
-                    <Route path="/communities/:id" element={<CommunityDetail />} />
-                    <Route path="/communities/:id/feed" element={<CommunityFeed />} />
-                    <Route path="/communities/:id/manage" element={<CommunityManage />} />
-                    <Route path="/communities/:id/members" element={<CommunityMembers />} />
-                    <Route path="/communities/:id/contribute" element={<Contribute />} />
-                    <Route path="/riders" element={<Riders />} />
-                    <Route path="/rider" element={<RiderDashboard />} />
-                    <Route path="/rider/assignments" element={<RiderAssignments />} />
-                    <Route path="/rider/deliveries" element={<RiderDeliveries />} />
-                    <Route path="/rider/profile" element={<RiderProfile />} />
-                    <Route path="/rider/payouts" element={<RiderPayouts />} />
+                  {/* Vendor Dashboard Routes */}
+                  <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+                  <Route path="/vendor/products" element={<VendorProducts />} />
+                  <Route path="/vendor/products/new" element={<ProductForm />} />
+                  <Route path="/vendor/products/edit/:id" element={<ProductForm />} />
+                  <Route path="/vendor/services" element={<Services />} />
+                  <Route path="/vendor/services/new" element={<ServiceForm />} />
+                  <Route path="/vendor/services/edit/:id" element={<ServiceForm />} />
+                  <Route path="/vendor/orders" element={<VendorOrders />} />
+                  <Route path="/vendor/orders/:orderId" element={<OrderDetail />} />
+                  <Route path="/vendor/analytics" element={<VendorAnalytics />} />
+                  <Route path="/vendor/analytics/advanced" element={<VendorAnalyticsAdvanced />} />
+                  <Route path="/vendor/inventory" element={<Inventory />} />
+                  <Route path="/vendor/reviews" element={<VendorReviews />} />
+                  <Route path="/vendor/payouts" element={<VendorPayouts />} />
+                  <Route path="/vendor/settings" element={<VendorSettings />} />
+                  <Route path="/vendor/listings" element={<VendorListings />} />
+                  <Route path="/vendor/cancellation-requests" element={<VendorCancellationRequests />} />
+                  <Route path="/vendor/return-requests" element={<VendorReturnRequests />} />
+                  <Route path="/vendor/bookings" element={<BookingsDashboard />} />
+                  <Route path="/vendor/calendar" element={<VendorCalendar />} />
+                  <Route path="/vendor/creator-studio" element={<CreatorStudio />} />
+                  <Route path="/vendor/service-automation" element={<ServiceAutomation />} />
+                  <Route path="/vendor/service-intelligence" element={<ServiceIntelligence />} />
 
-                    {/* Messaging & Support */}
-                    <Route path="/chat" element={<ChatPage />} />
-                    <Route path="/support" element={<SupportPage />} />
-                    
-                    <Route path="/vendor/services" element={<Navigate to="/vendor/listings?type=services" replace />} />
-                    <Route path="/vendor/services/new" element={<ServiceForm />} />
-                    <Route path="/vendor/services/:serviceId/edit" element={<ServiceForm />} />
-                    <Route path="/vendor/dashboard" element={<VendorDashboard />} />
-                    <Route path="/vendor/listings" element={<VendorListings />} />
-                    <Route path="/vendor/creator" element={<CreatorStudio />} />
-                    <Route path="/vendor/products" element={<Navigate to="/vendor/listings?type=products" replace />} />
-                    <Route path="/vendor/products/new" element={<ProductForm />} />
-                    <Route path="/vendor/products/:productId/edit" element={<ProductForm />} />
-                    <Route path="/vendor/orders" element={<VendorOrders />} />
-                    <Route path="/vendor/orders/:orderId" element={<OrderDetail />} />
-                    <Route path="/vendor/bookings" element={<BookingsDashboard />} />
-                    <Route path="/vendor/intelligence" element={<ServiceIntelligence />} />
-                    <Route path="/vendor/automation" element={<ServiceAutomation />} />
-                    <Route path="/vendor/analytics" element={<VendorAnalytics />} />
-                    <Route path="/vendor/analytics/advanced" element={<VendorAnalyticsAdvanced />} />
-                    <Route path="/vendor/calendar" element={<VendorCalendar />} />
-                    <Route path="/vendor/payouts" element={<VendorPayouts />} />
-                    <Route path="/vendor/inventory" element={<Inventory />} />
-                    <Route path="/vendor/reviews" element={<VendorReviews />} />
-                    <Route path="/vendor/settings" element={<VendorSettings />} />
-                    <Route path="/vendor/returns" element={<VendorReturnRequests />} />
-                    <Route path="/vendor/cancellations" element={<VendorCancellationRequests />} />
-                    <Route path="/payment-success" element={<PaymentSuccess />} />
-                    <Route path="/community-payment-success" element={<CommunityPaymentSuccess />} />
-                    <Route path="/payment-canceled" element={<PaymentCanceled />} />
-                    <Route path="/store/:vendorId" element={<StoreFront />} />
+                  {/* Rider Routes */}
+                  <Route path="/rider/dashboard" element={<RiderDashboard />} />
+                  <Route path="/rider/deliveries" element={<RiderDeliveries />} />
+                  <Route path="/rider/assignments" element={<RiderAssignments />} />
+                  <Route path="/rider/payouts" element={<RiderPayouts />} />
+                  <Route path="/rider/profile" element={<RiderProfile />} />
 
-                    {/* Admin routes */}
-                    <Route
-                      path="/admin"
-                      element={
-                        <RequireAdmin>
-                          <AdminLayout>
-                            <Dashboard />
-                          </AdminLayout>
-                        </RequireAdmin>
-                      }
-                    />
-                    <Route
-                      path="/admin/finance"
-                      element={
-                        <RequireAdmin>
-                          <AdminLayout>
-                            <Finance />
-                          </AdminLayout>
-                        </RequireAdmin>
-                      }
-                    />
-                    <Route
-                      path="/admin/kyc"
-                      element={
-                        <RequireAdmin>
-                          <AdminLayout>
-                            <AdminKYC />
-                          </AdminLayout>
-                        </RequireAdmin>
-                      }
-                    />
-                    <Route
-                      path="/admin/kyc-requirements"
-                      element={
-                        <RequireAdmin>
-                          <AdminLayout>
-                            <AdminKYCRequirements />
-                          </AdminLayout>
-                        </RequireAdmin>
-                      }
-                    />
-
-                    {/* Super Admin routes */}
-                    <Route
-                      path="/superadmin"
-                      element={
-                        <RequireSuperadmin>
-                          <SuperAdminLayout>
-                            <SuperAdminDashboard />
-                          </SuperAdminLayout>
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/platform"
-                      element={
-                        <RequireSuperadmin>
-                          <PlatformManagement />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/communications"
-                      element={
-                        <RequireSuperadmin>
-                          <Communications />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/finance"
-                      element={
-                        <RequireSuperadmin>
-                          <FinancialControl />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/verification"
-                      element={
-                        <RequireSuperadmin>
-                          <Verification />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/audit-logs"
-                      element={
-                        <RequireSuperadmin>
-                          <AuditLogs />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/testimonials"
-                      element={
-                        <RequireSuperadmin>
-                          <TestimonialsManagement />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/statistics"
-                      element={
-                        <RequireSuperadmin>
-                          <StatisticsManagement />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/trust"
-                      element={
-                        <RequireSuperadmin>
-                          <TrustManagement />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/content"
-                      element={
-                        <RequireSuperadmin>
-                          <PageContentManagement />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/process-steps"
-                      element={
-                        <RequireSuperadmin>
-                          <ProcessStepsManagement />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/categories"
-                      element={
-                        <RequireSuperadmin>
-                          <CategoriesManagement />
-                        </RequireSuperadmin>
-                      }
-                    />
-                    <Route
-                      path="/superadmin/roles"
-                      element={
-                        <RequireSuperadmin>
-                          <RolesManagement />
-                        </RequireSuperadmin>
-                      }
-                    />
-
-                    {/* Catch-all route */}
-                    <Route path="*" element={<NotFound />} />
+                  {/* Admin Routes */}
+                  <Route element={<RequireAdmin />}>
+                    <Route element={<AdminLayout />}>
+                      <Route path="/admin/dashboard" element={<Dashboard />} />
+                      <Route path="/admin/kyc" element={<AdminKYC />} />
+                      <Route path="/admin/kyc-requirements" element={<AdminKYCRequirements />} />
+                      <Route path="/admin/finance" element={<Finance />} />
+                    </Route>
                   </Route>
-                </Routes>
-              </BrowserRouter>
-            </SidebarProvider>
+
+                  {/* Super Admin Routes */}
+                  <Route element={<RequireSuperadmin />}>
+                    <Route element={<SuperAdminLayout />}>
+                      <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
+                      <Route path="/superadmin/users-roles" element={<UsersRoles />} />
+                      <Route path="/superadmin/roles-management" element={<RolesManagement />} />
+                      <Route path="/superadmin/categories" element={<Categories />} />
+                      <Route path="/superadmin/categories-management" element={<CategoriesManagement />} />
+                      <Route path="/superadmin/verification" element={<Verification />} />
+                      <Route path="/superadmin/financial-control" element={<FinancialControl />} />
+                      <Route path="/superadmin/platform-management" element={<PlatformManagement />} />
+                      <Route path="/superadmin/global-settings" element={<GlobalSettings />} />
+                      <Route path="/superadmin/feature-flags" element={<FeatureFlags />} />
+                      <Route path="/superadmin/audit-logs" element={<AuditLogs />} />
+                      <Route path="/superadmin/communications" element={<Communications />} />
+                      <Route path="/superadmin/announcements" element={<Announcements />} />
+                      <Route path="/superadmin/content-reports" element={<ContentReports />} />
+                      <Route path="/superadmin/page-content" element={<PageContentManagement />} />
+                      <Route path="/superadmin/testimonials" element={<TestimonialsManagement />} />
+                      <Route path="/superadmin/statistics" element={<StatisticsManagement />} />
+                      <Route path="/superadmin/process-steps" element={<ProcessStepsManagement />} />
+                      <Route path="/superadmin/trust-management" element={<TrustManagement />} />
+                    </Route>
+                  </Route>
+                </Route>
+
+                {/* 404 Not Found */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
           </TooltipProvider>
         </AccessibilityProvider>
       </ThemeProvider>
