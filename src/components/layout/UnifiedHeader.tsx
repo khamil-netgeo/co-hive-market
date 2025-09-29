@@ -37,32 +37,6 @@ export default function UnifiedHeader({ showSidebarTrigger = false, showNavigati
             <div className="h-7 w-7 rounded-md bg-gradient-primary" aria-hidden />
             <span className="hidden sm:inline text-lg font-semibold text-gradient-brand">CoopMarket</span>
           </Link>
-          
-          {showNavigation && (
-            <nav className="hidden gap-6 lg:flex ml-8">
-              <Link to="/products" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Products</Link>
-              <Link to="/products?type=services" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Services</Link>
-              <Link to="/communities" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Communities</Link>
-              {user ? (
-                isRider ? (
-                  <Link to="/rider" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Rider</Link>
-                ) : (
-                  <Link to="/riders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Become a Rider</Link>
-                )
-              ) : (
-                <Link to="/riders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Riders</Link>
-              )}
-              <Link to="/orders" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Orders</Link>
-              {isVendor && (
-                <Link to="/vendor/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Vendor</Link>
-              )}
-              {(isAdmin || isSuperadmin) && (
-                <Link to={isSuperadmin ? "/superadmin" : "/admin"} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  {isSuperadmin ? "Super Admin" : "Admin"}
-                </Link>
-              )}
-            </nav>
-          )}
         </div>
         
         <div className="flex items-center gap-2 min-w-0">
