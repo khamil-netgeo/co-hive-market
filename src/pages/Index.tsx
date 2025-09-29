@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import UnifiedHeader from "@/components/layout/UnifiedHeader";
-import SiteFooter from "@/components/layout/SiteFooter";
 import PageLayout from "@/components/layout/PageLayout";
 import { toast } from "sonner";
 import { setSEO } from "@/lib/seo";
@@ -77,13 +75,9 @@ const Index = () => {
           }
         }}
       />
-      <div className="min-h-screen flex flex-col">
-        <UnifiedHeader showNavigation />
-        <PageLayout variant="full" className="flex-1">
-          {content}
-        </PageLayout>
-        <SiteFooter />
-      </div>
+      <PageLayout variant="full" className="flex-1">
+        {content}
+      </PageLayout>
     </>
   );
 };
