@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Store, Truck, Home, ChevronRight } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type RoleType = 'buyer' | 'vendor' | 'delivery';
 
@@ -51,6 +52,7 @@ const routeLabels: Record<string, string> = {
 export default function RoleBreadcrumbs() {
   const location = useLocation();
   const currentPath = location.pathname;
+  const isMobile = useIsMobile();
 
   // Determine current role from path
   const getCurrentRole = (): RoleType => {
@@ -110,8 +112,8 @@ export default function RoleBreadcrumbs() {
 
   const breadcrumbs = buildBreadcrumbs();
 
-  // Don't show breadcrumbs on home page
-  if (currentPath === '/' || breadcrumbs.length <= 1) {
+  // Don't show breadcrumbs on home page or mobile
+  if (isMobile || currentPath === '/' || breadcrumbs.length <= 1) {
     return null;
   }
 
