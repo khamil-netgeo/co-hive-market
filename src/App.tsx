@@ -144,6 +144,7 @@ const App = () => (
                   <Route path="/riders" element={<Riders />} />
 
                   {/* Vendor Dashboard Routes */}
+                  <Route path="/vendor" element={<Navigate to="/vendor/dashboard" replace />} />
                   <Route path="/vendor/dashboard" element={<VendorDashboard />} />
                   <Route path="/vendor/products" element={<VendorProducts />} />
                   <Route path="/vendor/products/new" element={<ProductForm />} />
@@ -169,6 +170,7 @@ const App = () => (
                   <Route path="/vendor/service-intelligence" element={<ServiceIntelligence />} />
 
                   {/* Rider Routes */}
+                  <Route path="/rider" element={<Navigate to="/rider/dashboard" replace />} />
                   <Route path="/rider/dashboard" element={<RiderDashboard />} />
                   <Route path="/rider/deliveries" element={<RiderDeliveries />} />
                   <Route path="/rider/assignments" element={<RiderAssignments />} />
