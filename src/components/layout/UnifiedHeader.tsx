@@ -2,13 +2,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import useAuthRoles from "@/hooks/useAuthRoles";
 import useIsVendor from "@/hooks/useIsVendor";
 import useIsRider from "@/hooks/useIsRider";
-import { ShoppingCart, MessageSquare, LifeBuoy } from "lucide-react";
+import { ShoppingCart, MessageSquare, LifeBuoy, PanelLeft, Sun, Moon, Users } from "lucide-react";
 import { useCart } from "@/hooks/useCart";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useTheme } from "next-themes";
 import CommunitySelector from "@/components/community/CommunitySelector";
 
 interface UnifiedHeaderProps {
@@ -22,6 +22,8 @@ export default function UnifiedHeader({ showSidebarTrigger = false, showNavigati
   const { isRider } = useIsRider();
   const navigate = useNavigate();
   const { count } = useCart();
+  const { toggleSidebar } = useSidebar();
+  const { setTheme, resolvedTheme } = useTheme();
   const initials = (user?.email?.[0] || "?").toUpperCase();
   const username = user?.email?.split('@')[0] || "";
 
@@ -63,27 +65,7 @@ export default function UnifiedHeader({ showSidebarTrigger = false, showNavigati
           )}
         </div>
         
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <ThemeToggle />
-          
-          {user && (
-            <div className="hidden sm:block">
-              <CommunitySelector />
-            </div>
-          )}
-          
-          <Button variant="ghost" size="icon" asChild>
-            <Link to="/chat" aria-label="Chat with vendors" className="shrink-0">
-              <MessageSquare className="h-5 w-5" />
-            </Link>
-          </Button>
-          
-          <Button variant="ghost" size="icon" asChild>
-            <Link to="/support" aria-label="Support" className="shrink-0">
-              <LifeBuoy className="h-5 w-5" />
-            </Link>
-          </Button>
-          
+        <div className="flex items-center gap-2 min-w-0">
           <Button variant="ghost" size="sm" asChild>
             <Link to="/cart" aria-label={`Cart (${count} items)`} className="shrink-0">
               <ShoppingCart className="h-5 w-5" />
@@ -110,12 +92,41 @@ export default function UnifiedHeader({ showSidebarTrigger = false, showNavigati
                 <DropdownMenuLabel>Signed in as<br />{user.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 
+                {/* App controls */}
+                {showSidebarTrigger && (
+                  <DropdownMenuItem onSelect={() => toggleSidebar()}>
+                    <PanelLeft className="mr-2 h-4 w-4" />
+                    Toggle Sidebar
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onSelect={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
+                  {resolvedTheme === "dark" ? (
+                    <>
+                      <Sun className="mr-2 h-4 w-4" />
+                      Switch to Light
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="mr-2 h-4 w-4" />
+                      Switch to Dark
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => navigate("/chat")}>
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Messages
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => navigate("/support")}>
+                  <LifeBuoy className="mr-2 h-4 w-4" />
+                  Support
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                
                 {/* Core navigation */}
                 <DropdownMenuItem onSelect={() => navigate("/")}>Home</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/profile")}>Profile</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/orders")}>My Orders</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => navigate("/chat")}>Messages</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => navigate("/support")}>Support</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/catalog")}>Catalog</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => navigate("/feed")}>Shop Feed</DropdownMenuItem>
                 
